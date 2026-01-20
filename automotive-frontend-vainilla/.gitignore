@@ -1,0 +1,19 @@
+# Ignorar todo lo que no sea propio del frontend
+# Ignora carpetas y archivos del backend, entornos y bases de datos
+../*.db
+../*.md
+../.venv/
+../src/
+../tests/
+../test_maintenance.db
+../maintenance.db
+../reporte.md
+../.coverage
+../pyvenv.cfg
+../venv/
+../**/__pycache__/
+# Ignorar archivos temporales de VSCode
+.vscode/
+# Ignorar archivos del sistema
+.DS_Store
+Thumbs.db
