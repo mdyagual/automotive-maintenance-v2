@@ -19,7 +19,7 @@ class TestUpdateVehicleMileageUseCase:
     """Test cases for UpdateVehicleMileageUseCase."""
 
     def test_update_mileage_successfully(
-        self, vehicle_repository, alert_repository
+        self, vehicle_repository, observer_factory
     ) -> None:
         """
         Given: A vehicle with 5,000 km
@@ -35,7 +35,7 @@ class TestUpdateVehicleMileageUseCase:
 
         use_case = UpdateVehicleMileageUseCase(
             vehicle_repository=vehicle_repository,
-            alert_repository=alert_repository
+            observer_factory=observer_factory
         )
         
         command = UpdateMileageCommand(
@@ -54,7 +54,7 @@ class TestUpdateVehicleMileageUseCase:
         assert updated_vehicle.current_mileage == 8000
 
     def test_update_mileage_with_invalid_value_raises_exception(
-        self, vehicle_repository, alert_repository
+        self, vehicle_repository, observer_factory
     ) -> None:
         """
         Given: A vehicle with 5,000 km
@@ -69,7 +69,7 @@ class TestUpdateVehicleMileageUseCase:
 
         use_case = UpdateVehicleMileageUseCase(
             vehicle_repository=vehicle_repository,
-            alert_repository=alert_repository
+            observer_factory=observer_factory
         )
         
         command = UpdateMileageCommand(
@@ -82,7 +82,7 @@ class TestUpdateVehicleMileageUseCase:
             use_case.execute(command)
 
     def test_update_mileage_crossing_10k_threshold_generates_alert(
-        self, vehicle_repository, alert_repository
+        self, vehicle_repository, observer_factory, alert_repository
     ) -> None:
         """
         Given: A vehicle with 5,000 km and basic maintenance strategy
@@ -97,7 +97,7 @@ class TestUpdateVehicleMileageUseCase:
 
         use_case = UpdateVehicleMileageUseCase(
             vehicle_repository=vehicle_repository,
-            alert_repository=alert_repository
+            observer_factory=observer_factory
         )
         
         command = UpdateMileageCommand(
@@ -135,12 +135,11 @@ class TestUpdateVehicleMileageUseCase:
         """
         # Arrange
         mock_repository = Mock()
-        mock_alert_repository = Mock()
+        mock_observer_factory = Mock()
         
         use_case = UpdateVehicleMileageUseCase(
             vehicle_repository=mock_repository,
-            alert_repository=mock_alert_repository,
-            strategies=[]
+            observer_factory=mock_observer_factory
         )
         
         # Act & Assert - THIS SHOULD NOW PASS
@@ -168,7 +167,10 @@ class TestUpdateVehicleMileageUseCase:
         """
         # Arrange
         mock_repository = Mock()
-        mock_alert_repository = Mock()
+        mock_observer_factory = Mock()
+        mock_observer = Mock()
+        
+        mock_observer_factory.create_maintenance_observer.return_value = mock_observer
         
         vehicle = Vehicle(
             id="V-001",
@@ -181,8 +183,7 @@ class TestUpdateVehicleMileageUseCase:
         
         use_case = UpdateVehicleMileageUseCase(
             vehicle_repository=mock_repository,
-            alert_repository=mock_alert_repository,
-            strategies=[]
+            observer_factory=mock_observer_factory
         )
         
         command = UpdateMileageCommand(
@@ -208,8 +209,7 @@ class TestUpdateVehicleMileageUseCase:
         # Arrange
         use_case = UpdateVehicleMileageUseCase(
             vehicle_repository=Mock(),
-            alert_repository=Mock(),
-            strategies=[]
+            observer_factory=Mock()
         )
         
         # Act - Check return type annotation
@@ -228,7 +228,7 @@ class TestUpdateVehicleMileageUseCase:
         
         assert not is_none_return, "Use case should not return None"
 
-    def test_execute_uses_factory_to_create_observer():
+    def test_execute_uses_factory_to_create_observer(self):
         """
         1. If the code imports direct infrastructure, it will fail when attempting to mock.
         2. If the code instantiates 'MaintenanceAlertObserver' directly, it will ignore our mock factory.
@@ -236,7 +236,6 @@ class TestUpdateVehicleMileageUseCase:
         """
         # Arrange
         mock_repo = Mock()
-        mock_alert_repo = Mock() # Probablemente ya no lo necesites en el constructor si usas factory
         mock_observer_factory = Mock()
         mock_observer = Mock()
         
@@ -248,12 +247,9 @@ class TestUpdateVehicleMileageUseCase:
         mock_repo.get_by_id.return_value = vehicle_mock
 
         # ACT (We try to instantiate the use case by INJECTING the factory)
-        # This will fail (RED) until you modify the __init__ of the Use Case
         use_case = UpdateVehicleMileageUseCase(
             vehicle_repository=mock_repo,
-            alert_repository=mock_alert_repo, 
-            observer_factory=mock_observer_factory, # <--- La inyección clave
-            strategies=[]
+            observer_factory=mock_observer_factory  # <--- La inyección clave
         )
 
         command = UpdateMileageCommand(vehicle_id="V-1", new_mileage=6000)
