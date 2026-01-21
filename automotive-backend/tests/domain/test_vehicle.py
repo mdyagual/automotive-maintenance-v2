@@ -1,5 +1,6 @@
 """Tests for Vehicle entity following TDD approach."""
 import pytest
+from unittest.mock import Mock
 
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
@@ -91,6 +92,24 @@ class TestVehicleMileageUpdate:
         with pytest.raises(InvalidMileageException):
             vehicle.update_mileage(60000)  # Increment of 55,000 km
 
+    def test_update_mileage_notifies_observers(self):
+        """
+        This test validates that the logic of 'notifying' about the change in mileage
+        now lives in the Domain (Entity), not in the Use Case.
+        """
+        # Given
+        vehicle = Vehicle(id="V-1", plate="ABC", model="Test", current_mileage=0)
+        mock_observer = Mock()
+        vehicle.attach(mock_observer) # We assume that you implement the Observer pattern in Vehicle.
+
+        # When
+        # We simulate what the use case previously did manually.
+        vehicle.update_mileage(5000)
+
+        # Then
+        # We verified that the domain triggered the notification.
+        mock_observer.update.assert_called_once_with(vehicle)
+        assert vehicle.current_mileage == 5000
 
 class MockObserver(Observer):
     """Mock observer for testing."""

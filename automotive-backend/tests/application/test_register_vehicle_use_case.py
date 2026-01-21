@@ -1,10 +1,13 @@
 """Tests for RegisterVehicleUseCase following TDD approach."""
 
+import inspect
 import pytest
 from unittest.mock import Mock
+
 from src.application.dtos.vehicle_dtos import RegisterVehicleCommand, VehicleDTO
 from src.application.use_cases.register_vehicle_use_case import RegisterVehicleUseCase
 from src.domain.entities.vehicle import Vehicle
+from src.domain.exceptions.duplicate_vehicle_exception import DuplicateVehicleException
 from src.domain.exceptions.vehicle_not_found_exception import VehicleNotFoundException
 
 
@@ -54,9 +57,6 @@ class TestRegisterVehicleUseCase:
         Then: Should raise DuplicateVehicleException with appropriate message
         """
         # Arrange
-        from src.domain.exceptions.duplicate_vehicle_exception import (
-            DuplicateVehicleException,
-        )
 
         # Create existing vehicle
         existing_vehicle = Vehicle(
@@ -155,7 +155,6 @@ class TestRegisterVehicleUseCase:
         
         # Act & Assert - THIS SHOULD NOW PASS
         # The execute method should accept a Command DTO
-        import inspect
         sig = inspect.signature(use_case.execute)
         params = list(sig.parameters.keys())
         
@@ -236,7 +235,6 @@ class TestRegisterVehicleUseCase:
         )
         
         # Act - Check return type annotation
-        import inspect
         sig = inspect.signature(use_case.execute)
         return_annotation = sig.return_annotation
         
@@ -313,3 +311,47 @@ class TestRegisterVehicleUseCase:
         assert isinstance(vehicle_dto, VehicleDTO), (
             f"Expected VehicleDTO, got {type(vehicle_dto).__name__}"
         )
+
+    def test_execute_uses_observer_factory_to_delegate_logic(self):
+        """
+        This test validates the architectural arrangement: The use case no longer calculates alerts, it only connects the ObserverFactory.
+        """
+        # Arrange
+        mock_repo = Mock()
+        mock_observer_factory = Mock() 
+        mock_observer = Mock()
+        
+        # We configure the factory to return a fake observer.
+        mock_observer_factory.create_maintenance_observer.return_value = mock_observer
+        
+        # We simulate that the vehicle does not exist (so that you create it).
+        mock_repo.get_by_id.side_effect = VehicleNotFoundException()
+
+        use_case = RegisterVehicleUseCase(
+            vehicle_repository=mock_repo,
+            observer_factory=mock_observer_factory # <--- We demand injection (RED if you don't accept it)
+        )
+
+        command = RegisterVehicleCommand(
+            vehicle_id="V-1", 
+            plate="ABC", 
+            model="Test", 
+            initial_mileage=10000 # Kilometraje alto que debería activar alertas
+        )
+
+        # Act
+        use_case.execute(command)
+
+        # Assert
+        # 1. We verified that the complex logic was delegated to the factory (Orchestration).
+        mock_observer_factory.create_maintenance_observer.assert_called_once_with(
+            vehicle_id="V-1",
+            initial_mileage=0
+        )
+        
+        # 2. We verify that the observer was used (this implies that vehicle.attach was done internally).
+        # Note: Since vehicle is created within the UC, it is difficult to mock the attach directly without a Vehicle Factory, but we can verify the result in the repo.
+        saved_vehicle = mock_repo.save.call_args[0][0]
+        assert saved_vehicle.current_mileage == 10000
+        # Optional: If your Vehicle entity has a public list of observers, verify:
+        # assert mock_observer in saved_vehicle._observers
