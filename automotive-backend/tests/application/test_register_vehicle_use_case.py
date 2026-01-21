@@ -14,7 +14,7 @@ from src.domain.exceptions.vehicle_not_found_exception import VehicleNotFoundExc
 class TestRegisterVehicleUseCase:
     """Test cases for RegisterVehicleUseCase."""
 
-    def test_register_new_vehicle_successfully(self, vehicle_repository) -> None:
+    def test_register_new_vehicle_successfully(self, vehicle_repository, observer_factory) -> None:
         """
         Given: No vehicle with ID 'V-456' exists
         When: Registering a new vehicle with valid data
@@ -22,7 +22,10 @@ class TestRegisterVehicleUseCase:
         And: Vehicle should be retrievable by ID
         """
         # Arrange
-        use_case = RegisterVehicleUseCase(vehicle_repository=vehicle_repository)
+        use_case = RegisterVehicleUseCase(
+            vehicle_repository=vehicle_repository,
+            observer_factory=observer_factory
+        )
         
         command = RegisterVehicleCommand(
             vehicle_id="V-456",
@@ -49,7 +52,7 @@ class TestRegisterVehicleUseCase:
         assert saved_vehicle.current_mileage == 0
 
     def test_register_vehicle_with_duplicate_id_raises_exception(
-        self, vehicle_repository
+        self, vehicle_repository, observer_factory
     ) -> None:
         """
         Given: A vehicle with ID 'V-123' already exists
@@ -64,7 +67,10 @@ class TestRegisterVehicleUseCase:
         )
         vehicle_repository.save(existing_vehicle)
 
-        use_case = RegisterVehicleUseCase(vehicle_repository=vehicle_repository)
+        use_case = RegisterVehicleUseCase(
+            vehicle_repository=vehicle_repository,
+            observer_factory=observer_factory
+        )
         
         command = RegisterVehicleCommand(
             vehicle_id="V-123",
@@ -110,8 +116,7 @@ class TestRegisterVehicleUseCase:
         
         use_case = RegisterVehicleUseCase(
             vehicle_repository=mock_repository,
-            alert_repository=None,
-            strategies=[]
+            observer_factory=None
         )
         
         command = RegisterVehicleCommand(
@@ -149,8 +154,7 @@ class TestRegisterVehicleUseCase:
         
         use_case = RegisterVehicleUseCase(
             vehicle_repository=mock_repository,
-            alert_repository=None,
-            strategies=[]
+            observer_factory=None
         )
         
         # Act & Assert - THIS SHOULD NOW PASS
@@ -188,8 +192,7 @@ class TestRegisterVehicleUseCase:
         
         use_case = RegisterVehicleUseCase(
             vehicle_repository=mock_repository,
-            alert_repository=None,
-            strategies=[]
+            observer_factory=None
         )
         
         command = RegisterVehicleCommand(
@@ -230,8 +233,7 @@ class TestRegisterVehicleUseCase:
         # Arrange
         use_case = RegisterVehicleUseCase(
             vehicle_repository=Mock(),
-            alert_repository=None,
-            strategies=[]
+            observer_factory=None
         )
         
         # Act - Check return type annotation
@@ -272,8 +274,7 @@ class TestRegisterVehicleUseCase:
         
         use_case = RegisterVehicleUseCase(
             vehicle_repository=mock_repository,
-            alert_repository=None,
-            strategies=[]
+            observer_factory=None
         )
         
         command = RegisterVehicleCommand(

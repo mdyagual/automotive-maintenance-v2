@@ -108,7 +108,7 @@ class TestVehicleMileageUpdate:
 
         # Then
         # We verified that the domain triggered the notification.
-        mock_observer.update.assert_called_once_with(vehicle)
+        mock_observer.update.assert_called_once_with("V-1", 5000)
         assert vehicle.current_mileage == 5000
 
 class MockObserver(Observer):
@@ -152,7 +152,8 @@ class TestVehicleObserverPattern:
         Given: A vehicle with 5,000 km and a registered observer
         When: Updating mileage to 8,000 km (not crossing threshold)
         Then: Mileage should be updated to 8,000 km
-        And: Observer should NOT be notified
+        And: Observer SHOULD be notified (Vehicle notifies on every update)
+        And: Observer decides whether to generate alerts based on thresholds
         """
         # Arrange
         vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000)
@@ -164,4 +165,8 @@ class TestVehicleObserverPattern:
 
         # Assert
         assert vehicle.current_mileage == 8000
-        assert len(mock_observer.notifications) == 0
+        # Observer IS notified (Vehicle notifies on every update)
+        assert len(mock_observer.notifications) == 1
+        assert mock_observer.notifications[0]["vehicle_id"] == "V-123"
+        assert mock_observer.notifications[0]["mileage"] == 8000
+        # Note: Whether alerts are generated is the observer's responsibility
