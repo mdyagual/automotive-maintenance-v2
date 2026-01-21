@@ -1,5 +1,6 @@
 """Tests for UpdateVehicleMileageUseCase following TDD approach."""
 
+import inspect
 import pytest
 from unittest.mock import Mock
 
@@ -11,6 +12,7 @@ from src.domain.entities.maintenance_alert import AlertType
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
 from src.domain.exceptions.vehicle_not_found_exception import VehicleNotFoundException
+from src.domain.ports.observer import Observer
 
 
 class TestUpdateVehicleMileageUseCase:
@@ -142,7 +144,6 @@ class TestUpdateVehicleMileageUseCase:
         )
         
         # Act & Assert - THIS SHOULD NOW PASS
-        import inspect
         sig = inspect.signature(use_case.execute)
         params = list(sig.parameters.keys())
         
@@ -212,7 +213,6 @@ class TestUpdateVehicleMileageUseCase:
         )
         
         # Act - Check return type annotation
-        import inspect
         sig = inspect.signature(use_case.execute)
         return_annotation = sig.return_annotation
         
@@ -228,3 +228,49 @@ class TestUpdateVehicleMileageUseCase:
         
         assert not is_none_return, "Use case should not return None"
 
+    def test_execute_uses_factory_to_create_observer():
+        """
+        1. If the code imports direct infrastructure, it will fail when attempting to mock.
+        2. If the code instantiates 'MaintenanceAlertObserver' directly, it will ignore our mock factory.
+        3. If the constructor does not accept 'observer_factory', it will throw a TypeError.
+        """
+        # Arrange
+        mock_repo = Mock()
+        mock_alert_repo = Mock() # Probablemente ya no lo necesites en el constructor si usas factory
+        mock_observer_factory = Mock()
+        mock_observer = Mock()
+        
+        # We configure the factory: "When they ask you for an observer, give them this fake one."
+        mock_observer_factory.create_maintenance_observer.return_value = mock_observer
+        
+        vehicle_mock = Mock()
+        vehicle_mock.current_mileage = 5000
+        mock_repo.get_by_id.return_value = vehicle_mock
+
+        # ACT (We try to instantiate the use case by INJECTING the factory)
+        # This will fail (RED) until you modify the __init__ of the Use Case
+        use_case = UpdateVehicleMileageUseCase(
+            vehicle_repository=mock_repo,
+            alert_repository=mock_alert_repo, 
+            observer_factory=mock_observer_factory, # <--- La inyección clave
+            strategies=[]
+        )
+
+        command = UpdateMileageCommand(vehicle_id="V-1", new_mileage=6000)
+        
+        # We execute
+        use_case.execute(command)
+
+        # ASSERT (We verify behavior, not text)
+        
+        # 1. We verify that the factory was used (and not a direct 'new Observer' instantiation).
+        mock_observer_factory.create_maintenance_observer.assert_called_once_with(
+            vehicle_id="V-1",
+            initial_mileage=5000
+        )
+        
+        #2. We verified that the observer created was attached to the vehicle.
+        vehicle_mock.attach.assert_called_once_with(mock_observer)
+        
+        #3. We verified that the mileage was updated.
+        vehicle_mock.update_mileage.assert_called_once_with(6000)
