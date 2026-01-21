@@ -138,12 +138,7 @@ def create_vehicle(request: CreateVehicleRequest):
     try:
         use_case = RegisterVehicleUseCase(
             vehicle_repository=get_vehicle_repository(),
-            alert_repository=get_alert_repository(),
-            strategies=[
-                BasicMaintenanceStrategy(),
-                MajorMaintenanceStrategy(),
-                CriticalThresholdStrategy()
-            ]
+            observer_factory=get_observer_factory()  # ✅ Use factory
         )
         
         # Map web DTO to application DTO

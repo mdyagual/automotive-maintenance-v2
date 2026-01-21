@@ -87,6 +87,6 @@ class Vehicle:
         old_mileage = self.current_mileage
         self.current_mileage = new_mileage
 
-        # Notify observers if maintenance threshold crossed
-        if self._crosses_maintenance_threshold(old_mileage, new_mileage):
-            self._notify_observers()
+        # Notify observers on every mileage update
+        # The observer decides whether to generate alerts based on thresholds
+        self._notify_observers()

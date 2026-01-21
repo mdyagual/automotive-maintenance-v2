@@ -1,9 +1,6 @@
 """Use case for registering a new vehicle in the system."""
 
-from datetime import datetime
-
 from src.application.dtos.vehicle_dtos import RegisterVehicleCommand, VehicleDTO
-from src.domain.entities.maintenance_alert import MaintenanceAlert
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.duplicate_vehicle_exception import (
     DuplicateVehicleException,
@@ -11,6 +8,7 @@ from src.domain.exceptions.duplicate_vehicle_exception import (
 from src.domain.exceptions.vehicle_not_found_exception import (
     VehicleNotFoundException,
 )
+from src.domain.ports.observer_factory import ObserverFactory
 from src.domain.ports.vehicle_repository import VehicleRepository
 
 
@@ -20,13 +18,17 @@ class RegisterVehicleUseCase:
     def __init__(
         self,
         vehicle_repository: VehicleRepository,
-        alert_repository=None,
-        strategies=None,
+        observer_factory: ObserverFactory = None,
     ):
-        """Initialize use case with repository and alert dependencies."""
+        """
+        Initialize use case with repository and observer factory.
+
+        Args:
+            vehicle_repository: Repository for vehicle persistence
+            observer_factory: Factory for creating observers (optional)
+        """
         self._vehicle_repository = vehicle_repository
-        self._alert_repository = alert_repository
-        self._strategies = strategies or []
+        self._observer_factory = observer_factory
 
     def execute(self, command: RegisterVehicleCommand) -> VehicleDTO:
         """
@@ -54,41 +56,23 @@ class RegisterVehicleUseCase:
             id=command.vehicle_id,
             plate=command.plate,
             model=command.model,
-            current_mileage=command.initial_mileage
+            current_mileage=0  # Start at 0 to trigger all missed alerts
         )
+
+        # ✅ Use Observer pattern to generate missed alerts
+        if self._observer_factory and command.initial_mileage > 0:
+            # Create observer starting from 0 to catch all thresholds
+            observer = self._observer_factory.create_maintenance_observer(
+                vehicle_id=command.vehicle_id,
+                initial_mileage=0
+            )
+            vehicle.attach(observer)
+            
+            # Update to initial mileage - this triggers alert generation via observer
+            vehicle.update_mileage(command.initial_mileage)
 
         # Save to repository
         self._vehicle_repository.save(vehicle)
-
-        # Extensión: Generar alertas omitidas si el kilometraje inicial cruza umbrales
-        if self._alert_repository and self._strategies:
-            for strategy in self._strategies:
-                old_threshold = strategy._calculate_threshold(0)
-                new_threshold = strategy._calculate_threshold(command.initial_mileage)
-                interval = strategy.INTERVAL
-                alert_type = strategy.get_alert_type()
-                if new_threshold > old_threshold:
-                    for threshold in range(
-                        old_threshold + interval, new_threshold + 1, interval
-                    ):
-                        # Verificar si ya existe una alerta para ese vehículo, tipo y kilometraje
-                        existentes = self._alert_repository.get_by_vehicle_id(command.vehicle_id)
-                        ya_existe = any(
-                            a.alert_type == alert_type and a.mileage == threshold
-                            for a in existentes
-                        )
-                        if not ya_existe:
-                            alert = MaintenanceAlert(
-                                id=(
-                                    f"A-{command.vehicle_id}-{threshold}-"
-                                    f"{alert_type.value}"
-                                ),
-                                vehicle_id=command.vehicle_id,
-                                alert_type=alert_type,
-                                mileage=threshold,
-                                timestamp=datetime.now(),
-                            )
-                            self._alert_repository.save(alert)
 
         # Return DTO (not entity!)
         return VehicleDTO(
