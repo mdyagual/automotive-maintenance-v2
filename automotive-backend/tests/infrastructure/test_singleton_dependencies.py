@@ -145,7 +145,7 @@ class TestSingletonDependencyViolation:
         
         # Assert - THIS SHOULD FAIL (currently all share same session)
         # After fix, each should have DIFFERENT sessions
-        assert vehicle_repo1._session is not vehicle_repo2._session, (
+        assert vehicle_repo1._db is not vehicle_repo2._db, (
             "ARCHITECTURAL VIOLATION: All repository instances share the same database session. "
             "This causes: "
             "1. No transaction isolation between requests "
@@ -155,55 +155,36 @@ class TestSingletonDependencyViolation:
             "EXPECTED: Each repository should have its own request-scoped session."
         )
         
-        assert alert_repo1._session is not alert_repo2._session, (
+        assert alert_repo1._db is not alert_repo2._db, (
             "ARCHITECTURAL VIOLATION: Alert repositories share the same session"
         )
         
-        assert vehicle_repo1._session is not alert_repo1._session, (
+        assert vehicle_repo1._db is not alert_repo1._db, (
             "ARCHITECTURAL VIOLATION: Different repository types share the same session"
         )
 
     def test_concurrent_requests_cause_transaction_isolation_violation(self):
         """
-        VIOLATION: Concurrent requests interfere with each other due to shared session.
+        TEST: Verify that concurrent requests have isolated sessions.
         
         SCENARIO:
-        - Request 1 starts a transaction
-        - Request 2 uses the same session
-        - Request 1's uncommitted changes are visible to Request 2
-        - No isolation between requests
+        - Request 1 gets a repository
+        - Request 2 gets a repository
+        - Each should have its own session for transaction isolation
         
-        THIS TEST SHOULD FAIL with current implementation.
+        THIS TEST SHOULD PASS with the fix.
         """
-        # Arrange - Create test database
-        engine = create_engine("sqlite:///:memory:")
-        Base.metadata.create_all(engine)
-        SessionLocal = sessionmaker(bind=engine)
+        # Act - Simulate two concurrent requests using our dependency functions
+        repo_request1 = get_vehicle_repository()
+        repo_request2 = get_vehicle_repository()
         
-        # Simulate two concurrent requests using the same session (current behavior)
-        shared_session = SessionLocal()
-        repo_request1 = SqliteVehicleRepository(shared_session)
-        repo_request2 = SqliteVehicleRepository(shared_session)
-        
-        # Request 1: Save a vehicle (not committed yet)
-        vehicle1 = Vehicle(id="V-001", plate="ABC-001", model="Toyota", current_mileage=1000)
-        repo_request1.save(vehicle1)
-        # In proper implementation, this would be in a transaction not yet committed
-        
-        # Request 2: Try to read vehicles (should NOT see uncommitted data)
-        all_vehicles = repo_request2.get_all()
-        
-        # Assert - THIS SHOULD FAIL
-        # With proper per-request sessions, Request 2 should NOT see Request 1's uncommitted data
-        # But with singleton, it DOES see it (violation)
-        assert repo_request1._session is not repo_request2._session, (
+        # Assert - Each request should have its own session
+        assert repo_request1._db is not repo_request2._db, (
             "ARCHITECTURAL VIOLATION: Concurrent requests share the same database session. "
             "This breaks transaction isolation. "
             "Request 2 can see Request 1's uncommitted changes. "
             "EXPECTED: Each request should have its own isolated session."
         )
-        
-        shared_session.close()
 
     def test_session_is_never_closed_memory_leak_violation(self):
         """
@@ -233,7 +214,7 @@ class TestSingletonDependencyViolation:
         # Assert - THIS SHOULD FAIL
         # We can't directly test if session is closed, but we can verify
         # that different calls should use different sessions
-        assert repo1._session is not repo2._session, (
+        assert repo1._db is not repo2._db, (
             "ARCHITECTURAL VIOLATION: Singleton session is never closed. "
             "This causes memory leaks as connections accumulate. "
             "EXPECTED: Use per-request sessions with proper cleanup: "
@@ -249,42 +230,26 @@ class TestSingletonDependencyViolation:
 
     def test_cannot_rollback_per_request_violation(self):
         """
-        VIOLATION: Cannot rollback failed transactions per request.
+        TEST: Verify that each request can independently rollback.
         
         SCENARIO:
-        - Request 1 makes changes and fails
-        - Request 2 starts
-        - Request 1's partial changes are still in the shared session
-        - Cannot rollback Request 1 without affecting Request 2
+        - Request 1 gets a repository
+        - Request 2 gets a repository
+        - Each should have its own session that can be independently rolled back
         
-        THIS TEST SHOULD FAIL with current implementation.
+        THIS TEST SHOULD PASS with the fix.
         """
-        # Arrange
-        engine = create_engine("sqlite:///:memory:")
-        Base.metadata.create_all(engine)
-        SessionLocal = sessionmaker(bind=engine)
+        # Act - Simulate two concurrent requests using our dependency functions
+        repo_request1 = get_vehicle_repository()
+        repo_request2 = get_vehicle_repository()
         
-        # Simulate shared session (current behavior)
-        shared_session = SessionLocal()
-        repo_request1 = SqliteVehicleRepository(shared_session)
-        repo_request2 = SqliteVehicleRepository(shared_session)
-        
-        # Request 1: Start making changes
-        vehicle1 = Vehicle(id="V-001", plate="ABC-001", model="Toyota", current_mileage=1000)
-        repo_request1.save(vehicle1)
-        
-        # Request 1 fails and wants to rollback
-        # But Request 2 is already using the same session!
-        
-        # Assert - THIS SHOULD FAIL
-        assert repo_request1._session is not repo_request2._session, (
+        # Assert - Each request should have its own session
+        assert repo_request1._db is not repo_request2._db, (
             "ARCHITECTURAL VIOLATION: Cannot rollback per request. "
             "Shared session means rolling back Request 1 would affect Request 2. "
             "EXPECTED: Each request should have its own session that can be "
             "independently committed or rolled back."
         )
-        
-        shared_session.close()
 
     def test_thread_safety_violation_with_shared_session(self):
         """
@@ -304,7 +269,7 @@ class TestSingletonDependencyViolation:
         
         # Assert - THIS SHOULD FAIL
         # Each request (potentially in different threads) should have its own session
-        assert repo1._session is not repo2._session, (
+        assert repo1._db is not repo2._db, (
             "ARCHITECTURAL VIOLATION: Shared session across threads is not thread-safe. "
             "SQLAlchemy sessions are not thread-safe. "
             "Multiple concurrent requests using the same session can cause: "
@@ -315,7 +280,7 @@ class TestSingletonDependencyViolation:
             "to ensure thread safety."
         )
         
-        assert repo2._session is not repo3._session, (
+        assert repo2._db is not repo3._db, (
             "ARCHITECTURAL VIOLATION: Thread safety not guaranteed"
         )
 
@@ -402,40 +367,21 @@ class TestSingletonViolationImpact:
 
     def test_data_corruption_scenario_with_concurrent_updates(self):
         """
-        REAL-WORLD BUG: Data corruption when two requests update the same vehicle.
+        TEST: Verify that concurrent updates have isolated sessions.
         
         SCENARIO:
-        - Request 1: Update vehicle V-001 mileage to 10000
-        - Request 2: Update vehicle V-001 mileage to 15000
-        - Both use same session
-        - Race condition causes data corruption
+        - Request 1 gets a repository
+        - Request 2 gets a repository
+        - Each should have its own session to prevent data corruption
         
-        THIS TEST SHOULD FAIL with current implementation.
+        THIS TEST SHOULD PASS with the fix.
         """
-        # Arrange
-        engine = create_engine("sqlite:///:memory:")
-        Base.metadata.create_all(engine)
-        SessionLocal = sessionmaker(bind=engine)
+        # Act - Simulate two concurrent requests using our dependency functions
+        repo_request1 = get_vehicle_repository()
+        repo_request2 = get_vehicle_repository()
         
-        # Create initial vehicle
-        session = SessionLocal()
-        repo = SqliteVehicleRepository(session)
-        vehicle = Vehicle(id="V-001", plate="ABC-001", model="Toyota", current_mileage=5000)
-        repo.save(vehicle)
-        session.commit()
-        
-        # Simulate two concurrent requests with shared session (current behavior)
-        shared_session = SessionLocal()
-        repo_request1 = SqliteVehicleRepository(shared_session)
-        repo_request2 = SqliteVehicleRepository(shared_session)
-        
-        # Both requests load the same vehicle
-        vehicle_req1 = repo_request1.get_by_id("V-001")
-        vehicle_req2 = repo_request2.get_by_id("V-001")
-        
-        # Assert - THIS SHOULD FAIL
-        # With proper per-request sessions, these would be isolated
-        assert repo_request1._session is not repo_request2._session, (
+        # Assert - Each request should have its own session
+        assert repo_request1._db is not repo_request2._db, (
             "ARCHITECTURAL VIOLATION: Concurrent updates use shared session. "
             "This can cause data corruption. "
             "REAL-WORLD IMPACT: "
@@ -445,9 +391,6 @@ class TestSingletonViolationImpact:
             "- Lost updates and data inconsistency "
             "EXPECTED: Each request should have isolated transaction."
         )
-        
-        session.close()
-        shared_session.close()
 
     def test_memory_leak_accumulation_over_time(self):
         """
@@ -470,7 +413,7 @@ class TestSingletonViolationImpact:
         
         # Assert - THIS SHOULD FAIL
         # All repositories should have DIFFERENT sessions
-        unique_sessions = set(id(repo._session) for repo in repositories)
+        unique_sessions = set(id(repo._db) for repo in repositories)
         
         assert len(unique_sessions) == len(repositories), (
             f"ARCHITECTURAL VIOLATION: Memory leak detected. "
@@ -485,28 +428,21 @@ class TestSingletonViolationImpact:
 
     def test_transaction_rollback_affects_other_requests(self):
         """
-        REAL-WORLD BUG: Rolling back one request affects other requests.
+        TEST: Verify that each request has independent transaction control.
         
         SCENARIO:
-        - Request 1: Create vehicle V-001
-        - Request 2: Create vehicle V-002
-        - Request 1 fails and rolls back
-        - Request 2's vehicle is also rolled back (unintended!)
+        - Request 1 gets a repository
+        - Request 2 gets a repository
+        - Each should have its own session for independent rollback
         
-        THIS TEST SHOULD FAIL with current implementation.
+        THIS TEST SHOULD PASS with the fix.
         """
-        # Arrange
-        engine = create_engine("sqlite:///:memory:")
-        Base.metadata.create_all(engine)
-        SessionLocal = sessionmaker(bind=engine)
+        # Act - Simulate two concurrent requests using our dependency functions
+        repo_request1 = get_vehicle_repository()
+        repo_request2 = get_vehicle_repository()
         
-        # Simulate shared session (current behavior)
-        shared_session = SessionLocal()
-        repo_request1 = SqliteVehicleRepository(shared_session)
-        repo_request2 = SqliteVehicleRepository(shared_session)
-        
-        # Assert - THIS SHOULD FAIL
-        assert repo_request1._session is not repo_request2._session, (
+        # Assert - Each request should have its own session
+        assert repo_request1._db is not repo_request2._db, (
             "ARCHITECTURAL VIOLATION: Shared session causes unintended rollbacks. "
             "REAL-WORLD IMPACT: "
             "- Request 1 creates vehicle V-001 "
@@ -517,5 +453,3 @@ class TestSingletonViolationImpact:
             "EXPECTED: Each request should have isolated transaction that can be "
             "independently committed or rolled back."
         )
-        
-        shared_session.close()
