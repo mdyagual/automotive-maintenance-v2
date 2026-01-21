@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from src.application.dtos.vehicle_dtos import RegisterVehicleCommand, VehicleDTO
 from src.domain.entities.maintenance_alert import MaintenanceAlert
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.duplicate_vehicle_exception import (
@@ -27,35 +28,33 @@ class RegisterVehicleUseCase:
         self._alert_repository = alert_repository
         self._strategies = strategies or []
 
-    def execute(
-        self, vehicle_id: str, plate: str, model: str, initial_mileage: int
-    ) -> Vehicle:
+    def execute(self, command: RegisterVehicleCommand) -> VehicleDTO:
         """
         Register a new vehicle in the system.
 
         Args:
-            vehicle_id: Unique identifier for the vehicle
-            plate: License plate number
-            model: Vehicle model name
-            initial_mileage: Starting mileage value
+            command: RegisterVehicleCommand with vehicle data
 
         Returns:
-            The registered vehicle entity
+            VehicleDTO with registered vehicle data
 
         Raises:
             DuplicateVehicleException: If vehicle with same ID already exists
         """
         # Validate vehicle ID doesn't exist
         try:
-            self._vehicle_repository.get_by_id(vehicle_id)
-            raise DuplicateVehicleException(f"Ya existe un vehículo con ID {vehicle_id}")
+            self._vehicle_repository.get_by_id(command.vehicle_id)
+            raise DuplicateVehicleException(f"Ya existe un vehículo con ID {command.vehicle_id}")
         except VehicleNotFoundException:
             # Vehicle doesn't exist (expected), continue
             pass
 
         # Create new vehicle entity
         vehicle = Vehicle(
-            id=vehicle_id, plate=plate, model=model, current_mileage=initial_mileage
+            id=command.vehicle_id,
+            plate=command.plate,
+            model=command.model,
+            current_mileage=command.initial_mileage
         )
 
         # Save to repository
@@ -65,7 +64,7 @@ class RegisterVehicleUseCase:
         if self._alert_repository and self._strategies:
             for strategy in self._strategies:
                 old_threshold = strategy._calculate_threshold(0)
-                new_threshold = strategy._calculate_threshold(initial_mileage)
+                new_threshold = strategy._calculate_threshold(command.initial_mileage)
                 interval = strategy.INTERVAL
                 alert_type = strategy.get_alert_type()
                 if new_threshold > old_threshold:
@@ -73,7 +72,7 @@ class RegisterVehicleUseCase:
                         old_threshold + interval, new_threshold + 1, interval
                     ):
                         # Verificar si ya existe una alerta para ese vehículo, tipo y kilometraje
-                        existentes = self._alert_repository.get_by_vehicle_id(vehicle_id)
+                        existentes = self._alert_repository.get_by_vehicle_id(command.vehicle_id)
                         ya_existe = any(
                             a.alert_type == alert_type and a.mileage == threshold
                             for a in existentes
@@ -81,14 +80,20 @@ class RegisterVehicleUseCase:
                         if not ya_existe:
                             alert = MaintenanceAlert(
                                 id=(
-                                    f"A-{vehicle_id}-{threshold}-"
+                                    f"A-{command.vehicle_id}-{threshold}-"
                                     f"{alert_type.value}"
                                 ),
-                                vehicle_id=vehicle_id,
+                                vehicle_id=command.vehicle_id,
                                 alert_type=alert_type,
                                 mileage=threshold,
                                 timestamp=datetime.now(),
                             )
                             self._alert_repository.save(alert)
 
-        return vehicle
+        # Return DTO (not entity!)
+        return VehicleDTO(
+            id=vehicle.id,
+            plate=vehicle.plate,
+            model=vehicle.model,
+            current_mileage=vehicle.current_mileage
+        )

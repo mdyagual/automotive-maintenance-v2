@@ -4,6 +4,11 @@ from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.application.dtos.vehicle_dtos import (
+    RegisterVehicleCommand,
+    UpdateMileageCommand,
+    DeleteVehicleCommand,
+)
 from src.application.use_cases.delete_vehicle_use_case import DeleteVehicleUseCase
 from src.application.use_cases.get_all_vehicles_use_case import GetAllVehiclesUseCase
 from src.application.use_cases.register_vehicle_use_case import RegisterVehicleUseCase
@@ -139,18 +144,24 @@ def create_vehicle(request: CreateVehicleRequest):
                 CriticalThresholdStrategy()
             ]
         )
-        vehicle = use_case.execute(
+        
+        # Map web DTO to application DTO
+        command = RegisterVehicleCommand(
             vehicle_id=request.id,
             plate=request.plate,
             model=request.model,
-            initial_mileage=request.initial_mileage,
+            initial_mileage=request.initial_mileage
         )
+        
+        # Execute use case
+        vehicle_dto = use_case.execute(command)
 
+        # Map application DTO to web DTO
         return VehicleResponse(
-            id=vehicle.id,
-            plate=vehicle.plate,
-            model=vehicle.model,
-            current_mileage=vehicle.current_mileage,
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage,
         )
     except DuplicateVehicleException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -174,20 +185,29 @@ def get_all_vehicles():
     )
     result = use_case.execute()
 
-    # Convert to response DTOs
+    # Convert DTOs to response models
     response = []
     for item in result:
-        vehicle = item["vehicle"]
-        alerts = item["alerts"]
+        vehicle_dto = item.vehicle
+        alert_dtos = item.alerts
 
-        alert_responses = [_map_alert_to_response(alert) for alert in alerts]
+        alert_responses = [
+            AlertResponse(
+                id=alert_dto.id,
+                vehicle_id=alert_dto.vehicle_id,
+                alert_type=alert_dto.alert_type,
+                mileage=alert_dto.mileage,
+                timestamp=alert_dto.timestamp.isoformat(),
+            )
+            for alert_dto in alert_dtos
+        ]
 
         response.append(
             VehicleWithAlertsResponse(
-                id=vehicle.id,
-                plate=vehicle.plate,
-                model=vehicle.model,
-                current_mileage=vehicle.current_mileage,
+                id=vehicle_dto.id,
+                plate=vehicle_dto.plate,
+                model=vehicle_dto.model,
+                current_mileage=vehicle_dto.current_mileage,
                 alerts=alert_responses,
             )
         )
@@ -252,13 +272,21 @@ def update_vehicle_mileage(vehicle_id: str, request: UpdateMileageRequest):
     )
 
     try:
-        use_case.execute(vehicle_id=vehicle_id, new_mileage=request.new_mileage)
-        vehicle = get_vehicle_repository().get_by_id(vehicle_id)
+        # Map to command DTO
+        command = UpdateMileageCommand(
+            vehicle_id=vehicle_id,
+            new_mileage=request.new_mileage
+        )
+        
+        # Execute use case
+        vehicle_dto = use_case.execute(command)
+        
+        # Map DTO to response
         return VehicleResponse(
-            id=vehicle.id,
-            plate=vehicle.plate,
-            model=vehicle.model,
-            current_mileage=vehicle.current_mileage
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage
         )
     except InvalidMileageException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -317,6 +345,11 @@ def delete_vehicle(vehicle_id: str):
     """
     try:
         use_case = DeleteVehicleUseCase(vehicle_repository=get_vehicle_repository())
-        use_case.execute(vehicle_id=vehicle_id)
+        
+        # Map to command DTO
+        command = DeleteVehicleCommand(vehicle_id=vehicle_id)
+        
+        # Execute use case (returns confirmation DTO, but we don't use it for 204 response)
+        use_case.execute(command)
     except VehicleNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

@@ -1,5 +1,6 @@
 """Update Vehicle Mileage Use Case - Application layer."""
 
+from src.application.dtos.vehicle_dtos import UpdateMileageCommand, VehicleDTO
 from src.domain.ports.alert_repository import AlertRepository
 from src.domain.ports.vehicle_repository import VehicleRepository
 from src.domain.strategies.basic_maintenance_strategy import BasicMaintenanceStrategy
@@ -28,27 +29,26 @@ class UpdateVehicleMileageUseCase:
         self._alert_repository = alert_repository
         self._strategies = strategies or [BasicMaintenanceStrategy()]
 
-
-
-    def execute(self, vehicle_id: str, new_mileage: int) -> None:
+    def execute(self, command: UpdateMileageCommand) -> VehicleDTO:
         """
         Execute the use case to update vehicle mileage.
 
         Args:
-            vehicle_id: Unique identifier of the vehicle
-            new_mileage: New mileage value
+            command: UpdateMileageCommand with vehicle_id and new_mileage
+
+        Returns:
+            VehicleDTO with updated vehicle data
 
         Raises:
             InvalidMileageException: If new mileage is invalid
             VehicleNotFoundException: If vehicle not found
         """
         # Obtener vehículo
-        vehicle = self._vehicle_repository.get_by_id(vehicle_id)
+        vehicle = self._vehicle_repository.get_by_id(command.vehicle_id)
 
         # Adjuntar observer real para alertas
-
         observer = MaintenanceAlertObserver(
-            vehicle_id=vehicle_id,
+            vehicle_id=command.vehicle_id,
             alert_repository=self._alert_repository,
             strategies=self._strategies,
             initial_mileage=vehicle.current_mileage
@@ -56,7 +56,15 @@ class UpdateVehicleMileageUseCase:
         vehicle.attach(observer)
 
         # Actualizar kilometraje (la notificación y generación de alertas ocurre vía observer)
-        vehicle.update_mileage(new_mileage)
+        vehicle.update_mileage(command.new_mileage)
 
         # Persistir vehículo actualizado
         self._vehicle_repository.save(vehicle)
+
+        # Return DTO (not entity!)
+        return VehicleDTO(
+            id=vehicle.id,
+            plate=vehicle.plate,
+            model=vehicle.model,
+            current_mileage=vehicle.current_mileage
+        )
