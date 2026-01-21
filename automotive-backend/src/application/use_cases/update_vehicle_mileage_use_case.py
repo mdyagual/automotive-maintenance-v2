@@ -1,11 +1,8 @@
 """Update Vehicle Mileage Use Case - Application layer."""
 
 from src.application.dtos.vehicle_dtos import UpdateMileageCommand, VehicleDTO
-from src.domain.ports.alert_repository import AlertRepository
+from src.domain.ports.observer_factory import ObserverFactory
 from src.domain.ports.vehicle_repository import VehicleRepository
-from src.domain.strategies.basic_maintenance_strategy import BasicMaintenanceStrategy
-from src.domain.strategies.maintenance_strategy import MaintenanceStrategy
-from src.infrastructure.observers.maintenance_alert_observer import MaintenanceAlertObserver
 
 
 class UpdateVehicleMileageUseCase:
@@ -14,20 +11,17 @@ class UpdateVehicleMileageUseCase:
     def __init__(
         self,
         vehicle_repository: VehicleRepository,
-        alert_repository: AlertRepository,
-        strategies: list[MaintenanceStrategy] = None
+        observer_factory: ObserverFactory
     ) -> None:
         """
         Initialize use case with dependencies.
 
         Args:
             vehicle_repository: Repository for vehicle persistence
-            alert_repository: Repository for alert persistence
-            strategies: List of maintenance strategies (defaults to BasicMaintenanceStrategy)
+            observer_factory: Factory for creating observers (domain abstraction)
         """
         self._vehicle_repository = vehicle_repository
-        self._alert_repository = alert_repository
-        self._strategies = strategies or [BasicMaintenanceStrategy()]
+        self._observer_factory = observer_factory
 
     def execute(self, command: UpdateMileageCommand) -> VehicleDTO:
         """
@@ -43,22 +37,20 @@ class UpdateVehicleMileageUseCase:
             InvalidMileageException: If new mileage is invalid
             VehicleNotFoundException: If vehicle not found
         """
-        # Obtener vehículo
+        # Get vehicle
         vehicle = self._vehicle_repository.get_by_id(command.vehicle_id)
 
-        # Adjuntar observer real para alertas
-        observer = MaintenanceAlertObserver(
+        # ✅ Use factory (domain abstraction) to create observer
+        observer = self._observer_factory.create_maintenance_observer(
             vehicle_id=command.vehicle_id,
-            alert_repository=self._alert_repository,
-            strategies=self._strategies,
             initial_mileage=vehicle.current_mileage
         )
         vehicle.attach(observer)
 
-        # Actualizar kilometraje (la notificación y generación de alertas ocurre vía observer)
+        # Update mileage (notification and alert generation occurs via observer)
         vehicle.update_mileage(command.new_mileage)
 
-        # Persistir vehículo actualizado
+        # Persist updated vehicle
         self._vehicle_repository.save(vehicle)
 
         # Return DTO (not entity!)

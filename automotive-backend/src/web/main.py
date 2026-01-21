@@ -26,6 +26,7 @@ from src.domain.strategies.critical_threshold_strategy import CriticalThresholdS
 from src.domain.strategies.major_maintenance_strategy import MajorMaintenanceStrategy
 from src.web.dependencies import (
     get_alert_repository,
+    get_observer_factory,
     get_vehicle_repository,
     initialize_test_data,
 )
@@ -260,15 +261,10 @@ def update_vehicle_mileage(vehicle_id: str, request: UpdateMileageRequest):
     Raises:
         HTTPException: 400 if invalid mileage, 404 if vehicle not found
     """
-    # Create use case with all strategies
+    # Create use case with observer factory
     use_case = UpdateVehicleMileageUseCase(
         vehicle_repository=get_vehicle_repository(),
-        alert_repository=get_alert_repository(),
-        strategies=[
-            BasicMaintenanceStrategy(),
-            MajorMaintenanceStrategy(),
-            CriticalThresholdStrategy()
-        ]
+        observer_factory=get_observer_factory()
     )
 
     try:
