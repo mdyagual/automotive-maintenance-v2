@@ -4,6 +4,7 @@ from datetime import datetime
 import pytest
 from unittest.mock import Mock
 
+from src.application.dtos.vehicle_dtos import VehicleDTO, AlertDTO, VehicleWithAlertsDTO
 from src.application.use_cases.get_all_vehicles_use_case import GetAllVehiclesUseCase
 from src.domain.entities.maintenance_alert import AlertType, MaintenanceAlert
 from src.domain.entities.vehicle import Vehicle
@@ -93,25 +94,28 @@ class TestGetAllVehiclesUseCase:
 
         # Assert
         assert len(result) == 3
+        assert all(isinstance(item, VehicleWithAlertsDTO) for item in result)
 
         # Verify vehicle1 with 2 alerts (most recent first)
-        vehicle1_result = next(v for v in result if v["vehicle"].id == "V-100")
-        assert vehicle1_result["vehicle"].plate == "ABC-100"
-        assert vehicle1_result["vehicle"].current_mileage == 15000
-        assert len(vehicle1_result["alerts"]) == 2
-        assert vehicle1_result["alerts"][0].id == "alert-2"  # Most recent first
-        assert vehicle1_result["alerts"][1].id == "alert-1"
+        vehicle1_result = next(v for v in result if v.vehicle.id == "V-100")
+        assert isinstance(vehicle1_result.vehicle, VehicleDTO)
+        assert vehicle1_result.vehicle.plate == "ABC-100"
+        assert vehicle1_result.vehicle.current_mileage == 15000
+        assert len(vehicle1_result.alerts) == 2
+        assert all(isinstance(alert, AlertDTO) for alert in vehicle1_result.alerts)
+        assert vehicle1_result.alerts[0].id == "alert-2"  # Most recent first
+        assert vehicle1_result.alerts[1].id == "alert-1"
 
         # Verify vehicle2 with 1 alert
-        vehicle2_result = next(v for v in result if v["vehicle"].id == "V-200")
-        assert vehicle2_result["vehicle"].plate == "XYZ-200"
-        assert len(vehicle2_result["alerts"]) == 1
-        assert vehicle2_result["alerts"][0].id == "alert-3"
+        vehicle2_result = next(v for v in result if v.vehicle.id == "V-200")
+        assert vehicle2_result.vehicle.plate == "XYZ-200"
+        assert len(vehicle2_result.alerts) == 1
+        assert vehicle2_result.alerts[0].id == "alert-3"
 
         # Verify vehicle3 with no alerts
-        vehicle3_result = next(v for v in result if v["vehicle"].id == "V-300")
-        assert vehicle3_result["vehicle"].plate == "DEF-300"
-        assert len(vehicle3_result["alerts"]) == 0
+        vehicle3_result = next(v for v in result if v.vehicle.id == "V-300")
+        assert vehicle3_result.vehicle.plate == "DEF-300"
+        assert len(vehicle3_result.alerts) == 0
 
     def test_get_all_vehicles_returns_empty_list_when_no_vehicles(self):
         """
@@ -142,15 +146,10 @@ class TestGetAllVehiclesUseCase:
         """
         ARCHITECTURAL VIOLATION TEST: Use case returns domain entities instead of DTOs.
         
-        This test FAILS because:
-        - GetAllVehiclesUseCase.execute() returns list[VehicleWithAlerts]
-        - VehicleWithAlerts contains Vehicle and MaintenanceAlert domain entities
-        - Domain entities should NEVER be exposed outside domain/application layers
-        
-        CORRECT IMPLEMENTATION should:
-        - Return list[VehicleWithAlertsDTO]
-        - VehicleWithAlertsDTO should contain VehicleDTO and list[AlertDTO]
-        - Keep domain entities encapsulated
+        This test PASSES NOW because:
+        - GetAllVehiclesUseCase.execute() returns list[VehicleWithAlertsDTO]
+        - VehicleWithAlertsDTO contains VehicleDTO and list[AlertDTO]
+        - Domain entities are encapsulated
         """
         # Arrange
         mock_vehicle_repo = Mock()
@@ -181,86 +180,71 @@ class TestGetAllVehiclesUseCase:
         # Act
         result = use_case.execute()
         
-        # Assert - THIS SHOULD FAIL
-        # Check if result contains domain entities
+        # Assert - THIS SHOULD NOW PASS
+        # Check if result contains DTOs, not domain entities
         if result:
             first_item = result[0]
-            vehicle_in_result = first_item["vehicle"]
-            alerts_in_result = first_item["alerts"]
-            
-            has_domain_entities = (
-                isinstance(vehicle_in_result, Vehicle) or
-                (alerts_in_result and isinstance(alerts_in_result[0], MaintenanceAlert))
+            assert isinstance(first_item, VehicleWithAlertsDTO), (
+                f"Expected VehicleWithAlertsDTO, got {type(first_item).__name__}"
             )
             
-            assert not has_domain_entities, (
-                "ARCHITECTURAL VIOLATION: Use case returns domain entities "
-                "(Vehicle, MaintenanceAlert) instead of DTOs. "
-                "Domain entities should never leave the application layer. "
-                "Expected: VehicleWithAlertsDTO containing VehicleDTO and list[AlertDTO]. "
-                "Got: VehicleWithAlerts containing Vehicle and MaintenanceAlert entities."
+            vehicle_in_result = first_item.vehicle
+            alerts_in_result = first_item.alerts
+            
+            assert isinstance(vehicle_in_result, VehicleDTO), (
+                f"Expected VehicleDTO, got {type(vehicle_in_result).__name__}"
             )
+            
+            assert not isinstance(vehicle_in_result, Vehicle), (
+                "Should not return Vehicle domain entity"
+            )
+            
+            if alerts_in_result:
+                assert isinstance(alerts_in_result[0], AlertDTO), (
+                    f"Expected AlertDTO, got {type(alerts_in_result[0]).__name__}"
+                )
+                assert not isinstance(alerts_in_result[0], MaintenanceAlert), (
+                    "Should not return MaintenanceAlert domain entity"
+                )
 
     def test_return_type_should_contain_dtos_not_entities(self):
         """
         ARCHITECTURAL VIOLATION TEST: Return type contains domain entities.
         
-        This test FAILS because:
-        - VehicleWithAlerts TypedDict contains Vehicle and MaintenanceAlert entities
-        - Should contain DTOs instead
-        - Type hints reveal architectural violation
-        
-        CORRECT IMPLEMENTATION should:
-        - Define VehicleWithAlertsDTO with VehicleDTO and list[AlertDTO]
-        - Return list[VehicleWithAlertsDTO]
+        This test PASSES NOW because:
+        - Return type is list[VehicleWithAlertsDTO]
+        - VehicleWithAlertsDTO contains VehicleDTO and list[AlertDTO]
+        - No domain entities in type hints
         """
         # Arrange
-        from src.application.use_cases.get_all_vehicles_use_case import VehicleWithAlerts
-        import typing
+        use_case = GetAllVehiclesUseCase(
+            vehicle_repository=Mock(),
+            alert_repository=Mock()
+        )
         
-        # Act - Check TypedDict annotations
-        if hasattr(VehicleWithAlerts, '__annotations__'):
-            annotations = VehicleWithAlerts.__annotations__
-            
-            vehicle_type = annotations.get('vehicle')
-            alerts_type = annotations.get('alerts')
-            
-            # Assert - THIS SHOULD FAIL
-            # Check if annotations reference domain entities
-            vehicle_is_entity = (vehicle_type == Vehicle or 
-                                str(vehicle_type) == "<class 'src.domain.entities.vehicle.Vehicle'>")
-            
-            # Check alerts type (should be list[AlertDTO], not list[MaintenanceAlert])
-            alerts_contains_entity = False
-            if hasattr(alerts_type, '__args__'):
-                alert_item_type = alerts_type.__args__[0] if alerts_type.__args__ else None
-                alerts_contains_entity = (alert_item_type == MaintenanceAlert or
-                                        str(alert_item_type) == "<class 'src.domain.entities.maintenance_alert.MaintenanceAlert'>")
-            
-            assert not vehicle_is_entity, (
-                "ARCHITECTURAL VIOLATION: VehicleWithAlerts TypedDict declares "
-                f"'vehicle: {vehicle_type}' (domain entity). "
-                "Should declare 'vehicle: VehicleDTO' (application DTO). "
-                "Domain entities should never appear in use case return types."
-            )
-            
-            assert not alerts_contains_entity, (
-                "ARCHITECTURAL VIOLATION: VehicleWithAlerts TypedDict declares "
-                f"'alerts: {alerts_type}' containing MaintenanceAlert (domain entity). "
-                "Should declare 'alerts: list[AlertDTO]' (application DTOs). "
-                "Domain entities should never appear in use case return types."
-            )
+        # Act - Check return type annotation
+        import inspect
+        sig = inspect.signature(use_case.execute)
+        return_annotation = sig.return_annotation
+        
+        # Assert - THIS SHOULD NOW PASS
+        # Check if return type contains VehicleWithAlertsDTO
+        return_str = str(return_annotation)
+        
+        assert 'VehicleWithAlertsDTO' in return_str, (
+            f"Expected return type to contain VehicleWithAlertsDTO. Got: {return_annotation}"
+        )
+        
+        # Ensure it doesn't contain domain entity types
+        assert 'Vehicle' not in return_str or 'VehicleDTO' in return_str or 'VehicleWithAlertsDTO' in return_str, (
+            "Return type should not reference Vehicle domain entity directly"
+        )
 
     def test_web_layer_should_not_access_domain_entity_methods(self):
         """
         ARCHITECTURAL VIOLATION TEST: Web layer can access domain entity methods.
         
-        This test simulates what happens in main.py where:
-        - Web layer receives domain entities from use case
-        - Web layer can access entity methods like update_mileage(), attach()
-        - Creates tight coupling and exposes domain logic
-        
-        CORRECT IMPLEMENTATION should:
+        This test PASSES NOW because:
         - Web layer receives DTOs (data only, no methods)
         - DTOs are immutable
         - No access to domain logic
@@ -288,10 +272,10 @@ class TestGetAllVehiclesUseCase:
         result = use_case.execute()
         
         if result:
-            vehicle_from_result = result[0]["vehicle"]
+            vehicle_from_result = result[0].vehicle
             
-            # Assert - THIS SHOULD FAIL
-            # Check if web layer has access to domain methods
+            # Assert - THIS SHOULD NOW PASS
+            # Check that web layer doesn't have access to domain methods
             has_domain_methods = (
                 hasattr(vehicle_from_result, 'update_mileage') and
                 hasattr(vehicle_from_result, 'attach') and
@@ -299,8 +283,11 @@ class TestGetAllVehiclesUseCase:
             )
             
             assert not has_domain_methods, (
-                "ARCHITECTURAL VIOLATION: Web layer receives domain entity with business logic methods. "
-                "The object has methods: update_mileage(), attach(), _notify_observers(). "
-                "Web layer should only receive DTOs (data transfer objects) without business logic. "
-                "This exposes domain internals and creates tight coupling between layers."
+                "Web layer should receive DTO without business logic methods. "
+                f"Got object with type: {type(vehicle_from_result).__name__}"
+            )
+            
+            # Verify it's a DTO
+            assert isinstance(vehicle_from_result, VehicleDTO), (
+                f"Expected VehicleDTO, got {type(vehicle_from_result).__name__}"
             )
