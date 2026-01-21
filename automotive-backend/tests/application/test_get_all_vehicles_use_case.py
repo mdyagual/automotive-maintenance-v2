@@ -2,6 +2,7 @@
 from datetime import datetime
 
 import pytest
+from unittest.mock import Mock
 
 from src.application.use_cases.get_all_vehicles_use_case import GetAllVehiclesUseCase
 from src.domain.entities.maintenance_alert import AlertType, MaintenanceAlert
@@ -126,3 +127,180 @@ class TestGetAllVehiclesUseCase:
         # Assert
         assert result == []
         assert isinstance(result, list)
+
+    """
+    Tests to demonstrate Clean Architecture violation: Missing Application Layer DTOs.
+    
+    ARCHITECTURAL FLAW:
+    - Use case returns domain entities (Vehicle, MaintenanceAlert) directly
+    - Web layer receives and accesses domain entities
+    - Domain entities exposed to outer layers
+    - TypedDict contains domain entities instead of DTOs
+    """
+
+    def test_use_case_should_not_return_domain_entities(self):
+        """
+        ARCHITECTURAL VIOLATION TEST: Use case returns domain entities instead of DTOs.
+        
+        This test FAILS because:
+        - GetAllVehiclesUseCase.execute() returns list[VehicleWithAlerts]
+        - VehicleWithAlerts contains Vehicle and MaintenanceAlert domain entities
+        - Domain entities should NEVER be exposed outside domain/application layers
+        
+        CORRECT IMPLEMENTATION should:
+        - Return list[VehicleWithAlertsDTO]
+        - VehicleWithAlertsDTO should contain VehicleDTO and list[AlertDTO]
+        - Keep domain entities encapsulated
+        """
+        # Arrange
+        mock_vehicle_repo = Mock()
+        mock_alert_repo = Mock()
+        
+        vehicle = Vehicle(
+            id="V-001",
+            plate="ABC-123",
+            model="Toyota Corolla",
+            current_mileage=5000
+        )
+        alert = MaintenanceAlert(
+            id="A-001",
+            vehicle_id="V-001",
+            alert_type=AlertType.BASIC_MAINTENANCE,
+            mileage=10000,
+            timestamp=datetime.now()
+        )
+        
+        mock_vehicle_repo.get_all.return_value = [vehicle]
+        mock_alert_repo.get_by_vehicle_id.return_value = [alert]
+        
+        use_case = GetAllVehiclesUseCase(
+            vehicle_repository=mock_vehicle_repo,
+            alert_repository=mock_alert_repo
+        )
+        
+        # Act
+        result = use_case.execute()
+        
+        # Assert - THIS SHOULD FAIL
+        # Check if result contains domain entities
+        if result:
+            first_item = result[0]
+            vehicle_in_result = first_item["vehicle"]
+            alerts_in_result = first_item["alerts"]
+            
+            has_domain_entities = (
+                isinstance(vehicle_in_result, Vehicle) or
+                (alerts_in_result and isinstance(alerts_in_result[0], MaintenanceAlert))
+            )
+            
+            assert not has_domain_entities, (
+                "ARCHITECTURAL VIOLATION: Use case returns domain entities "
+                "(Vehicle, MaintenanceAlert) instead of DTOs. "
+                "Domain entities should never leave the application layer. "
+                "Expected: VehicleWithAlertsDTO containing VehicleDTO and list[AlertDTO]. "
+                "Got: VehicleWithAlerts containing Vehicle and MaintenanceAlert entities."
+            )
+
+    def test_return_type_should_contain_dtos_not_entities(self):
+        """
+        ARCHITECTURAL VIOLATION TEST: Return type contains domain entities.
+        
+        This test FAILS because:
+        - VehicleWithAlerts TypedDict contains Vehicle and MaintenanceAlert entities
+        - Should contain DTOs instead
+        - Type hints reveal architectural violation
+        
+        CORRECT IMPLEMENTATION should:
+        - Define VehicleWithAlertsDTO with VehicleDTO and list[AlertDTO]
+        - Return list[VehicleWithAlertsDTO]
+        """
+        # Arrange
+        from src.application.use_cases.get_all_vehicles_use_case import VehicleWithAlerts
+        import typing
+        
+        # Act - Check TypedDict annotations
+        if hasattr(VehicleWithAlerts, '__annotations__'):
+            annotations = VehicleWithAlerts.__annotations__
+            
+            vehicle_type = annotations.get('vehicle')
+            alerts_type = annotations.get('alerts')
+            
+            # Assert - THIS SHOULD FAIL
+            # Check if annotations reference domain entities
+            vehicle_is_entity = (vehicle_type == Vehicle or 
+                                str(vehicle_type) == "<class 'src.domain.entities.vehicle.Vehicle'>")
+            
+            # Check alerts type (should be list[AlertDTO], not list[MaintenanceAlert])
+            alerts_contains_entity = False
+            if hasattr(alerts_type, '__args__'):
+                alert_item_type = alerts_type.__args__[0] if alerts_type.__args__ else None
+                alerts_contains_entity = (alert_item_type == MaintenanceAlert or
+                                        str(alert_item_type) == "<class 'src.domain.entities.maintenance_alert.MaintenanceAlert'>")
+            
+            assert not vehicle_is_entity, (
+                "ARCHITECTURAL VIOLATION: VehicleWithAlerts TypedDict declares "
+                f"'vehicle: {vehicle_type}' (domain entity). "
+                "Should declare 'vehicle: VehicleDTO' (application DTO). "
+                "Domain entities should never appear in use case return types."
+            )
+            
+            assert not alerts_contains_entity, (
+                "ARCHITECTURAL VIOLATION: VehicleWithAlerts TypedDict declares "
+                f"'alerts: {alerts_type}' containing MaintenanceAlert (domain entity). "
+                "Should declare 'alerts: list[AlertDTO]' (application DTOs). "
+                "Domain entities should never appear in use case return types."
+            )
+
+    def test_web_layer_should_not_access_domain_entity_methods(self):
+        """
+        ARCHITECTURAL VIOLATION TEST: Web layer can access domain entity methods.
+        
+        This test simulates what happens in main.py where:
+        - Web layer receives domain entities from use case
+        - Web layer can access entity methods like update_mileage(), attach()
+        - Creates tight coupling and exposes domain logic
+        
+        CORRECT IMPLEMENTATION should:
+        - Web layer receives DTOs (data only, no methods)
+        - DTOs are immutable
+        - No access to domain logic
+        """
+        # Arrange
+        mock_vehicle_repo = Mock()
+        mock_alert_repo = Mock()
+        
+        vehicle = Vehicle(
+            id="V-001",
+            plate="ABC-123",
+            model="Toyota Corolla",
+            current_mileage=5000
+        )
+        
+        mock_vehicle_repo.get_all.return_value = [vehicle]
+        mock_alert_repo.get_by_vehicle_id.return_value = []
+        
+        use_case = GetAllVehiclesUseCase(
+            vehicle_repository=mock_vehicle_repo,
+            alert_repository=mock_alert_repo
+        )
+        
+        # Act - Simulate what web layer does
+        result = use_case.execute()
+        
+        if result:
+            vehicle_from_result = result[0]["vehicle"]
+            
+            # Assert - THIS SHOULD FAIL
+            # Check if web layer has access to domain methods
+            has_domain_methods = (
+                hasattr(vehicle_from_result, 'update_mileage') and
+                hasattr(vehicle_from_result, 'attach') and
+                hasattr(vehicle_from_result, '_notify_observers')
+            )
+            
+            assert not has_domain_methods, (
+                "ARCHITECTURAL VIOLATION: Web layer receives domain entity with business logic methods. "
+                "The object has methods: update_mileage(), attach(), _notify_observers(). "
+                "Web layer should only receive DTOs (data transfer objects) without business logic. "
+                "This exposes domain internals and creates tight coupling between layers."
+            )
