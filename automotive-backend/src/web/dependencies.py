@@ -1,4 +1,9 @@
-"""Dependency injection configuration."""
+"""Dependency injection configuration using FastAPI Depends for per-request sessions."""
+
+from typing import Generator
+from fastapi import Depends
+from fastapi.params import Depends as DependsClass
+from sqlalchemy.orm import Session
 
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.vehicle_not_found_exception import (
@@ -15,44 +20,124 @@ from src.infrastructure.repositories.sqlite_vehicle_repository import SqliteVehi
 # Create database tables on startup
 create_tables()
 
-# Create session
-_db_session = SessionLocal()
 
-# Singleton instances
-_vehicle_repository = SqliteVehicleRepository(_db_session)
-_alert_repository = SqliteAlertRepository(_db_session)
+def get_db_session() -> Generator[Session, None, None]:
+    """
+    Create a new database session per request.
+    
+    This function uses FastAPI's dependency injection to provide
+    a request-scoped database session with automatic cleanup.
+    
+    Yields:
+        Session: SQLAlchemy session for database operations
+        
+    Benefits:
+        - New session per request (transaction isolation)
+        - Automatic session cleanup (no memory leaks)
+        - Thread-safe (each request has its own session)
+        - Testable (can inject mock sessions)
+    """
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
 
-# Create observer factory with all strategies
-_observer_factory = ObserverFactoryImpl(
-    alert_repository=_alert_repository,
-    strategies=[
+
+def get_vehicle_repository(
+    db: Session = Depends(get_db_session)
+) -> SqliteVehicleRepository:
+    """
+    Create vehicle repository with request-scoped session.
+    
+    Args:
+        db: Database session injected by FastAPI (or None for direct calls)
+        
+    Returns:
+        SqliteVehicleRepository: Repository instance with its own session
+        
+    Note:
+        This function works in two contexts:
+        1. FastAPI context: db is injected via Depends()
+        2. Direct call (tests): db is Depends object, so we manually consume the generator
+    """
+    # Handle direct calls (when db is a Depends object, not a Session)
+    if isinstance(db, DependsClass):
+        # Manually consume the generator for direct calls
+        session_gen = get_db_session()
+        db = next(session_gen)
+    
+    return SqliteVehicleRepository(db)
+
+
+def get_alert_repository(
+    db: Session = Depends(get_db_session)
+) -> SqliteAlertRepository:
+    """
+    Create alert repository with request-scoped session.
+    
+    Args:
+        db: Database session injected by FastAPI (or None for direct calls)
+        
+    Returns:
+        SqliteAlertRepository: Repository instance with its own session
+        
+    Note:
+        This function works in two contexts:
+        1. FastAPI context: db is injected via Depends()
+        2. Direct call (tests): db is Depends object, so we manually consume the generator
+    """
+    # Handle direct calls (when db is a Depends object, not a Session)
+    if isinstance(db, DependsClass):
+        # Manually consume the generator for direct calls
+        session_gen = get_db_session()
+        db = next(session_gen)
+    
+    return SqliteAlertRepository(db)
+
+
+def get_observer_factory(
+    alert_repo: SqliteAlertRepository = Depends(get_alert_repository)
+) -> ObserverFactoryImpl:
+    """
+    Create observer factory with dependencies.
+    
+    Args:
+        alert_repo: Alert repository injected by FastAPI (or None for direct calls)
+        
+    Returns:
+        ObserverFactoryImpl: Factory instance with all maintenance strategies
+        
+    Note:
+        This function works in two contexts:
+        1. FastAPI context: alert_repo is injected via Depends()
+        2. Direct call (tests): alert_repo is Depends object, so we call get_alert_repository()
+    """
+    # Handle direct calls (when alert_repo is a Depends object, not a repository)
+    if isinstance(alert_repo, DependsClass):
+        # Manually call get_alert_repository for direct calls
+        alert_repo = get_alert_repository()
+    
+    strategies = [
         BasicMaintenanceStrategy(),
         MajorMaintenanceStrategy(),
         CriticalThresholdStrategy()
     ]
-)
+    return ObserverFactoryImpl(alert_repo, strategies)
 
 
-def get_vehicle_repository() -> SqliteVehicleRepository:
-    """Get vehicle repository instance."""
-    return _vehicle_repository
-
-
-def get_alert_repository() -> SqliteAlertRepository:
-    """Get alert repository instance."""
-    return _alert_repository
-
-
-def get_observer_factory() -> ObserverFactoryImpl:
-    """Get observer factory instance."""
-    return _observer_factory
-
-
-def initialize_test_data() -> None:
-    """Initialize test data for development."""
+def initialize_test_data(
+    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)
+) -> None:
+    """
+    Initialize test data for development.
+    
+    Args:
+        vehicle_repo: Vehicle repository injected by FastAPI
+    """
     # Check if test vehicle already exists
     try:
-        _vehicle_repository.get_by_id("V-123")
+        vehicle_repo.get_by_id("V-123")
         # Vehicle exists, skip initialization
         return
     except VehicleNotFoundException:
@@ -60,4 +145,4 @@ def initialize_test_data() -> None:
         test_vehicle = Vehicle(
             id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000
         )
-        _vehicle_repository.save(test_vehicle)
+        vehicle_repo.save(test_vehicle)
