@@ -78,10 +78,22 @@ class Vehicle:
         Update vehicle operational status.
         
         Args:
-            new_status: New status value
+            new_status: New status value (must be VehicleStatus enum)
             
-        Business Rule: RN-028 - Status change must record update timestamp
+        Raises:
+            TypeError: If new_status is not a VehicleStatus enum
+            
+        Business Rules:
+        - RN-025: Valid statuses are: active, inactive, in_maintenance, retired
+        - RN-028: Status change must record update timestamp
         """
+        # Validate that new_status is a VehicleStatus enum
+        if not isinstance(new_status, VehicleStatus):
+            raise TypeError(
+                f"Status must be a VehicleStatus enum. "
+                f"Valid statuses are: {', '.join([s.value for s in VehicleStatus])}"
+            )
+        
         self.status = new_status
         self.status_updated_at = datetime.now()
 
