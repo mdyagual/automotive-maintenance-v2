@@ -193,10 +193,11 @@ def get_all_vehicles(
     Raises:
         HTTPException: 400 if invalid status value provided
     """
+    from fastapi import status as http_status
+
     from src.application.use_cases.get_vehicles_by_status_use_case import GetVehiclesByStatusUseCase
     from src.domain.entities.vehicle_status import VehicleStatus
-    from fastapi import status as http_status
-    
+
     # If status filter is provided, use GetVehiclesByStatusUseCase
     if status is not None:
         # Validate and convert status string to enum
@@ -209,11 +210,11 @@ def get_all_vehicles(
                 status_code=http_status.HTTP_400_BAD_REQUEST,
                 detail=f"Estado inválido '{status}'. Estados válidos: {', '.join(valid_statuses)}"
             )
-        
+
         # Use GetVehiclesByStatusUseCase for filtering
         use_case = GetVehiclesByStatusUseCase(vehicle_repository=vehicle_repo)
         vehicle_dtos = use_case.execute(status_enum)
-        
+
         # Convert DTOs to response models (without alerts for filtered results)
         response = []
         for vehicle_dto in vehicle_dtos:
@@ -228,7 +229,7 @@ def get_all_vehicles(
                 )
             )
         return response
-    
+
     # No filter - use GetAllVehiclesUseCase (original behavior)
     use_case = GetAllVehiclesUseCase(
         vehicle_repository=vehicle_repo,

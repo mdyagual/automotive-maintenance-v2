@@ -1,7 +1,11 @@
 """Vehicle Repository port - following DIP."""
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from src.domain.entities.vehicle import Vehicle
+
+if TYPE_CHECKING:
+    from src.domain.entities.vehicle_status import VehicleStatus
 
 
 class VehicleRepository(ABC):

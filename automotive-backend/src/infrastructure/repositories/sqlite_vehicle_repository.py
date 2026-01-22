@@ -1,11 +1,16 @@
 """SQLite implementation of VehicleRepository - Infrastructure layer."""
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy.orm import Session
 
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.vehicle_not_found_exception import VehicleNotFoundException
 from src.domain.ports.vehicle_repository import VehicleRepository
 from src.infrastructure.database.models import VehicleModel
+
+if TYPE_CHECKING:
+    from src.domain.entities.vehicle_status import VehicleStatus
 
 
 class SqliteVehicleRepository(VehicleRepository):
@@ -157,10 +162,10 @@ class SqliteVehicleRepository(VehicleRepository):
             Empty list if no vehicles match
         """
         from src.domain.entities.vehicle_status import VehicleStatus
-        
+
         # Convert enum to string value for database query
         status_value = status.value if isinstance(status, VehicleStatus) else status
-        
+
         vehicle_models = (
             self._db.query(VehicleModel)
             .filter_by(status=status_value)
