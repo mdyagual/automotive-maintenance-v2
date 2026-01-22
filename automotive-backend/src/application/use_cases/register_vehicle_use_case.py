@@ -1,6 +1,7 @@
 """Use case for registering a new vehicle in the system."""
 
 from src.application.dtos.vehicle_dtos import RegisterVehicleCommand, VehicleDTO
+from src.application.validators.vehicle_validator import VehicleValidator
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.duplicate_vehicle_exception import (
     DuplicateVehicleException,
@@ -42,7 +43,17 @@ class RegisterVehicleUseCase:
 
         Raises:
             DuplicateVehicleException: If vehicle with same ID already exists
+            ValueError: If input data is invalid
         """
+        # ✅ Validate input data at application boundary
+        validator = VehicleValidator()
+        validator.validate_vehicle_data(
+            vehicle_id=command.vehicle_id,
+            plate=command.plate,
+            model=command.model,
+            initial_mileage=command.initial_mileage
+        )
+        
         # Validate vehicle ID doesn't exist
         try:
             self._vehicle_repository.get_by_id(command.vehicle_id)
