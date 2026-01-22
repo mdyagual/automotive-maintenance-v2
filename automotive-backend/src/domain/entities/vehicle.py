@@ -1,5 +1,6 @@
 """Vehicle entity - Domain model."""
 
+from src.domain.entities.vehicle_status import VehicleStatus
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
 from src.domain.ports.observer import Observer
 
@@ -11,7 +12,14 @@ class Vehicle:
     MAX_MILEAGE_INCREMENT = 50_000
     MAINTENANCE_INTERVAL = 10_000
 
-    def __init__(self, id: str, plate: str, model: str, current_mileage: int) -> None:
+    def __init__(
+        self,
+        id: str,
+        plate: str,
+        model: str,
+        current_mileage: int,
+        status: VehicleStatus = VehicleStatus.ACTIVE
+    ) -> None:
         """
         Initialize a Vehicle instance.
 
@@ -20,11 +28,13 @@ class Vehicle:
             plate: License plate number
             model: Vehicle model name
             current_mileage: Current mileage in kilometers
+            status: Operational status of the vehicle (default: ACTIVE)
         """
         self.id = id
         self.plate = plate
         self.model = model
         self.current_mileage = current_mileage
+        self.status = status
         self._observers: list[Observer] = []
 
     def attach(self, observer: Observer) -> None:
