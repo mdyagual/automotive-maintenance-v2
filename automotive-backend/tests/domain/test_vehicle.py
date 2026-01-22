@@ -35,6 +35,40 @@ class TestVehicleCreation:
         assert vehicle.plate == plate
         assert vehicle.model == model
         assert vehicle.current_mileage == current_mileage
+    
+    def test_create_vehicle_without_status_defaults_to_active(self) -> None:
+        """
+        Given: I'm going to register a new vehicle
+        When: I register the vehicle without specifying status
+        Then: The vehicle should be created with 'active' status by default
+        And: It should be available for operations
+        
+        User Story: HU-005 - Escenario 4
+        Business Rule: RN-026 - Default status is 'active'
+        """
+        # Arrange
+        vehicle_id = "V-123"
+        plate = "ABC-123"
+        model = "Toyota Corolla"
+        current_mileage = 5000
+
+        # Act - Create vehicle without passing status parameter
+        vehicle = Vehicle(
+            id=vehicle_id,
+            plate=plate,
+            model=model,
+            current_mileage=current_mileage
+        )
+
+        # Assert
+        assert vehicle.status == "active"
+        assert vehicle.id == vehicle_id
+        assert vehicle.plate == plate
+        assert vehicle.model == model
+        assert vehicle.current_mileage == current_mileage
+
+
+
 
 
 class TestVehicleMileageUpdate:
