@@ -196,7 +196,7 @@ class TestVehicleStatusUpdate:
         Given: A vehicle with ID 'V-456' exists
         When: I attempt to update the status to an invalid value 'broken'
         Then: The system should reject the operation
-        And: Should raise ValueError or AttributeError
+        And: Should raise TypeError
         And: The message should indicate the valid statuses: active, inactive, in_maintenance, retired
         
         User Story: HU-005 - Escenario 3
@@ -212,15 +212,16 @@ class TestVehicleStatusUpdate:
         )
         
         # Act & Assert - Attempt to pass invalid string value
-        with pytest.raises((ValueError, AttributeError)) as exc_info:
+        with pytest.raises(TypeError) as exc_info:
             # This should fail because 'broken' is not a valid VehicleStatus
             vehicle.update_status("broken")
         
         # Verify error message mentions valid statuses
         error_message = str(exc_info.value).lower()
-        assert any(status in error_message for status in ["active", "inactive", "in_maintenance", "retired"]) or \
-               "vehiclestatus" in error_message, \
-               "Error message should indicate valid statuses or VehicleStatus enum"
+        # Check that the error message contains information about valid statuses
+        assert "vehiclestatus" in error_message or \
+               ("active" in error_message and "inactive" in error_message), \
+               f"Error message should indicate valid statuses. Got: {exc_info.value}"
     
     def test_update_status_only_accepts_vehicle_status_enum(self) -> None:
         """
@@ -255,7 +256,7 @@ class TestVehicleStatusUpdate:
         ]
         
         for invalid_value in invalid_values:
-            with pytest.raises((ValueError, AttributeError, TypeError)):
+            with pytest.raises(TypeError):
                 vehicle.update_status(invalid_value)
         
         # Verify vehicle status remains unchanged after failed attempts
