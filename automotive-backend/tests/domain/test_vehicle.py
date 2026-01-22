@@ -6,6 +6,9 @@ import pytest
 from src.domain.entities.vehicle import Vehicle
 from src.domain.entities.vehicle_status import VehicleStatus
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
+from src.domain.exceptions.invalid_model_exception import InvalidModelException
+from src.domain.exceptions.invalid_plate_exception import InvalidPlateException
+from src.domain.exceptions.invalid_vehicle_id_exception import InvalidVehicleIdException
 from src.domain.ports.observer import Observer
 
 
@@ -68,6 +71,103 @@ class TestVehicleCreation:
         assert vehicle.plate == plate
         assert vehicle.model == model
         assert vehicle.current_mileage == current_mileage
+
+    def test_create_vehicle_with_invalid_id_raises_exception(self) -> None:
+        """
+        Test that invalid vehicle ID format is rejected by domain entity.
+
+        Business Rule: RN-011 - Vehicle ID must follow V-XXX format
+        """
+        # Arrange
+        invalid_ids = ["INVALID", "V-12", "V-1234", "v-001", "123", "", "V-", "V-ABC"]
+
+        # Act & Assert
+        for invalid_id in invalid_ids:
+            with pytest.raises(InvalidVehicleIdException) as exc_info:
+                Vehicle(
+                    id=invalid_id,
+                    plate="ABC-123",
+                    model="Toyota",
+                    current_mileage=5000
+                )
+            # Verify error message is helpful
+            error_msg = str(exc_info.value).lower()
+            assert "vehicle_id" in error_msg or "formato" in error_msg or "vacío" in error_msg
+
+    def test_create_vehicle_with_invalid_plate_raises_exception(self) -> None:
+        """
+        Test that invalid plate format is rejected by domain entity.
+
+        Business Rule: RN-010 - Plate must follow XXX-123 or XXX-1234 format
+        """
+        # Arrange
+        invalid_plates = ["INVALID", "AB-123", "ABC-12345", "abc-123", "", "ABC", "123-ABC"]
+
+        # Act & Assert
+        for invalid_plate in invalid_plates:
+            with pytest.raises(InvalidPlateException) as exc_info:
+                Vehicle(
+                    id="V-123",
+                    plate=invalid_plate,
+                    model="Toyota",
+                    current_mileage=5000
+                )
+            # Verify error message is helpful
+            error_msg = str(exc_info.value).lower()
+            assert "placa" in error_msg or "formato" in error_msg or "vacía" in error_msg
+
+    def test_create_vehicle_with_invalid_model_raises_exception(self) -> None:
+        """
+        Test that invalid model is rejected by domain entity.
+        """
+        # Arrange
+        invalid_models = ["", "   ", "A" * 101]  # Empty, whitespace, too long
+
+        # Act & Assert
+        for invalid_model in invalid_models:
+            with pytest.raises(InvalidModelException) as exc_info:
+                Vehicle(
+                    id="V-123",
+                    plate="ABC-123",
+                    model=invalid_model,
+                    current_mileage=5000
+                )
+            # Verify error message is helpful
+            assert "modelo" in str(exc_info.value).lower() or "vacío" in str(exc_info.value) or "excede" in str(exc_info.value)
+
+    def test_create_vehicle_with_negative_mileage_raises_exception(self) -> None:
+        """
+        Test that negative mileage is rejected by domain entity.
+
+        Business Rule: RN-002 - Mileage cannot be negative
+        """
+        # Act & Assert
+        with pytest.raises(InvalidMileageException) as exc_info:
+            Vehicle(
+                id="V-123",
+                plate="ABC-123",
+                model="Toyota",
+                current_mileage=-100
+            )
+        # Verify error message mentions negative
+        assert "negativo" in str(exc_info.value).lower()
+
+    def test_create_vehicle_with_excessive_mileage_raises_exception(self) -> None:
+        """
+        Test that mileage exceeding maximum is rejected by domain entity.
+
+        Business Rule: RN-003 - Mileage cannot exceed 1,000,000 km
+        """
+        # Act & Assert
+        with pytest.raises(InvalidMileageException) as exc_info:
+            Vehicle(
+                id="V-123",
+                plate="ABC-123",
+                model="Toyota",
+                current_mileage=1_000_001
+            )
+        # Verify error message mentions maximum
+        assert "máximo" in str(exc_info.value).lower() or "excede" in str(exc_info.value)
 
 
 class TestVehicleStatusUpdate:
@@ -390,7 +490,7 @@ class TestVehicleMileageUpdate:
         now lives in the Domain (Entity), not in the Use Case.
         """
         # Given
-        vehicle = Vehicle(id="V-1", plate="ABC", model="Test", current_mileage=0)
+        vehicle = Vehicle(id="V-001", plate="ABC-123", model="Test", current_mileage=0)
         mock_observer = Mock()
         vehicle.attach(mock_observer) # We assume that you implement the Observer pattern in Vehicle.
 
@@ -400,7 +500,7 @@ class TestVehicleMileageUpdate:
 
         # Then
         # We verified that the domain triggered the notification.
-        mock_observer.update.assert_called_once_with("V-1", 5000)
+        mock_observer.update.assert_called_once_with("V-001", 5000)
         assert vehicle.current_mileage == 5000
 
 class MockObserver(Observer):

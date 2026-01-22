@@ -259,7 +259,7 @@ class TestGetVehicleUseCase:
         # Arrange
         vehicle = Vehicle(
             id="V-123",
-            plate="TEST-999",
+            plate="TST-999",  # Fixed: Valid plate format
             model="Test Model",
             current_mileage=12345
         )
@@ -276,6 +276,6 @@ class TestGetVehicleUseCase:
         assert hasattr(result, 'current_mileage'), "DTO should have current_mileage"
 
         assert result.id == "V-123"
-        assert result.plate == "TEST-999"
+        assert result.plate == "TST-999"
         assert result.model == "Test Model"
         assert result.current_mileage == 12345
