@@ -2,6 +2,10 @@
 
 import re
 from src.domain.entities.vehicle import Vehicle
+from src.domain.exceptions.invalid_vehicle_id_exception import InvalidVehicleIdException
+from src.domain.exceptions.invalid_plate_exception import InvalidPlateException
+from src.domain.exceptions.invalid_model_exception import InvalidModelException
+from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
 
 
 class VehicleValidator:
@@ -24,17 +28,16 @@ class VehicleValidator:
             vehicle_id: Vehicle identifier to validate
             
         Raises:
-            ValueError: If vehicle_id format is invalid
-            TypeError: If vehicle_id is None
+            InvalidVehicleIdException: If vehicle_id format is invalid or None
         """
         if vehicle_id is None:
-            raise TypeError("El vehicle_id no puede ser None")
+            raise InvalidVehicleIdException("El vehicle_id no puede ser None")
         
         if not isinstance(vehicle_id, str):
-            raise TypeError(f"El vehicle_id debe ser un string, recibido: {type(vehicle_id).__name__}")
+            raise InvalidVehicleIdException(f"El vehicle_id debe ser un string, recibido: {type(vehicle_id).__name__}")
         
         if not re.match(self.VEHICLE_ID_PATTERN, vehicle_id):
-            raise ValueError(
+            raise InvalidVehicleIdException(
                 f"Formato de vehicle_id inválido: '{vehicle_id}'. "
                 f"Formato esperado: V-XXX (ejemplo: V-001, V-123)"
             )
@@ -53,17 +56,16 @@ class VehicleValidator:
             plate: License plate to validate
             
         Raises:
-            ValueError: If plate format is invalid
-            TypeError: If plate is None
+            InvalidPlateException: If plate format is invalid or None
         """
         if plate is None:
-            raise TypeError("La placa no puede ser None")
+            raise InvalidPlateException("La placa no puede ser None")
         
         if not isinstance(plate, str):
-            raise TypeError(f"La placa debe ser un string, recibido: {type(plate).__name__}")
+            raise InvalidPlateException(f"La placa debe ser un string, recibido: {type(plate).__name__}")
         
         if not re.match(self.PLATE_PATTERN, plate):
-            raise ValueError(
+            raise InvalidPlateException(
                 f"Formato de placa inválido: '{plate}'. "
                 f"Formato esperado: XXX-123 o XXX-1234 (ejemplo: ABC-123, XYZ-9999)"
             )
@@ -81,20 +83,19 @@ class VehicleValidator:
             model: Vehicle model name to validate
             
         Raises:
-            ValueError: If model is invalid
-            TypeError: If model is None
+            InvalidModelException: If model is invalid or None
         """
         if model is None:
-            raise TypeError("El modelo no puede ser None")
+            raise InvalidModelException("El modelo no puede ser None")
         
         if not isinstance(model, str):
-            raise TypeError(f"El modelo debe ser un string, recibido: {type(model).__name__}")
+            raise InvalidModelException(f"El modelo debe ser un string, recibido: {type(model).__name__}")
         
         if not model or not model.strip():
-            raise ValueError("El modelo no puede estar vacío")
+            raise InvalidModelException("El modelo no puede estar vacío")
         
         if len(model) > self.MAX_MODEL_LENGTH:
-            raise ValueError(
+            raise InvalidModelException(
                 f"El modelo excede la longitud máxima de {self.MAX_MODEL_LENGTH} caracteres. "
                 f"Longitud actual: {len(model)}"
             )
@@ -109,22 +110,21 @@ class VehicleValidator:
             mileage: Initial mileage value to validate
             
         Raises:
-            ValueError: If mileage is out of valid range
-            TypeError: If mileage is None or not an integer
+            InvalidMileageException: If mileage is out of valid range, None, or not an integer
         """
         if mileage is None:
-            raise TypeError("El kilometraje no puede ser None")
+            raise InvalidMileageException("El kilometraje no puede ser None")
         
         if not isinstance(mileage, int):
-            raise TypeError(f"El kilometraje debe ser un entero, recibido: {type(mileage).__name__}")
+            raise InvalidMileageException(f"El kilometraje debe ser un entero, recibido: {type(mileage).__name__}")
         
         if mileage < 0:
-            raise ValueError(
+            raise InvalidMileageException(
                 f"El kilometraje inicial no puede ser negativo: {mileage}"
             )
         
         if mileage > self.MAX_MILEAGE:
-            raise ValueError(
+            raise InvalidMileageException(
                 f"El kilometraje inicial {mileage:,} km excede el máximo "
                 f"permitido de {self.MAX_MILEAGE:,} km"
             )
@@ -149,8 +149,10 @@ class VehicleValidator:
             initial_mileage: Initial mileage value
             
         Raises:
-            ValueError: If any field is invalid
-            TypeError: If any field is None or wrong type
+            InvalidVehicleIdException: If vehicle_id is invalid
+            InvalidPlateException: If plate is invalid
+            InvalidModelException: If model is invalid
+            InvalidMileageException: If mileage is invalid
         """
         self.validate_vehicle_id(vehicle_id)
         self.validate_plate(plate)
