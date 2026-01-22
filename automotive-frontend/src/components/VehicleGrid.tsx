@@ -7,10 +7,11 @@ interface VehicleGridProps {
   onDetails: (vehicleId: string) => void;
   onDelete: (vehicleId: string) => void;
   onAlerts: (vehicleId: string) => void;
+  onUpdateStatus: (vehicleId: string) => void;
   onNewVehicle: () => void;
 }
 
-export const VehicleGrid = ({ vehicles, onUpdate, onDetails, onDelete, onAlerts, onNewVehicle }: VehicleGridProps) => {
+export const VehicleGrid = ({ vehicles, onUpdate, onDetails, onDelete, onAlerts, onUpdateStatus, onNewVehicle }: VehicleGridProps) => {
   if (vehicles.length === 0) {
     return (
       <div className="empty-state">
@@ -34,6 +35,7 @@ export const VehicleGrid = ({ vehicles, onUpdate, onDetails, onDelete, onAlerts,
           onDetails={onDetails}
           onDelete={onDelete}
           onAlerts={onAlerts}
+          onUpdateStatus={onUpdateStatus}
         />
       ))}
     </div>

@@ -49,3 +49,34 @@ export const getAlertItemIcon = (alertType: string): string => {
   };
   return icons[alertType] || 'ℹ️';
 };
+
+// HU-005: Vehicle Status Utilities
+export const getStatusText = (status: string): string => {
+  const statusTexts: Record<string, string> = {
+    'active': 'Activo',
+    'inactive': 'Inactivo',
+    'in_maintenance': 'En Mantenimiento',
+    'retired': 'Retirado',
+  };
+  return statusTexts[status] || status;
+};
+
+export const getStatusBadgeClass = (status: string): string => {
+  const classes: Record<string, string> = {
+    'active': 'status-badge-active',
+    'inactive': 'status-badge-inactive',
+    'in_maintenance': 'status-badge-maintenance',
+    'retired': 'status-badge-retired',
+  };
+  return classes[status] || 'status-badge-inactive';
+};
+
+export const getStatusIcon = (status: string): string => {
+  const icons: Record<string, string> = {
+    'active': '✓',
+    'inactive': '⏸',
+    'in_maintenance': '🔧',
+    'retired': '🚫',
+  };
+  return icons[status] || '•';
+};

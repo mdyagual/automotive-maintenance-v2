@@ -6,11 +6,14 @@ export interface Alert {
   timestamp: string;
 }
 
+export type VehicleStatus = 'active' | 'inactive' | 'in_maintenance' | 'retired';
+
 export interface Vehicle {
   id: string;
   plate: string;
   model: string;
   current_mileage: number;
+  status: VehicleStatus;
   alerts: Alert[];
 }
 
@@ -23,4 +26,8 @@ export interface CreateVehicleRequest {
 
 export interface UpdateMileageRequest {
   new_mileage: number;
+}
+
+export interface UpdateStatusRequest {
+  new_status: VehicleStatus;
 }
