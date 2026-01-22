@@ -3,6 +3,7 @@
 from datetime import datetime
 
 from src.application.dtos.vehicle_dtos import DeleteVehicleCommand, DeleteVehicleResultDTO
+from src.application.validators.vehicle_validator import VehicleValidator
 from src.domain.ports.vehicle_repository import VehicleRepository
 
 
@@ -32,8 +33,13 @@ class DeleteVehicleUseCase:
             DeleteVehicleResultDTO with operation confirmation
 
         Raises:
+            InvalidVehicleIdException: If vehicle_id format is invalid
             VehicleNotFoundException: If vehicle with given ID doesn't exist
         """
+        # ✅ Validate vehicle_id format at application boundary
+        validator = VehicleValidator()
+        validator.validate_vehicle_id(command.vehicle_id)
+
         # Delete the vehicle (will raise VehicleNotFoundException if not found)
         self._vehicle_repository.delete(command.vehicle_id)
 

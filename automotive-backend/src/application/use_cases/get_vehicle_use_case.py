@@ -1,6 +1,7 @@
 """Use case for retrieving a single vehicle by ID."""
 
 from src.application.dtos.vehicle_dtos import VehicleDTO
+from src.application.validators.vehicle_validator import VehicleValidator
 from src.domain.ports.vehicle_repository import VehicleRepository
 
 
@@ -27,8 +28,13 @@ class GetVehicleUseCase:
             VehicleDTO with vehicle data
 
         Raises:
+            InvalidVehicleIdException: If vehicle_id format is invalid
             VehicleNotFoundException: If vehicle not found
         """
+        # ✅ Validate vehicle_id format at application boundary
+        validator = VehicleValidator()
+        validator.validate_vehicle_id(vehicle_id)
+
         # Get vehicle from repository
         vehicle = self._vehicle_repository.get_by_id(vehicle_id)
 

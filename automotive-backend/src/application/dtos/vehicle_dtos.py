@@ -33,7 +33,7 @@ class VehicleDTO:
     plate: str
     model: str
     current_mileage: int
-    status: str = "active"
+    status: str
 
 
 @dataclass(frozen=True)

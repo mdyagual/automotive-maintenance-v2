@@ -1,6 +1,7 @@
 """Update Vehicle Mileage Use Case - Application layer."""
 
 from src.application.dtos.vehicle_dtos import UpdateMileageCommand, VehicleDTO
+from src.application.validators.vehicle_validator import VehicleValidator
 from src.domain.ports.observer_factory import ObserverFactory
 from src.domain.ports.vehicle_repository import VehicleRepository
 
@@ -34,9 +35,14 @@ class UpdateVehicleMileageUseCase:
             VehicleDTO with updated vehicle data
 
         Raises:
+            InvalidVehicleIdException: If vehicle_id format is invalid
             InvalidMileageException: If new mileage is invalid
             VehicleNotFoundException: If vehicle not found
         """
+        # ✅ Validate vehicle_id format at application boundary
+        validator = VehicleValidator()
+        validator.validate_vehicle_id(command.vehicle_id)
+
         # Get vehicle
         vehicle = self._vehicle_repository.get_by_id(command.vehicle_id)
 

@@ -251,7 +251,7 @@ class TestUpdateVehicleMileageUseCase:
             observer_factory=mock_observer_factory  # <--- La inyección clave
         )
 
-        command = UpdateMileageCommand(vehicle_id="V-1", new_mileage=6000)
+        command = UpdateMileageCommand(vehicle_id="V-001", new_mileage=6000)
 
         # We execute
         use_case.execute(command)
@@ -260,7 +260,7 @@ class TestUpdateVehicleMileageUseCase:
 
         # 1. We verify that the factory was used (and not a direct 'new Observer' instantiation).
         mock_observer_factory.create_maintenance_observer.assert_called_once_with(
-            vehicle_id="V-1",
+            vehicle_id="V-001",
             initial_mileage=5000
         )
 

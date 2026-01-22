@@ -10,9 +10,18 @@ from src.domain.exceptions.invalid_vehicle_id_exception import InvalidVehicleIdE
 
 
 class VehicleValidator:
-    """Validator for vehicle business rules at application boundary."""
+    """
+    Validator for vehicle business rules at application boundary.
 
-    # Validation patterns based on frontend and business rules
+    NOTE: Domain invariants (format validation) are now enforced in Vehicle entity.
+    This validator provides early validation at the application boundary for better
+    error messages and can handle application-specific concerns like:
+    - Duplicate checking (requires repository)
+    - Cross-entity validation
+    - Application-specific constraints
+    """
+
+    # Validation patterns (same as domain for consistency)
     VEHICLE_ID_PATTERN = r'^V-\d{3}$'  # V-XXX format (e.g., V-001, V-123)
     PLATE_PATTERN = r'^[A-Z]{3}-\d{3,4}$'  # XXX-123 or XXX-1234 format
     MAX_MODEL_LENGTH = 100
@@ -20,7 +29,10 @@ class VehicleValidator:
 
     def validate_vehicle_id(self, vehicle_id: str) -> None:
         """
-        Validate vehicle ID format.
+        Validate vehicle ID format at application boundary.
+
+        This provides early validation before entity creation,
+        giving better error messages to the web layer.
 
         Valid format: V-XXX where XXX is exactly 3 digits.
         Examples: V-001, V-123, V-999
@@ -45,7 +57,7 @@ class VehicleValidator:
 
     def validate_plate(self, plate: str) -> None:
         """
-        Validate license plate format.
+        Validate license plate format at application boundary.
 
         Valid formats:
         - XXX-123 (3 uppercase letters, hyphen, 3 digits)
@@ -73,7 +85,7 @@ class VehicleValidator:
 
     def validate_model(self, model: str) -> None:
         """
-        Validate vehicle model name.
+        Validate vehicle model name at application boundary.
 
         Valid models:
         - Non-empty strings
@@ -103,7 +115,7 @@ class VehicleValidator:
 
     def validate_initial_mileage(self, mileage: int) -> None:
         """
-        Validate initial mileage value.
+        Validate initial mileage value at application boundary.
 
         Valid range: 0 to 1,000,000 km (inclusive)
 
@@ -138,7 +150,11 @@ class VehicleValidator:
         initial_mileage: int
     ) -> None:
         """
-        Validate all vehicle data together.
+        Validate all vehicle data at application boundary.
+
+        This provides early validation before entity creation, giving better
+        error messages to the web layer. The domain entity will validate again
+        in its constructor (defense in depth).
 
         This method validates all fields in sequence, raising an exception
         on the first validation failure.
@@ -155,6 +171,8 @@ class VehicleValidator:
             InvalidModelException: If model is invalid
             InvalidMileageException: If mileage is invalid
         """
+        # Early validation for better error messages
+        # Domain will validate again in constructor (Always Valid principle)
         self.validate_vehicle_id(vehicle_id)
         self.validate_plate(plate)
         self.validate_model(model)
