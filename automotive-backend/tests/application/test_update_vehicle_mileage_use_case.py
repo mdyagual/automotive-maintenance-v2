@@ -270,3 +270,54 @@ class TestUpdateVehicleMileageUseCase:
         
         #3. We verified that the mileage was updated.
         vehicle_mock.update_mileage.assert_called_once_with(6000)
+
+    def test_update_mileage_on_retired_vehicle_raises_exception(
+        self, vehicle_repository, observer_factory
+    ) -> None:
+        """
+        Test that updating mileage on a retired vehicle is rejected.
+        
+        Given: A vehicle 'V-789' with status 'retired'
+        When: I attempt to update the vehicle mileage
+        Then: The system should reject the operation
+        And: Should raise InvalidMileageException
+        And: The message should indicate "No se puede actualizar kilometraje de vehículos retirados"
+        
+        User Story: HU-005 - Escenario 5
+        Business Rule: RN-027 - Cannot update mileage of retired vehicles
+        """
+        from src.domain.entities.vehicle_status import VehicleStatus
+        
+        # Arrange
+        vehicle = Vehicle(
+            id="V-789",
+            plate="DEF-789",
+            model="Ford Focus",
+            current_mileage=200000,
+            status=VehicleStatus.RETIRED
+        )
+        vehicle_repository.save(vehicle)
+
+        use_case = UpdateVehicleMileageUseCase(
+            vehicle_repository=vehicle_repository,
+            observer_factory=observer_factory
+        )
+        
+        command = UpdateMileageCommand(
+            vehicle_id="V-789",
+            new_mileage=205000
+        )
+
+        # Act & Assert
+        with pytest.raises(InvalidMileageException) as exc_info:
+            use_case.execute(command)
+        
+        # Verify error message indicates retired vehicle restriction
+        error_message = str(exc_info.value)
+        assert "retirado" in error_message.lower() or "retired" in error_message.lower(), \
+            f"Error message should indicate retired vehicle restriction. Got: {error_message}"
+        
+        # Verify vehicle mileage was not updated
+        unchanged_vehicle = vehicle_repository.get_by_id("V-789")
+        assert unchanged_vehicle.current_mileage == 200000, \
+            "Vehicle mileage should remain unchanged after failed update"
