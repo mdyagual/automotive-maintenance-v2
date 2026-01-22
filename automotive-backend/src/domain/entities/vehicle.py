@@ -1,5 +1,8 @@
 """Vehicle entity - Domain model."""
 
+from datetime import datetime
+from typing import Optional
+
 from src.domain.entities.vehicle_status import VehicleStatus
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
 from src.domain.ports.observer import Observer
@@ -18,7 +21,8 @@ class Vehicle:
         plate: str,
         model: str,
         current_mileage: int,
-        status: VehicleStatus = VehicleStatus.ACTIVE
+        status: VehicleStatus = VehicleStatus.ACTIVE,
+        status_updated_at: Optional[datetime] = None
     ) -> None:
         """
         Initialize a Vehicle instance.
@@ -29,12 +33,14 @@ class Vehicle:
             model: Vehicle model name
             current_mileage: Current mileage in kilometers
             status: Operational status of the vehicle (default: ACTIVE)
+            status_updated_at: Timestamp of last status update (default: now)
         """
         self.id = id
         self.plate = plate
         self.model = model
         self.current_mileage = current_mileage
         self.status = status
+        self.status_updated_at = status_updated_at or datetime.now()
         self._observers: list[Observer] = []
 
     def attach(self, observer: Observer) -> None:
@@ -66,6 +72,18 @@ class Vehicle:
         old_threshold = (old_mileage // self.MAINTENANCE_INTERVAL) * self.MAINTENANCE_INTERVAL
         new_threshold = (new_mileage // self.MAINTENANCE_INTERVAL) * self.MAINTENANCE_INTERVAL
         return new_threshold > old_threshold
+
+    def update_status(self, new_status: VehicleStatus) -> None:
+        """
+        Update vehicle operational status.
+        
+        Args:
+            new_status: New status value
+            
+        Business Rule: RN-028 - Status change must record update timestamp
+        """
+        self.status = new_status
+        self.status_updated_at = datetime.now()
 
     def update_mileage(self, new_mileage: int) -> None:
         """

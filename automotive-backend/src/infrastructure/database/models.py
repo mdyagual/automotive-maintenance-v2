@@ -30,6 +30,12 @@ class VehicleModel(Base):
         default=VehicleStatus.ACTIVE,
         server_default=VehicleStatus.ACTIVE.value
     )
+    status_updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.now,
+        onupdate=datetime.now
+    )
 
     # Relationship to alerts
     alerts: Mapped[list["AlertModel"]] = relationship(
