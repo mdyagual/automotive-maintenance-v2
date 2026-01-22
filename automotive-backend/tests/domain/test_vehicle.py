@@ -188,6 +188,115 @@ class TestVehicleStatusUpdate:
         assert first_timestamp is not None
         assert second_timestamp is not None
         assert second_timestamp > first_timestamp, "Timestamp should update on each status change"
+    
+    def test_update_status_with_invalid_value_raises_exception(self) -> None:
+        """
+        Test that updating vehicle status with invalid value raises exception.
+        
+        Given: A vehicle with ID 'V-456' exists
+        When: I attempt to update the status to an invalid value 'broken'
+        Then: The system should reject the operation
+        And: Should raise ValueError or AttributeError
+        And: The message should indicate the valid statuses: active, inactive, in_maintenance, retired
+        
+        User Story: HU-005 - Escenario 3
+        Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
+        """
+        # Arrange
+        vehicle = Vehicle(
+            id="V-456",
+            plate="XYZ-456",
+            model="Honda Civic",
+            current_mileage=10000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act & Assert - Attempt to pass invalid string value
+        with pytest.raises((ValueError, AttributeError)) as exc_info:
+            # This should fail because 'broken' is not a valid VehicleStatus
+            vehicle.update_status("broken")
+        
+        # Verify error message mentions valid statuses
+        error_message = str(exc_info.value).lower()
+        assert any(status in error_message for status in ["active", "inactive", "in_maintenance", "retired"]) or \
+               "vehiclestatus" in error_message, \
+               "Error message should indicate valid statuses or VehicleStatus enum"
+    
+    def test_update_status_only_accepts_vehicle_status_enum(self) -> None:
+        """
+        Test that update_status only accepts VehicleStatus enum values.
+        
+        Given: A vehicle exists
+        When: I attempt to update status with non-enum values
+        Then: The system should reject the operation
+        And: Only VehicleStatus enum values should be accepted
+        
+        User Story: HU-005 - Escenario 3
+        Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
+        """
+        # Arrange
+        vehicle = Vehicle(
+            id="V-789",
+            plate="DEF-789",
+            model="Ford Focus",
+            current_mileage=50000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act & Assert - Test various invalid inputs
+        invalid_values = [
+            "broken",           # Invalid string
+            "ACTIVE",           # Wrong case
+            "in-maintenance",   # Wrong format
+            123,                # Integer
+            None,               # None
+            True,               # Boolean
+            {"status": "active"},  # Dictionary
+        ]
+        
+        for invalid_value in invalid_values:
+            with pytest.raises((ValueError, AttributeError, TypeError)):
+                vehicle.update_status(invalid_value)
+        
+        # Verify vehicle status remains unchanged after failed attempts
+        assert vehicle.status == VehicleStatus.ACTIVE
+        assert vehicle.status == "active"
+    
+    def test_all_valid_vehicle_statuses_are_accepted(self) -> None:
+        """
+        Test that all valid VehicleStatus enum values are accepted.
+        
+        Given: A vehicle exists
+        When: I update status with each valid VehicleStatus enum value
+        Then: All updates should succeed
+        And: Valid statuses are: ACTIVE, INACTIVE, IN_MAINTENANCE, RETIRED
+        
+        User Story: HU-005 - Escenario 3
+        Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
+        """
+        # Arrange
+        vehicle = Vehicle(
+            id="V-999",
+            plate="TST-999",
+            model="Test Vehicle",
+            current_mileage=25000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act & Assert - Test all valid enum values
+        valid_statuses = [
+            VehicleStatus.ACTIVE,
+            VehicleStatus.INACTIVE,
+            VehicleStatus.IN_MAINTENANCE,
+            VehicleStatus.RETIRED,
+        ]
+        
+        for valid_status in valid_statuses:
+            # Should not raise any exception
+            vehicle.update_status(valid_status)
+            assert vehicle.status == valid_status
+            assert vehicle.status == valid_status.value
+            assert vehicle.status_updated_at is not None
 
 
 
