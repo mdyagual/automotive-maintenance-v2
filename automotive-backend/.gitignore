@@ -44,3 +44,12 @@ coverage.xml
 Thumbs.db
 
 frontend
+
+# Ignorar bases de datos SQLite
+*.db
+*.sqlite3
+*.sqlite
+
+# Ignorar archivos temporales de SQLite (journal, wal)
+*.db-shm
+*.db-wal
