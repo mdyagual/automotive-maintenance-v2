@@ -55,6 +55,7 @@ class VehicleResponse(BaseModel):
     plate: str
     model: str
     current_mileage: int
+    status: str
 
 
 class AlertResponse(BaseModel):
@@ -74,6 +75,7 @@ class VehicleWithAlertsResponse(BaseModel):
     plate: str
     model: str
     current_mileage: int
+    status: str
     alerts: list[AlertResponse]
 
 
@@ -161,6 +163,7 @@ def create_vehicle(
             plate=vehicle_dto.plate,
             model=vehicle_dto.model,
             current_mileage=vehicle_dto.current_mileage,
+            status=vehicle_dto.status,
         )
     except DuplicateVehicleException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -214,6 +217,7 @@ def get_all_vehicles(
                 plate=vehicle_dto.plate,
                 model=vehicle_dto.model,
                 current_mileage=vehicle_dto.current_mileage,
+                status=vehicle_dto.status,
                 alerts=alert_responses,
             )
         )
@@ -249,7 +253,8 @@ def get_vehicle(
             id=vehicle_dto.id,
             plate=vehicle_dto.plate,
             model=vehicle_dto.model,
-            current_mileage=vehicle_dto.current_mileage
+            current_mileage=vehicle_dto.current_mileage,
+            status=vehicle_dto.status,
         )
     except VehicleNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -302,7 +307,8 @@ def update_vehicle_mileage(
             id=vehicle_dto.id,
             plate=vehicle_dto.plate,
             model=vehicle_dto.model,
-            current_mileage=vehicle_dto.current_mileage
+            current_mileage=vehicle_dto.current_mileage,
+            status=vehicle_dto.status,
         )
     except InvalidMileageException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

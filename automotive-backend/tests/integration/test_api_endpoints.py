@@ -396,3 +396,118 @@ class TestVehicleEndpoints:
         # Verify alerts cascaded (deleted automatically)
         alerts_after = alert_repo.get_by_vehicle_id("V-777")
         assert len(alerts_after) == 0, "No orphan alerts should remain after vehicle deletion"
+
+    def test_get_vehicle_includes_status_field(self) -> None:
+        """
+        Test that GET /vehicles/{id} includes status field.
+
+        Given: A vehicle V-123 exists in the system
+        When: GET /vehicles/V-123
+        Then: Response must include status field for HU-005
+        And: Status should be 'active' by default
+
+        User Story: HU-005 - Escenario 1
+        Business Rule: RN-026 - Default status is 'active'
+        """
+        # Arrange
+        client = TestClient(app)
+
+        # Act
+        response = client.get("/vehicles/V-123")
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "status" in data, "Response must include status field for HU-005"
+        assert data["status"] == "active"
+
+    def test_create_vehicle_returns_status_field(self) -> None:
+        """
+        Test that POST /vehicles returns status field.
+
+        Given: I'm registering a new vehicle
+        When: POST /vehicles with valid data
+        Then: Response must include status field
+        And: Status should be 'active' by default
+
+        User Story: HU-005 - Escenario 4
+        Business Rule: RN-026 - Default status is 'active'
+        """
+        # Arrange
+        client = TestClient(app)
+        new_vehicle_data = {
+            "id": "V-888",
+            "plate": "NEW-888",
+            "model": "Test Vehicle",
+            "initial_mileage": 0,
+        }
+
+        # Act
+        response = client.post("/vehicles", json=new_vehicle_data)
+
+        # Assert
+        assert response.status_code == 201
+        data = response.json()
+        assert "status" in data, "Response must include status field for HU-005"
+        assert data["status"] == "active"
+
+    def test_update_mileage_returns_status_field(self) -> None:
+        """
+        Test that PUT /vehicles/{id}/mileage returns status field.
+
+        Given: A vehicle V-123 exists
+        When: PUT /vehicles/V-123/mileage with new mileage
+        Then: Response must include status field
+
+        User Story: HU-005 - Escenario 1
+        """
+        # Arrange
+        client = TestClient(app)
+
+        # Act
+        response = client.put(
+            "/vehicles/V-123/mileage",
+            json={"new_mileage": 8000}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "status" in data, "Response must include status field for HU-005"
+        assert data["status"] == "active"
+
+    def test_get_all_vehicles_includes_status_field(self) -> None:
+        """
+        Test that GET /vehicles includes status field for all vehicles.
+
+        Given: Multiple vehicles exist in the system
+        When: GET /vehicles
+        Then: Each vehicle must include status field
+
+        User Story: HU-005 - Escenario 2
+        Business Rule: RN-029 - Vehicles can be filtered by status
+        """
+        # Arrange
+        client = TestClient(app)
+        vehicle_repo = get_vehicle_repository()
+
+        # Create additional vehicles
+        vehicle2 = Vehicle(
+            id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=25000
+        )
+        vehicle_repo.save(vehicle2)
+
+        # Act
+        response = client.get("/vehicles")
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) >= 2
+
+        # Verify all vehicles have status field
+        for vehicle_data in data:
+            assert "status" in vehicle_data, f"Vehicle {vehicle_data['id']} must include status field for HU-005"
+            assert vehicle_data["status"] in ["active", "inactive", "in_maintenance", "retired"], \
+                f"Status must be a valid value, got: {vehicle_data['status']}"
+
