@@ -106,7 +106,17 @@ class Vehicle:
 
         Raises:
             InvalidMileageException: If new mileage is not greater than current
+                                    or if vehicle is retired
+        
+        Business Rules:
+        - RN-027: Cannot update mileage of retired vehicles
         """
+        # Check if vehicle is retired (RN-027) - must be first check
+        if self.status == VehicleStatus.RETIRED:
+            raise InvalidMileageException(
+                "No se puede actualizar kilometraje de vehículos retirados"
+            )
+        
         if new_mileage <= self.current_mileage:
             raise InvalidMileageException(
                 f"El kilometraje {new_mileage} debe ser mayor al actual {self.current_mileage}"
