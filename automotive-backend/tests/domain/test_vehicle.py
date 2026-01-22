@@ -355,6 +355,33 @@ class TestVehicleMileageUpdate:
         # Act & Assert
         with pytest.raises(InvalidMileageException):
             vehicle.update_mileage(60000)  # Increment of 55,000 km
+    
+    def test_update_mileage_on_retired_vehicle_raises_exception(self) -> None:
+        """
+        Given: A vehicle with status 'retired'
+        When: Attempting to update mileage
+        Then: System should raise InvalidMileageException
+        And: Error message should indicate retired vehicle restriction
+        
+        User Story: HU-005 - Escenario 5
+        Business Rule: RN-027 - Cannot update mileage of retired vehicles
+        """
+        # Arrange
+        vehicle = Vehicle(
+            id="V-789",
+            plate="DEF-789",
+            model="Ford Focus",
+            current_mileage=200000,
+            status=VehicleStatus.RETIRED
+        )
+
+        # Act & Assert
+        with pytest.raises(InvalidMileageException) as exc_info:
+            vehicle.update_mileage(205000)
+        
+        # Verify error message
+        error_message = str(exc_info.value)
+        assert "retirado" in error_message.lower() or "retired" in error_message.lower()
 
     def test_update_mileage_notifies_observers(self):
         """
