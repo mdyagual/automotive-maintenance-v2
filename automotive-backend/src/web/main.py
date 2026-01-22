@@ -11,6 +11,8 @@ from src.application.dtos.vehicle_dtos import (
 )
 from src.application.use_cases.delete_vehicle_use_case import DeleteVehicleUseCase
 from src.application.use_cases.get_all_vehicles_use_case import GetAllVehiclesUseCase
+from src.application.use_cases.get_vehicle_use_case import GetVehicleUseCase
+from src.application.use_cases.get_vehicle_alerts_use_case import GetVehicleAlertsUseCase
 from src.application.use_cases.register_vehicle_use_case import RegisterVehicleUseCase
 from src.application.use_cases.update_vehicle_mileage_use_case import (
     UpdateVehicleMileageUseCase,
@@ -238,12 +240,16 @@ def get_vehicle(
         HTTPException: 404 if vehicle not found
     """
     try:
-        vehicle = vehicle_repo.get_by_id(vehicle_id)
+        # Use use case instead of direct repository access
+        use_case = GetVehicleUseCase(vehicle_repository=vehicle_repo)
+        vehicle_dto = use_case.execute(vehicle_id)
+        
+        # Map DTO to response
         return VehicleResponse(
-            id=vehicle.id,
-            plate=vehicle.plate,
-            model=vehicle.model,
-            current_mileage=vehicle.current_mileage
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage
         )
     except VehicleNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -323,18 +329,20 @@ def get_vehicle_alerts(
     Returns:
         List of maintenance alerts for the vehicle
     """
-    all_alerts = alert_repo.get_all()
-    vehicle_alerts = [alert for alert in all_alerts if alert.vehicle_id == vehicle_id]
-
+    # Use use case instead of direct repository access
+    use_case = GetVehicleAlertsUseCase(alert_repository=alert_repo)
+    alert_dtos = use_case.execute(vehicle_id)
+    
+    # Map DTOs to responses
     return [
         AlertResponse(
-            id=alert.id,
-            vehicle_id=alert.vehicle_id,
-            alert_type=alert.alert_type.value,
-            mileage=alert.mileage,
-            timestamp=alert.timestamp.isoformat()
+            id=alert_dto.id,
+            vehicle_id=alert_dto.vehicle_id,
+            alert_type=alert_dto.alert_type,
+            mileage=alert_dto.mileage,
+            timestamp=alert_dto.timestamp.isoformat()
         )
-        for alert in vehicle_alerts
+        for alert_dto in alert_dtos
     ]
 
 
