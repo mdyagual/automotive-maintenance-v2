@@ -3,6 +3,7 @@ import { Header } from './components/Header';
 import { Stats } from './components/Stats';
 import { StatusFilter } from './components/StatusFilter';
 import { VehicleGrid } from './components/VehicleGrid';
+import { Pagination } from './components/Pagination';
 import { Toast } from './components/Toast';
 import { CreateVehicleModal } from './components/modals/CreateVehicleModal';
 import { DetailsModal } from './components/modals/DetailsModal';
@@ -132,7 +133,7 @@ function App() {
           
           <section className="vehicles-section">
             <div className="section-header">
-              <h2 className="section-title">Vehículos</h2>
+              <h2 className="section-title">Listado de Vehículos</h2>
               <StatusFilter currentFilter={statusFilter} onFilterChange={setStatusFilter} />
             </div>
             
@@ -145,6 +146,8 @@ function App() {
               onUpdateStatus={openUpdateStatusModal}
               onNewVehicle={() => setIsCreateModalOpen(true)}
             />
+
+            <Pagination currentPage={1} totalPages={6} />
           </section>
         </div>
       </main>

@@ -1,4 +1,4 @@
-import type { Vehicle, VehicleStatus } from '../types/vehicle';
+import type { Vehicle } from '../types/vehicle';
 
 interface StatsProps {
   vehicles: Vehicle[];
@@ -15,20 +15,40 @@ export const Stats = ({ vehicles }: StatsProps) => {
   return (
     <section className="stats-section">
       <div className="stat-card">
-        <h3 className="stat-value">{totalVehicles}</h3>
-        <p className="stat-label">Vehículos Registrados</p>
+        <div className="stat-icon-wrapper">
+          <span className="material-symbols-outlined">local_shipping</span>
+        </div>
+        <div className="stat-content">
+          <div className="stat-label">Total Flota</div>
+          <div className="stat-value">{totalVehicles}</div>
+        </div>
       </div>
       <div className="stat-card">
-        <h3 className="stat-value stat-success">{activeVehicles}</h3>
-        <p className="stat-label">Vehículos Activos</p>
+        <div className="stat-icon-wrapper">
+          <span className="material-symbols-outlined">verified</span>
+        </div>
+        <div className="stat-content">
+          <div className="stat-label">En Ruta</div>
+          <div className="stat-value">{activeVehicles}</div>
+        </div>
       </div>
       <div className="stat-card">
-        <h3 className="stat-value stat-warning">{inMaintenanceVehicles}</h3>
-        <p className="stat-label">En Mantenimiento</p>
+        <div className="stat-icon-wrapper">
+          <span className="material-symbols-outlined">build_circle</span>
+        </div>
+        <div className="stat-content">
+          <div className="stat-label">En Taller</div>
+          <div className="stat-value">{inMaintenanceVehicles}</div>
+        </div>
       </div>
       <div className="stat-card">
-        <h3 className="stat-value stat-error">{totalAlerts}</h3>
-        <p className="stat-label">Alertas Activas</p>
+        <div className="stat-icon-wrapper">
+          <span className="material-symbols-outlined">error</span>
+        </div>
+        <div className="stat-content">
+          <div className="stat-label">Alertas</div>
+          <div className="stat-value">{totalAlerts}</div>
+        </div>
       </div>
     </section>
   );
