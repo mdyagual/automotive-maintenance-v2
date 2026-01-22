@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import Mock
 
 from src.domain.entities.vehicle import Vehicle
+from src.domain.entities.vehicle_status import VehicleStatus
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
 from src.domain.ports.observer import Observer
 
@@ -35,6 +36,269 @@ class TestVehicleCreation:
         assert vehicle.plate == plate
         assert vehicle.model == model
         assert vehicle.current_mileage == current_mileage
+    
+    def test_create_vehicle_without_status_defaults_to_active(self) -> None:
+        """
+        Given: I'm going to register a new vehicle
+        When: I register the vehicle without specifying status
+        Then: The vehicle should be created with 'active' status by default
+        And: It should be available for operations
+        
+        User Story: HU-005 - Escenario 4
+        Business Rule: RN-026 - Default status is 'active'
+        """
+        # Arrange
+        vehicle_id = "V-123"
+        plate = "ABC-123"
+        model = "Toyota Corolla"
+        current_mileage = 5000
+
+        # Act - Create vehicle without passing status parameter
+        vehicle = Vehicle(
+            id=vehicle_id,
+            plate=plate,
+            model=model,
+            current_mileage=current_mileage
+        )
+
+        # Assert
+        assert vehicle.status == "active"
+        assert vehicle.id == vehicle_id
+        assert vehicle.plate == plate
+        assert vehicle.model == model
+        assert vehicle.current_mileage == current_mileage
+
+
+class TestVehicleStatusUpdate:
+    """Test cases for Vehicle status updates - HU-005 Escenario 1."""
+
+    def test_update_vehicle_status_to_in_maintenance(self) -> None:
+        """
+        Test updating vehicle status from active to in_maintenance.
+        
+        Given: A vehicle with ID 'V-123' with status 'active'
+        When: I update the vehicle status to 'in_maintenance'
+        Then: The vehicle status should be 'in_maintenance'
+        And: The vehicle should remain visible in the vehicle list
+        And: The status change should record the update timestamp
+        
+        User Story: HU-005 - Escenario 1
+        Business Rule: RN-028 - Status change must record update timestamp
+        
+        EXPECTED TO FAIL: Vehicle entity doesn't have update_status() method yet
+        """
+        # Arrange
+        from datetime import datetime
+        from src.domain.entities.vehicle import Vehicle
+        from src.domain.entities.vehicle_status import VehicleStatus
+        
+        vehicle = Vehicle(
+            id="V-123",
+            plate="ABC-123",
+            model="Toyota Corolla",
+            current_mileage=5000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Verify initial state
+        assert vehicle.status == VehicleStatus.ACTIVE
+        assert vehicle.status == "active"
+        
+        # Act - Update status to in_maintenance
+        timestamp_before = datetime.now()
+        vehicle.update_status(VehicleStatus.IN_MAINTENANCE)
+        timestamp_after = datetime.now()
+        
+        # Assert
+        assert vehicle.status == VehicleStatus.IN_MAINTENANCE
+        assert vehicle.status == "in_maintenance"
+        
+        # Verify timestamp was recorded (RN-028)
+        assert hasattr(vehicle, 'status_updated_at'), "Vehicle should track status update timestamp"
+        assert vehicle.status_updated_at is not None
+        assert timestamp_before <= vehicle.status_updated_at <= timestamp_after
+        
+        # Verify vehicle is still accessible (not deleted or hidden)
+        assert vehicle.id == "V-123"
+        assert vehicle.plate == "ABC-123"
+        assert vehicle.model == "Toyota Corolla"
+        assert vehicle.current_mileage == 5000
+    
+    def test_update_vehicle_status_from_active_to_inactive(self) -> None:
+        """Test updating vehicle status from active to inactive."""
+        # Arrange
+        vehicle = Vehicle(
+            id="V-456",
+            plate="XYZ-456",
+            model="Honda Civic",
+            current_mileage=10000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act
+        vehicle.update_status(VehicleStatus.INACTIVE)
+        
+        # Assert
+        assert vehicle.status == VehicleStatus.INACTIVE
+        assert vehicle.status == "inactive"
+    
+    def test_update_vehicle_status_to_retired(self) -> None:
+        """Test updating vehicle status to retired."""
+        # Arrange
+        vehicle = Vehicle(
+            id="V-789",
+            plate="DEF-789",
+            model="Ford Focus",
+            current_mileage=200000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act
+        vehicle.update_status(VehicleStatus.RETIRED)
+        
+        # Assert
+        assert vehicle.status == VehicleStatus.RETIRED
+        assert vehicle.status == "retired"
+    
+    def test_update_status_records_timestamp_on_each_change(self) -> None:
+        """Test that each status change updates the timestamp."""
+        from datetime import datetime
+        import time
+        
+        # Arrange
+        vehicle = Vehicle(
+            id="V-100",
+            plate="TST-100",
+            model="Test Vehicle",
+            current_mileage=5000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act - First status change
+        vehicle.update_status(VehicleStatus.IN_MAINTENANCE)
+        first_timestamp = vehicle.status_updated_at
+        
+        time.sleep(0.01)  # Small delay to ensure different timestamps
+        
+        # Act - Second status change
+        vehicle.update_status(VehicleStatus.ACTIVE)
+        second_timestamp = vehicle.status_updated_at
+        
+        # Assert
+        assert first_timestamp is not None
+        assert second_timestamp is not None
+        assert second_timestamp > first_timestamp, "Timestamp should update on each status change"
+    
+    def test_update_status_with_invalid_value_raises_exception(self) -> None:
+        """
+        Test that updating vehicle status with invalid value raises exception.
+        
+        Given: A vehicle with ID 'V-456' exists
+        When: I attempt to update the status to an invalid value 'broken'
+        Then: The system should reject the operation
+        And: Should raise TypeError
+        And: The message should indicate the valid statuses: active, inactive, in_maintenance, retired
+        
+        User Story: HU-005 - Escenario 3
+        Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
+        """
+        # Arrange
+        vehicle = Vehicle(
+            id="V-456",
+            plate="XYZ-456",
+            model="Honda Civic",
+            current_mileage=10000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act & Assert - Attempt to pass invalid string value
+        with pytest.raises(TypeError) as exc_info:
+            # This should fail because 'broken' is not a valid VehicleStatus
+            vehicle.update_status("broken")
+        
+        # Verify error message mentions valid statuses
+        error_message = str(exc_info.value).lower()
+        # Check that the error message contains information about valid statuses
+        assert "vehiclestatus" in error_message or \
+               ("active" in error_message and "inactive" in error_message), \
+               f"Error message should indicate valid statuses. Got: {exc_info.value}"
+    
+    def test_update_status_only_accepts_vehicle_status_enum(self) -> None:
+        """
+        Test that update_status only accepts VehicleStatus enum values.
+        
+        Given: A vehicle exists
+        When: I attempt to update status with non-enum values
+        Then: The system should reject the operation
+        And: Only VehicleStatus enum values should be accepted
+        
+        User Story: HU-005 - Escenario 3
+        Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
+        """
+        # Arrange
+        vehicle = Vehicle(
+            id="V-789",
+            plate="DEF-789",
+            model="Ford Focus",
+            current_mileage=50000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act & Assert - Test various invalid inputs
+        invalid_values = [
+            "broken",           # Invalid string
+            "ACTIVE",           # Wrong case
+            "in-maintenance",   # Wrong format
+            123,                # Integer
+            None,               # None
+            True,               # Boolean
+            {"status": "active"},  # Dictionary
+        ]
+        
+        for invalid_value in invalid_values:
+            with pytest.raises(TypeError):
+                vehicle.update_status(invalid_value)
+        
+        # Verify vehicle status remains unchanged after failed attempts
+        assert vehicle.status == VehicleStatus.ACTIVE
+        assert vehicle.status == "active"
+    
+    def test_all_valid_vehicle_statuses_are_accepted(self) -> None:
+        """
+        Test that all valid VehicleStatus enum values are accepted.
+        
+        Given: A vehicle exists
+        When: I update status with each valid VehicleStatus enum value
+        Then: All updates should succeed
+        And: Valid statuses are: ACTIVE, INACTIVE, IN_MAINTENANCE, RETIRED
+        
+        User Story: HU-005 - Escenario 3
+        Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
+        """
+        # Arrange
+        vehicle = Vehicle(
+            id="V-999",
+            plate="TST-999",
+            model="Test Vehicle",
+            current_mileage=25000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act & Assert - Test all valid enum values
+        valid_statuses = [
+            VehicleStatus.ACTIVE,
+            VehicleStatus.INACTIVE,
+            VehicleStatus.IN_MAINTENANCE,
+            VehicleStatus.RETIRED,
+        ]
+        
+        for valid_status in valid_statuses:
+            # Should not raise any exception
+            vehicle.update_status(valid_status)
+            assert vehicle.status == valid_status
+            assert vehicle.status == valid_status.value
+            assert vehicle.status_updated_at is not None
+
 
 
 class TestVehicleMileageUpdate:
@@ -91,6 +355,33 @@ class TestVehicleMileageUpdate:
         # Act & Assert
         with pytest.raises(InvalidMileageException):
             vehicle.update_mileage(60000)  # Increment of 55,000 km
+    
+    def test_update_mileage_on_retired_vehicle_raises_exception(self) -> None:
+        """
+        Given: A vehicle with status 'retired'
+        When: Attempting to update mileage
+        Then: System should raise InvalidMileageException
+        And: Error message should indicate retired vehicle restriction
+        
+        User Story: HU-005 - Escenario 5
+        Business Rule: RN-027 - Cannot update mileage of retired vehicles
+        """
+        # Arrange
+        vehicle = Vehicle(
+            id="V-789",
+            plate="DEF-789",
+            model="Ford Focus",
+            current_mileage=200000,
+            status=VehicleStatus.RETIRED
+        )
+
+        # Act & Assert
+        with pytest.raises(InvalidMileageException) as exc_info:
+            vehicle.update_mileage(205000)
+        
+        # Verify error message
+        error_message = str(exc_info.value)
+        assert "retirado" in error_message.lower() or "retired" in error_message.lower()
 
     def test_update_mileage_notifies_observers(self):
         """

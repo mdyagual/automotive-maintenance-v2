@@ -35,6 +35,8 @@ class SqliteVehicleRepository(VehicleRepository):
             plate=vehicle_model.plate,
             model=vehicle_model.model,
             current_mileage=vehicle_model.current_mileage,
+            status=vehicle_model.status,
+            status_updated_at=vehicle_model.status_updated_at,
         )
 
     def _to_model(self, vehicle: Vehicle) -> VehicleModel:
@@ -52,6 +54,8 @@ class SqliteVehicleRepository(VehicleRepository):
             plate=vehicle.plate,
             model=vehicle.model,
             current_mileage=vehicle.current_mileage,
+            status=vehicle.status,
+            status_updated_at=vehicle.status_updated_at,
         )
 
     def _to_entities(self, vehicle_models: list[VehicleModel]) -> list[Vehicle]:

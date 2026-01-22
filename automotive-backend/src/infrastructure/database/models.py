@@ -6,6 +6,7 @@ from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from src.domain.entities.maintenance_alert import AlertType
+from src.domain.entities.vehicle_status import VehicleStatus
 
 
 class Base(DeclarativeBase):
@@ -23,6 +24,18 @@ class VehicleModel(Base):
     plate: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     model: Mapped[str] = mapped_column(String(100), nullable=False)
     current_mileage: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[VehicleStatus] = mapped_column(
+        Enum(VehicleStatus),
+        nullable=False,
+        default=VehicleStatus.ACTIVE,
+        server_default=VehicleStatus.ACTIVE.value
+    )
+    status_updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        nullable=False,
+        default=datetime.now,
+        onupdate=datetime.now
+    )
 
     # Relationship to alerts
     alerts: Mapped[list["AlertModel"]] = relationship(
@@ -31,7 +44,7 @@ class VehicleModel(Base):
 
     def __repr__(self) -> str:
         """String representation of VehicleModel."""
-        return f"<VehicleModel(id={self.id}, plate={self.plate}, mileage={self.current_mileage})>"
+        return f"<VehicleModel(id={self.id}, plate={self.plate}, mileage={self.current_mileage}, status={self.status.value})>"
 
 
 class AlertModel(Base):

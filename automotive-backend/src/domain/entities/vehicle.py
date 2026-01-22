@@ -1,5 +1,9 @@
 """Vehicle entity - Domain model."""
 
+from datetime import datetime
+from typing import Optional
+
+from src.domain.entities.vehicle_status import VehicleStatus
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
 from src.domain.ports.observer import Observer
 
@@ -11,7 +15,15 @@ class Vehicle:
     MAX_MILEAGE_INCREMENT = 50_000
     MAINTENANCE_INTERVAL = 10_000
 
-    def __init__(self, id: str, plate: str, model: str, current_mileage: int) -> None:
+    def __init__(
+        self,
+        id: str,
+        plate: str,
+        model: str,
+        current_mileage: int,
+        status: VehicleStatus = VehicleStatus.ACTIVE,
+        status_updated_at: Optional[datetime] = None
+    ) -> None:
         """
         Initialize a Vehicle instance.
 
@@ -20,11 +32,15 @@ class Vehicle:
             plate: License plate number
             model: Vehicle model name
             current_mileage: Current mileage in kilometers
+            status: Operational status of the vehicle (default: ACTIVE)
+            status_updated_at: Timestamp of last status update (default: now)
         """
         self.id = id
         self.plate = plate
         self.model = model
         self.current_mileage = current_mileage
+        self.status = status
+        self.status_updated_at = status_updated_at or datetime.now()
         self._observers: list[Observer] = []
 
     def attach(self, observer: Observer) -> None:
@@ -57,6 +73,30 @@ class Vehicle:
         new_threshold = (new_mileage // self.MAINTENANCE_INTERVAL) * self.MAINTENANCE_INTERVAL
         return new_threshold > old_threshold
 
+    def update_status(self, new_status: VehicleStatus) -> None:
+        """
+        Update vehicle operational status.
+        
+        Args:
+            new_status: New status value (must be VehicleStatus enum)
+            
+        Raises:
+            TypeError: If new_status is not a VehicleStatus enum
+            
+        Business Rules:
+        - RN-025: Valid statuses are: active, inactive, in_maintenance, retired
+        - RN-028: Status change must record update timestamp
+        """
+        # Validate that new_status is a VehicleStatus enum
+        if not isinstance(new_status, VehicleStatus):
+            raise TypeError(
+                f"Status must be a VehicleStatus enum. "
+                f"Valid statuses are: {', '.join([s.value for s in VehicleStatus])}"
+            )
+        
+        self.status = new_status
+        self.status_updated_at = datetime.now()
+
     def update_mileage(self, new_mileage: int) -> None:
         """
         Update vehicle mileage.
@@ -66,7 +106,17 @@ class Vehicle:
 
         Raises:
             InvalidMileageException: If new mileage is not greater than current
+                                    or if vehicle is retired
+        
+        Business Rules:
+        - RN-027: Cannot update mileage of retired vehicles
         """
+        # Check if vehicle is retired (RN-027) - must be first check
+        if self.status == VehicleStatus.RETIRED:
+            raise InvalidMileageException(
+                "No se puede actualizar kilometraje de vehículos retirados"
+            )
+        
         if new_mileage <= self.current_mileage:
             raise InvalidMileageException(
                 f"El kilometraje {new_mileage} debe ser mayor al actual {self.current_mileage}"
