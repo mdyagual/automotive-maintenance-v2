@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import Mock
 
 from src.domain.entities.vehicle import Vehicle
+from src.domain.entities.vehicle_status import VehicleStatus
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
 from src.domain.ports.observer import Observer
 
