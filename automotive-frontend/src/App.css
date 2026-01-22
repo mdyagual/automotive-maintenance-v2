@@ -151,6 +151,14 @@ body {
     color: var(--warning-600);
 }
 
+.stat-value.stat-success {
+    color: var(--success-600);
+}
+
+.stat-value.stat-error {
+    color: var(--error-600);
+}
+
 .stat-label {
     font-size: var(--text-sm);
     color: var(--gray-500);
@@ -164,11 +172,19 @@ body {
     margin-bottom: var(--space-8);
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
 .section-title {
     font-size: var(--text-xl);
     font-weight: 600;
     color: var(--gray-900);
-    margin-bottom: var(--space-6);
 }
 
 .vehicles-grid {
@@ -199,6 +215,13 @@ body {
     justify-content: space-between;
     align-items: start;
     margin-bottom: var(--space-4);
+}
+
+.vehicle-badges {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-end;
 }
 
 .vehicle-id {
@@ -779,5 +802,165 @@ body {
 
     .toast {
         min-width: auto;
+    }
+}
+
+/* ===================================
+   HU-005: STATUS BADGES & FILTERS
+   =================================== */
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.status-badge:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.status-badge-active {
+    background: var(--success-100);
+    color: var(--success-600);
+}
+
+.status-badge-inactive {
+    background: var(--gray-300);
+    color: var(--gray-700);
+}
+
+.status-badge-maintenance {
+    background: var(--warning-100);
+    color: var(--warning-600);
+}
+
+.status-badge-retired {
+    background: var(--error-100);
+    color: var(--error-600);
+}
+
+/* Status Filter */
+.status-filter {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.filter-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.filter-buttons {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--gray-300);
+    background: white;
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-family);
+}
+
+.filter-btn:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+}
+
+.filter-btn.active {
+    background: var(--primary-600);
+    color: white;
+    border-color: var(--primary-600);
+}
+
+.filter-icon {
+    font-size: var(--text-base);
+}
+
+/* Status Descriptions in Modal */
+.status-descriptions {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+    padding: var(--space-4);
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+}
+
+.status-description {
+    font-size: var(--text-sm);
+    color: var(--gray-700);
+    line-height: 1.6;
+}
+
+.status-description strong {
+    color: var(--gray-900);
+}
+
+/* Disabled Button State for Retired Vehicles */
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--gray-300);
+    color: var(--gray-500);
+}
+
+.btn-primary:disabled {
+    background: var(--gray-300);
+    color: var(--gray-500);
+}
+
+/* ===================================
+   RESPONSIVE UPDATES FOR HU-005
+   =================================== */
+@media (max-width: 768px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .status-filter {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .filter-buttons {
+        width: 100%;
+    }
+
+    .filter-btn {
+        flex: 1;
+        justify-content: center;
+        min-width: 100px;
+    }
+
+    .vehicle-badges {
+        align-items: flex-start;
+    }
+
+    .stats-section {
+        grid-template-columns: repeat(2, 1fr);
     }
 }

@@ -1,5 +1,5 @@
 import type { Vehicle } from '../types/vehicle';
-import { formatNumber, getAlertBadgeClass, getAlertIcon } from '../utils/formatters';
+import { formatNumber, getAlertBadgeClass, getAlertIcon, getStatusText, getStatusBadgeClass, getStatusIcon } from '../utils/formatters';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -7,12 +7,17 @@ interface VehicleCardProps {
   onDetails: (vehicleId: string) => void;
   onDelete: (vehicleId: string) => void;
   onAlerts: (vehicleId: string) => void;
+  onUpdateStatus: (vehicleId: string) => void;
 }
 
-export const VehicleCard = ({ vehicle, onUpdate, onDetails, onDelete, onAlerts }: VehicleCardProps) => {
+export const VehicleCard = ({ vehicle, onUpdate, onDetails, onDelete, onAlerts, onUpdateStatus }: VehicleCardProps) => {
   const alertCount = vehicle.alerts?.length || 0;
   const badgeClass = getAlertBadgeClass(alertCount);
   const badgeIcon = getAlertIcon(alertCount);
+  const statusBadgeClass = getStatusBadgeClass(vehicle.status);
+  const statusIcon = getStatusIcon(vehicle.status);
+  const statusText = getStatusText(vehicle.status);
+  const isRetired = vehicle.status === 'retired';
 
   return (
     <div className="vehicle-card">
@@ -21,9 +26,14 @@ export const VehicleCard = ({ vehicle, onUpdate, onDetails, onDelete, onAlerts }
           <div className="vehicle-id">{vehicle.id}</div>
           <div className="vehicle-plate">{vehicle.plate}</div>
         </div>
-        <span className={`badge ${badgeClass}`} onClick={() => onAlerts(vehicle.id)}>
-          {badgeIcon} {alertCount} {alertCount === 1 ? 'alerta' : 'alertas'}
-        </span>
+        <div className="vehicle-badges">
+          <span className={`status-badge ${statusBadgeClass}`} onClick={() => onUpdateStatus(vehicle.id)}>
+            {statusIcon} {statusText}
+          </span>
+          <span className={`badge ${badgeClass}`} onClick={() => onAlerts(vehicle.id)}>
+            {badgeIcon} {alertCount}
+          </span>
+        </div>
       </div>
 
       <div className="vehicle-model">{vehicle.model}</div>
@@ -37,7 +47,12 @@ export const VehicleCard = ({ vehicle, onUpdate, onDetails, onDelete, onAlerts }
       </div>
 
       <div className="vehicle-actions">
-        <button className="btn btn-small btn-primary" onClick={() => onUpdate(vehicle.id)}>
+        <button 
+          className="btn btn-small btn-primary" 
+          onClick={() => onUpdate(vehicle.id)}
+          disabled={isRetired}
+          title={isRetired ? 'No se puede actualizar kilometraje de vehículos retirados' : 'Actualizar kilometraje'}
+        >
           Actualizar KM
         </button>
         <button className="btn btn-small btn-secondary" onClick={() => onDetails(vehicle.id)}>

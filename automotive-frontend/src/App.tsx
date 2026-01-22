@@ -1,25 +1,28 @@
 import { useState } from 'react';
 import { Header } from './components/Header';
 import { Stats } from './components/Stats';
+import { StatusFilter } from './components/StatusFilter';
 import { VehicleGrid } from './components/VehicleGrid';
 import { Toast } from './components/Toast';
 import { CreateVehicleModal } from './components/modals/CreateVehicleModal';
 import { DetailsModal } from './components/modals/DetailsModal';
 import { UpdateMileageModal } from './components/modals/UpdateMileageModal';
+import { UpdateStatusModal } from './components/modals/UpdateStatusModal';
 import { AlertsModal } from './components/modals/AlertsModal';
 import { DeleteModal } from './components/modals/DeleteModal';
 import { useVehicles } from './hooks/useVehicles';
 import { useToast } from './hooks/useToast';
-import type { Vehicle, CreateVehicleRequest } from './types/vehicle';
+import type { Vehicle, CreateVehicleRequest, VehicleStatus } from './types/vehicle';
 import './App.css';
 
 function App() {
-  const { vehicles, loading, error, createVehicle, updateMileage, deleteVehicle } = useVehicles();
+  const { vehicles, loading, error, statusFilter, setStatusFilter, createVehicle, updateMileage, updateStatus, deleteVehicle } = useVehicles();
   const { toasts, showToast } = useToast();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isUpdateStatusModalOpen, setIsUpdateStatusModalOpen] = useState(false);
   const [isAlertsModalOpen, setIsAlertsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -39,6 +42,15 @@ function App() {
       showToast('Kilometraje actualizado exitosamente', 'success');
     } catch (err) {
       showToast(`Error al actualizar kilometraje: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+    }
+  };
+
+  const handleUpdateStatus = async (vehicleId: string, newStatus: VehicleStatus) => {
+    try {
+      await updateStatus(vehicleId, { new_status: newStatus });
+      showToast('Estado actualizado exitosamente', 'success');
+    } catch (err) {
+      showToast(`Error al actualizar estado: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
     }
   };
 
@@ -62,8 +74,20 @@ function App() {
   const openUpdateModal = (vehicleId: string) => {
     const vehicle = vehicles.find((v) => v.id === vehicleId);
     if (vehicle) {
+      if (vehicle.status === 'retired') {
+        showToast('No se puede actualizar el kilometraje de vehículos retirados', 'warning');
+        return;
+      }
       setSelectedVehicle(vehicle);
       setIsUpdateModalOpen(true);
+    }
+  };
+
+  const openUpdateStatusModal = (vehicleId: string) => {
+    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    if (vehicle) {
+      setSelectedVehicle(vehicle);
+      setIsUpdateStatusModalOpen(true);
     }
   };
 
@@ -105,14 +129,20 @@ function App() {
       <main className="main-content">
         <div className="container">
           <Stats vehicles={vehicles} />
+          
           <section className="vehicles-section">
-            <h2 className="section-title">Vehículos</h2>
+            <div className="section-header">
+              <h2 className="section-title">Vehículos</h2>
+              <StatusFilter currentFilter={statusFilter} onFilterChange={setStatusFilter} />
+            </div>
+            
             <VehicleGrid
               vehicles={vehicles}
               onUpdate={openUpdateModal}
               onDetails={openDetailsModal}
               onDelete={openDeleteModal}
               onAlerts={openAlertsModal}
+              onUpdateStatus={openUpdateStatusModal}
               onNewVehicle={() => setIsCreateModalOpen(true)}
             />
           </section>
@@ -136,6 +166,13 @@ function App() {
         onClose={() => setIsUpdateModalOpen(false)}
         vehicle={selectedVehicle}
         onSubmit={handleUpdateMileage}
+      />
+
+      <UpdateStatusModal
+        isOpen={isUpdateStatusModalOpen}
+        onClose={() => setIsUpdateStatusModalOpen(false)}
+        vehicle={selectedVehicle}
+        onSubmit={handleUpdateStatus}
       />
 
       <AlertsModal
