@@ -34,6 +34,8 @@ jobs:
     - name: Run tests with coverage
       working-directory: ./automotive-backend
       run: |
+        # Remove old database files to ensure fresh schema
+        rm -f maintenance.db test_maintenance.db test_status_integration.db
         pytest --cov=src --cov-report=term-missing --cov-report=html
 
     - name: Check coverage threshold

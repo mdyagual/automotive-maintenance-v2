@@ -31,6 +31,9 @@ def create_tables() -> None:
 
     This function should be called once at application startup
     to initialize the database schema.
+
+    Note: This will create missing tables but won't modify existing ones.
+    For schema changes, drop and recreate the database or use migrations.
     """
     Base.metadata.create_all(bind=engine)
 

@@ -14,16 +14,15 @@ from src.web.main import app
 @pytest.fixture(autouse=True)
 def reset_test_data():
     """Reset database to known state before each test."""
-    from src.infrastructure.database.connection import SessionLocal
-    from src.infrastructure.database.models import AlertModel, VehicleModel
+    from src.infrastructure.database.connection import SessionLocal, engine
+    from src.infrastructure.database.models import AlertModel, Base, VehicleModel
+
+    # Recreate all tables to ensure schema is up to date
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
 
     # Get session
     session = SessionLocal()
-
-    # Clean all data
-    session.query(AlertModel).delete()
-    session.query(VehicleModel).delete()
-    session.commit()
 
     # Create test vehicle V-123
     vehicle_repo = get_vehicle_repository()
