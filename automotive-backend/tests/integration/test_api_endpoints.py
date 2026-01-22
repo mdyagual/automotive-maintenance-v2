@@ -328,11 +328,11 @@ class TestVehicleEndpoints:
         client = TestClient(app)
 
         # Act
-        response = client.delete("/vehicles/V-NONEXISTENT")
+        response = client.delete("/vehicles/V-999")
 
         # Assert
         assert response.status_code == 404
-        assert "Vehículo con ID V-NONEXISTENT no encontrado" in response.json()["detail"]
+        assert "Vehículo con ID V-999 no encontrado" in response.json()["detail"]
 
     def test_delete_vehicle_cascades_alerts(self) -> None:
         """

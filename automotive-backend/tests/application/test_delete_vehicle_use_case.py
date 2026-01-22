@@ -59,13 +59,13 @@ class TestDeleteVehicleUseCase:
         # Arrange
         use_case = DeleteVehicleUseCase(vehicle_repository=vehicle_repository)
 
-        command = DeleteVehicleCommand(vehicle_id="V-NONEXISTENT")
+        command = DeleteVehicleCommand(vehicle_id="V-999")
 
         # Act & Assert
         with pytest.raises(VehicleNotFoundException) as exc_info:
             use_case.execute(command)
 
-        assert "Vehículo con ID V-NONEXISTENT no encontrado" in str(exc_info.value)
+        assert "Vehículo con ID V-999 no encontrado" in str(exc_info.value)
 
     """
     Tests to demonstrate Clean Architecture violation: Missing Application Layer DTOs.
