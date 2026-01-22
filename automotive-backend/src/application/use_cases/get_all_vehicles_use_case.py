@@ -1,16 +1,8 @@
 """Get All Vehicles Use Case - Application layer."""
-from typing import TypedDict
 
-from src.domain.entities.maintenance_alert import MaintenanceAlert
-from src.domain.entities.vehicle import Vehicle
+from src.application.dtos.vehicle_dtos import VehicleDTO, AlertDTO, VehicleWithAlertsDTO
 from src.domain.ports.alert_repository import AlertRepository
 from src.domain.ports.vehicle_repository import VehicleRepository
-
-
-class VehicleWithAlerts(TypedDict):
-    """Type definition for vehicle with its alerts."""
-    vehicle: Vehicle
-    alerts: list[MaintenanceAlert]
 
 
 class GetAllVehiclesUseCase:
@@ -31,24 +23,46 @@ class GetAllVehiclesUseCase:
         self._vehicle_repository = vehicle_repository
         self._alert_repository = alert_repository
 
-    def execute(self) -> list[VehicleWithAlerts]:
+    def execute(self) -> list[VehicleWithAlertsDTO]:
         """
         Execute the use case to get all vehicles with their alerts.
 
         Returns:
-            List of VehicleWithAlerts containing vehicle and its alerts.
+            List of VehicleWithAlertsDTO containing vehicle and its alerts.
             Each item has:
-            - "vehicle": Vehicle entity
-            - "alerts": List of MaintenanceAlert entities (most recent first)
+            - vehicle: VehicleDTO with vehicle data
+            - alerts: List of AlertDTO (most recent first)
         """
         vehicles = self._vehicle_repository.get_all()
 
-        result: list[VehicleWithAlerts] = []
+        result: list[VehicleWithAlertsDTO] = []
         for vehicle in vehicles:
             alerts = self._alert_repository.get_by_vehicle_id(vehicle.id)
-            result.append({
-                "vehicle": vehicle,
-                "alerts": alerts
-            })
+            
+            # Map domain entities to DTOs
+            vehicle_dto = VehicleDTO(
+                id=vehicle.id,
+                plate=vehicle.plate,
+                model=vehicle.model,
+                current_mileage=vehicle.current_mileage
+            )
+            
+            alert_dtos = [
+                AlertDTO(
+                    id=alert.id,
+                    vehicle_id=alert.vehicle_id,
+                    alert_type=alert.alert_type.value,
+                    mileage=alert.mileage,
+                    timestamp=alert.timestamp
+                )
+                for alert in alerts
+            ]
+            
+            result.append(
+                VehicleWithAlertsDTO(
+                    vehicle=vehicle_dto,
+                    alerts=alert_dtos
+                )
+            )
 
         return result

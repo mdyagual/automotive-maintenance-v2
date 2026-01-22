@@ -1,5 +1,8 @@
 """Use case for deleting a vehicle from the system."""
 
+from datetime import datetime
+
+from src.application.dtos.vehicle_dtos import DeleteVehicleCommand, DeleteVehicleResultDTO
 from src.domain.ports.vehicle_repository import VehicleRepository
 
 
@@ -15,7 +18,7 @@ class DeleteVehicleUseCase:
         """
         self._vehicle_repository = vehicle_repository
 
-    def execute(self, vehicle_id: str) -> None:
+    def execute(self, command: DeleteVehicleCommand) -> DeleteVehicleResultDTO:
         """
         Delete a vehicle from the system.
 
@@ -23,9 +26,20 @@ class DeleteVehicleUseCase:
         due to the database cascade configuration.
 
         Args:
-            vehicle_id: Unique identifier of the vehicle to delete
+            command: DeleteVehicleCommand with vehicle_id
+
+        Returns:
+            DeleteVehicleResultDTO with operation confirmation
 
         Raises:
             VehicleNotFoundException: If vehicle with given ID doesn't exist
         """
-        self._vehicle_repository.delete(vehicle_id)
+        # Delete the vehicle (will raise VehicleNotFoundException if not found)
+        self._vehicle_repository.delete(command.vehicle_id)
+
+        # Return confirmation DTO
+        return DeleteVehicleResultDTO(
+            deleted_vehicle_id=command.vehicle_id,
+            success=True,
+            timestamp=datetime.now()
+        )

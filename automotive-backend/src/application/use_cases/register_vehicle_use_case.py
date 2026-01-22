@@ -1,8 +1,7 @@
 """Use case for registering a new vehicle in the system."""
 
-from datetime import datetime
-
-from src.domain.entities.maintenance_alert import MaintenanceAlert
+from src.application.dtos.vehicle_dtos import RegisterVehicleCommand, VehicleDTO
+from src.application.validators.vehicle_validator import VehicleValidator
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.duplicate_vehicle_exception import (
     DuplicateVehicleException,
@@ -10,6 +9,7 @@ from src.domain.exceptions.duplicate_vehicle_exception import (
 from src.domain.exceptions.vehicle_not_found_exception import (
     VehicleNotFoundException,
 )
+from src.domain.ports.observer_factory import ObserverFactory
 from src.domain.ports.vehicle_repository import VehicleRepository
 
 
@@ -19,76 +19,76 @@ class RegisterVehicleUseCase:
     def __init__(
         self,
         vehicle_repository: VehicleRepository,
-        alert_repository=None,
-        strategies=None,
+        observer_factory: ObserverFactory = None,
     ):
-        """Initialize use case with repository and alert dependencies."""
-        self._vehicle_repository = vehicle_repository
-        self._alert_repository = alert_repository
-        self._strategies = strategies or []
+        """
+        Initialize use case with repository and observer factory.
 
-    def execute(
-        self, vehicle_id: str, plate: str, model: str, initial_mileage: int
-    ) -> Vehicle:
+        Args:
+            vehicle_repository: Repository for vehicle persistence
+            observer_factory: Factory for creating observers (optional)
+        """
+        self._vehicle_repository = vehicle_repository
+        self._observer_factory = observer_factory
+
+    def execute(self, command: RegisterVehicleCommand) -> VehicleDTO:
         """
         Register a new vehicle in the system.
 
         Args:
-            vehicle_id: Unique identifier for the vehicle
-            plate: License plate number
-            model: Vehicle model name
-            initial_mileage: Starting mileage value
+            command: RegisterVehicleCommand with vehicle data
 
         Returns:
-            The registered vehicle entity
+            VehicleDTO with registered vehicle data
 
         Raises:
             DuplicateVehicleException: If vehicle with same ID already exists
+            ValueError: If input data is invalid
         """
+        # ✅ Validate input data at application boundary
+        validator = VehicleValidator()
+        validator.validate_vehicle_data(
+            vehicle_id=command.vehicle_id,
+            plate=command.plate,
+            model=command.model,
+            initial_mileage=command.initial_mileage
+        )
+        
         # Validate vehicle ID doesn't exist
         try:
-            self._vehicle_repository.get_by_id(vehicle_id)
-            raise DuplicateVehicleException(f"Ya existe un vehículo con ID {vehicle_id}")
+            self._vehicle_repository.get_by_id(command.vehicle_id)
+            raise DuplicateVehicleException(f"Ya existe un vehículo con ID {command.vehicle_id}")
         except VehicleNotFoundException:
             # Vehicle doesn't exist (expected), continue
             pass
 
         # Create new vehicle entity
         vehicle = Vehicle(
-            id=vehicle_id, plate=plate, model=model, current_mileage=initial_mileage
+            id=command.vehicle_id,
+            plate=command.plate,
+            model=command.model,
+            current_mileage=0  # Start at 0 to trigger all missed alerts
         )
+
+        # ✅ Use Observer pattern to generate missed alerts
+        if self._observer_factory and command.initial_mileage > 0:
+            # Create observer starting from 0 to catch all thresholds
+            observer = self._observer_factory.create_maintenance_observer(
+                vehicle_id=command.vehicle_id,
+                initial_mileage=0
+            )
+            vehicle.attach(observer)
+            
+            # Update to initial mileage - this triggers alert generation via observer
+            vehicle.update_mileage(command.initial_mileage)
 
         # Save to repository
         self._vehicle_repository.save(vehicle)
 
-        # Extensión: Generar alertas omitidas si el kilometraje inicial cruza umbrales
-        if self._alert_repository and self._strategies:
-            for strategy in self._strategies:
-                old_threshold = strategy._calculate_threshold(0)
-                new_threshold = strategy._calculate_threshold(initial_mileage)
-                interval = strategy.INTERVAL
-                alert_type = strategy.get_alert_type()
-                if new_threshold > old_threshold:
-                    for threshold in range(
-                        old_threshold + interval, new_threshold + 1, interval
-                    ):
-                        # Verificar si ya existe una alerta para ese vehículo, tipo y kilometraje
-                        existentes = self._alert_repository.get_by_vehicle_id(vehicle_id)
-                        ya_existe = any(
-                            a.alert_type == alert_type and a.mileage == threshold
-                            for a in existentes
-                        )
-                        if not ya_existe:
-                            alert = MaintenanceAlert(
-                                id=(
-                                    f"A-{vehicle_id}-{threshold}-"
-                                    f"{alert_type.value}"
-                                ),
-                                vehicle_id=vehicle_id,
-                                alert_type=alert_type,
-                                mileage=threshold,
-                                timestamp=datetime.now(),
-                            )
-                            self._alert_repository.save(alert)
-
-        return vehicle
+        # Return DTO (not entity!)
+        return VehicleDTO(
+            id=vehicle.id,
+            plate=vehicle.plate,
+            model=vehicle.model,
+            current_mileage=vehicle.current_mileage
+        )

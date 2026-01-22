@@ -1,11 +1,18 @@
 """FastAPI application - Web layer."""
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
+from src.application.dtos.vehicle_dtos import (
+    RegisterVehicleCommand,
+    UpdateMileageCommand,
+    DeleteVehicleCommand,
+)
 from src.application.use_cases.delete_vehicle_use_case import DeleteVehicleUseCase
 from src.application.use_cases.get_all_vehicles_use_case import GetAllVehiclesUseCase
+from src.application.use_cases.get_vehicle_use_case import GetVehicleUseCase
+from src.application.use_cases.get_vehicle_alerts_use_case import GetVehicleAlertsUseCase
 from src.application.use_cases.register_vehicle_use_case import RegisterVehicleUseCase
 from src.application.use_cases.update_vehicle_mileage_use_case import (
     UpdateVehicleMileageUseCase,
@@ -16,13 +23,13 @@ from src.domain.exceptions.invalid_mileage_exception import InvalidMileageExcept
 from src.domain.exceptions.vehicle_not_found_exception import (
     VehicleNotFoundException,
 )
-from src.domain.strategies.basic_maintenance_strategy import BasicMaintenanceStrategy
-from src.domain.strategies.critical_threshold_strategy import CriticalThresholdStrategy
-from src.domain.strategies.major_maintenance_strategy import MajorMaintenanceStrategy
+from src.infrastructure.factories.observer_factory_impl import ObserverFactoryImpl
+from src.infrastructure.repositories.sqlite_alert_repository import SqliteAlertRepository
+from src.infrastructure.repositories.sqlite_vehicle_repository import SqliteVehicleRepository
 from src.web.dependencies import (
     get_alert_repository,
+    get_observer_factory,
     get_vehicle_repository,
-    initialize_test_data,
 )
 
 
@@ -70,11 +77,7 @@ class VehicleWithAlertsResponse(BaseModel):
     alerts: list[AlertResponse]
 
 
-# Initialize dependencies and test data
-initialize_test_data()
-
 # Create app
-
 app = FastAPI(
     title="Automotive Fleet Management API",
     description="API for managing vehicle fleet and maintenance alerts",
@@ -116,12 +119,18 @@ def _map_alert_to_response(alert: MaintenanceAlert) -> AlertResponse:
     response_model=VehicleResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_vehicle(request: CreateVehicleRequest):
+def create_vehicle(
+    request: CreateVehicleRequest,
+    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository),
+    observer_factory: ObserverFactoryImpl = Depends(get_observer_factory)
+):
     """
     Create a new vehicle.
 
     Args:
         request: Vehicle creation data
+        vehicle_repo: Vehicle repository injected by FastAPI
+        observer_factory: Observer factory injected by FastAPI
 
     Returns:
         Created vehicle data
@@ -131,26 +140,27 @@ def create_vehicle(request: CreateVehicleRequest):
     """
     try:
         use_case = RegisterVehicleUseCase(
-            vehicle_repository=get_vehicle_repository(),
-            alert_repository=get_alert_repository(),
-            strategies=[
-                BasicMaintenanceStrategy(),
-                MajorMaintenanceStrategy(),
-                CriticalThresholdStrategy()
-            ]
+            vehicle_repository=vehicle_repo,
+            observer_factory=observer_factory
         )
-        vehicle = use_case.execute(
+        
+        # Map web DTO to application DTO
+        command = RegisterVehicleCommand(
             vehicle_id=request.id,
             plate=request.plate,
             model=request.model,
-            initial_mileage=request.initial_mileage,
+            initial_mileage=request.initial_mileage
         )
+        
+        # Execute use case
+        vehicle_dto = use_case.execute(command)
 
+        # Map application DTO to web DTO
         return VehicleResponse(
-            id=vehicle.id,
-            plate=vehicle.plate,
-            model=vehicle.model,
-            current_mileage=vehicle.current_mileage,
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage,
         )
     except DuplicateVehicleException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -161,33 +171,49 @@ def create_vehicle(request: CreateVehicleRequest):
     response_model=list[VehicleWithAlertsResponse],
     status_code=status.HTTP_200_OK,
 )
-def get_all_vehicles():
+def get_all_vehicles(
+    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository),
+    alert_repo: SqliteAlertRepository = Depends(get_alert_repository)
+):
     """
     Get all vehicles with their alerts.
+
+    Args:
+        vehicle_repo: Vehicle repository injected by FastAPI
+        alert_repo: Alert repository injected by FastAPI
 
     Returns:
         List of all vehicles with their alerts ordered by timestamp descending
     """
     use_case = GetAllVehiclesUseCase(
-        vehicle_repository=get_vehicle_repository(),
-        alert_repository=get_alert_repository(),
+        vehicle_repository=vehicle_repo,
+        alert_repository=alert_repo,
     )
     result = use_case.execute()
 
-    # Convert to response DTOs
+    # Convert DTOs to response models
     response = []
     for item in result:
-        vehicle = item["vehicle"]
-        alerts = item["alerts"]
+        vehicle_dto = item.vehicle
+        alert_dtos = item.alerts
 
-        alert_responses = [_map_alert_to_response(alert) for alert in alerts]
+        alert_responses = [
+            AlertResponse(
+                id=alert_dto.id,
+                vehicle_id=alert_dto.vehicle_id,
+                alert_type=alert_dto.alert_type,
+                mileage=alert_dto.mileage,
+                timestamp=alert_dto.timestamp.isoformat(),
+            )
+            for alert_dto in alert_dtos
+        ]
 
         response.append(
             VehicleWithAlertsResponse(
-                id=vehicle.id,
-                plate=vehicle.plate,
-                model=vehicle.model,
-                current_mileage=vehicle.current_mileage,
+                id=vehicle_dto.id,
+                plate=vehicle_dto.plate,
+                model=vehicle_dto.model,
+                current_mileage=vehicle_dto.current_mileage,
                 alerts=alert_responses,
             )
         )
@@ -196,12 +222,16 @@ def get_all_vehicles():
 
 
 @app.get("/vehicles/{vehicle_id}", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
-def get_vehicle(vehicle_id: str):
+def get_vehicle(
+    vehicle_id: str,
+    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)
+):
     """
     Get vehicle by ID.
 
     Args:
         vehicle_id: Unique identifier of the vehicle
+        vehicle_repo: Vehicle repository injected by FastAPI
 
     Returns:
         Vehicle data
@@ -210,12 +240,16 @@ def get_vehicle(vehicle_id: str):
         HTTPException: 404 if vehicle not found
     """
     try:
-        vehicle = get_vehicle_repository().get_by_id(vehicle_id)
+        # Use use case instead of direct repository access
+        use_case = GetVehicleUseCase(vehicle_repository=vehicle_repo)
+        vehicle_dto = use_case.execute(vehicle_id)
+        
+        # Map DTO to response
         return VehicleResponse(
-            id=vehicle.id,
-            plate=vehicle.plate,
-            model=vehicle.model,
-            current_mileage=vehicle.current_mileage
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage
         )
     except VehicleNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -226,13 +260,20 @@ def get_vehicle(vehicle_id: str):
     response_model=VehicleResponse,
     status_code=status.HTTP_200_OK
 )
-def update_vehicle_mileage(vehicle_id: str, request: UpdateMileageRequest):
+def update_vehicle_mileage(
+    vehicle_id: str,
+    request: UpdateMileageRequest,
+    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository),
+    observer_factory: ObserverFactoryImpl = Depends(get_observer_factory)
+):
     """
     Update vehicle mileage.
 
     Args:
         vehicle_id: Unique identifier of the vehicle
         request: Update mileage request with new mileage value
+        vehicle_repo: Vehicle repository injected by FastAPI
+        observer_factory: Observer factory injected by FastAPI
 
     Returns:
         Updated vehicle data
@@ -240,25 +281,28 @@ def update_vehicle_mileage(vehicle_id: str, request: UpdateMileageRequest):
     Raises:
         HTTPException: 400 if invalid mileage, 404 if vehicle not found
     """
-    # Create use case with all strategies
+    # Create use case with injected dependencies
     use_case = UpdateVehicleMileageUseCase(
-        vehicle_repository=get_vehicle_repository(),
-        alert_repository=get_alert_repository(),
-        strategies=[
-            BasicMaintenanceStrategy(),
-            MajorMaintenanceStrategy(),
-            CriticalThresholdStrategy()
-        ]
+        vehicle_repository=vehicle_repo,
+        observer_factory=observer_factory
     )
 
     try:
-        use_case.execute(vehicle_id=vehicle_id, new_mileage=request.new_mileage)
-        vehicle = get_vehicle_repository().get_by_id(vehicle_id)
+        # Map to command DTO
+        command = UpdateMileageCommand(
+            vehicle_id=vehicle_id,
+            new_mileage=request.new_mileage
+        )
+        
+        # Execute use case
+        vehicle_dto = use_case.execute(command)
+        
+        # Map DTO to response
         return VehicleResponse(
-            id=vehicle.id,
-            plate=vehicle.plate,
-            model=vehicle.model,
-            current_mileage=vehicle.current_mileage
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage
         )
     except InvalidMileageException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -271,28 +315,34 @@ def update_vehicle_mileage(vehicle_id: str, request: UpdateMileageRequest):
     response_model=list[AlertResponse],
     status_code=status.HTTP_200_OK
 )
-def get_vehicle_alerts(vehicle_id: str):
+def get_vehicle_alerts(
+    vehicle_id: str,
+    alert_repo: SqliteAlertRepository = Depends(get_alert_repository)
+):
     """
     Get all alerts for a specific vehicle.
 
     Args:
         vehicle_id: Unique identifier of the vehicle
+        alert_repo: Alert repository injected by FastAPI
 
     Returns:
         List of maintenance alerts for the vehicle
     """
-    all_alerts = get_alert_repository().get_all()
-    vehicle_alerts = [alert for alert in all_alerts if alert.vehicle_id == vehicle_id]
-
+    # Use use case instead of direct repository access
+    use_case = GetVehicleAlertsUseCase(alert_repository=alert_repo)
+    alert_dtos = use_case.execute(vehicle_id)
+    
+    # Map DTOs to responses
     return [
         AlertResponse(
-            id=alert.id,
-            vehicle_id=alert.vehicle_id,
-            alert_type=alert.alert_type.value,
-            mileage=alert.mileage,
-            timestamp=alert.timestamp.isoformat()
+            id=alert_dto.id,
+            vehicle_id=alert_dto.vehicle_id,
+            alert_type=alert_dto.alert_type,
+            mileage=alert_dto.mileage,
+            timestamp=alert_dto.timestamp.isoformat()
         )
-        for alert in vehicle_alerts
+        for alert_dto in alert_dtos
     ]
 
 
@@ -300,7 +350,10 @@ def get_vehicle_alerts(vehicle_id: str):
     "/vehicles/{vehicle_id}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-def delete_vehicle(vehicle_id: str):
+def delete_vehicle(
+    vehicle_id: str,
+    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)
+):
     """
     Delete a vehicle by ID.
 
@@ -308,6 +361,7 @@ def delete_vehicle(vehicle_id: str):
 
     Args:
         vehicle_id: Unique identifier of the vehicle to delete
+        vehicle_repo: Vehicle repository injected by FastAPI
 
     Raises:
         HTTPException: 404 if vehicle not found
@@ -316,7 +370,12 @@ def delete_vehicle(vehicle_id: str):
         204 No Content on successful deletion
     """
     try:
-        use_case = DeleteVehicleUseCase(vehicle_repository=get_vehicle_repository())
-        use_case.execute(vehicle_id=vehicle_id)
+        use_case = DeleteVehicleUseCase(vehicle_repository=vehicle_repo)
+        
+        # Map to command DTO
+        command = DeleteVehicleCommand(vehicle_id=vehicle_id)
+        
+        # Execute use case (returns confirmation DTO, but we don't use it for 204 response)
+        use_case.execute(command)
     except VehicleNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

@@ -4,7 +4,9 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from src.domain.strategies.basic_maintenance_strategy import BasicMaintenanceStrategy
 from src.infrastructure.database.models import Base
+from src.infrastructure.factories.observer_factory_impl import ObserverFactoryImpl
 from src.infrastructure.repositories.sqlite_alert_repository import (
     SqliteAlertRepository,
 )
@@ -38,3 +40,13 @@ def vehicle_repository(test_db):
 def alert_repository(test_db):
     """Create alert repository instance with test database."""
     return SqliteAlertRepository(test_db)
+
+
+@pytest.fixture
+def observer_factory(alert_repository):
+    """Create observer factory instance with test dependencies."""
+    strategies = [BasicMaintenanceStrategy()]
+    return ObserverFactoryImpl(
+        alert_repository=alert_repository,
+        strategies=strategies
+    )

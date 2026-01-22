@@ -3,7 +3,9 @@
 from datetime import datetime
 
 import pytest
+from unittest.mock import Mock
 
+from src.application.dtos.vehicle_dtos import DeleteVehicleCommand, DeleteVehicleResultDTO
 from src.application.use_cases.delete_vehicle_use_case import DeleteVehicleUseCase
 from src.domain.entities.maintenance_alert import AlertType, MaintenanceAlert
 from src.domain.entities.vehicle import Vehicle
@@ -31,11 +33,17 @@ class TestDeleteVehicleUseCase:
         vehicle_repository.save(vehicle)
 
         use_case = DeleteVehicleUseCase(vehicle_repository=vehicle_repository)
+        
+        command = DeleteVehicleCommand(vehicle_id="V-999")
 
         # Act
-        use_case.execute(vehicle_id="V-999")
+        result = use_case.execute(command)
 
         # Assert
+        assert isinstance(result, DeleteVehicleResultDTO)
+        assert result.deleted_vehicle_id == "V-999"
+        assert result.success is True
+        
         with pytest.raises(VehicleNotFoundException):
             vehicle_repository.get_by_id("V-999")
 
@@ -50,12 +58,115 @@ class TestDeleteVehicleUseCase:
         """
         # Arrange
         use_case = DeleteVehicleUseCase(vehicle_repository=vehicle_repository)
+        
+        command = DeleteVehicleCommand(vehicle_id="V-NONEXISTENT")
 
         # Act & Assert
         with pytest.raises(VehicleNotFoundException) as exc_info:
-            use_case.execute(vehicle_id="V-NONEXISTENT")
+            use_case.execute(command)
 
         assert "Vehículo con ID V-NONEXISTENT no encontrado" in str(exc_info.value)
+
+    """
+    Tests to demonstrate Clean Architecture violation: Missing Application Layer DTOs.
+    
+    ARCHITECTURAL FLAW:
+    - Use case accepts primitive parameter instead of Command DTO
+    - Use case returns None instead of DTO
+    - No confirmation of deletion operation
+    """
+
+    def test_use_case_should_accept_command_dto_not_primitive(self):
+        """
+        ARCHITECTURAL VIOLATION TEST: Use case accepts primitive parameter instead of Command DTO.
+        
+        This test PASSES NOW because:
+        - DeleteVehicleUseCase.execute() accepts DeleteVehicleCommand DTO
+        - Clear contract for use case input
+        """
+        # Arrange
+        mock_repository = Mock()
+        
+        use_case = DeleteVehicleUseCase(vehicle_repository=mock_repository)
+        
+        # Act & Assert - THIS SHOULD NOW PASS
+        import inspect
+        sig = inspect.signature(use_case.execute)
+        params = list(sig.parameters.keys())
+        
+        # Check if it accepts a single command parameter (correct)
+        has_primitive_params = len(params) > 2  # More than self and command
+        
+        assert not has_primitive_params, (
+            f"Use case should accept a single Command DTO. "
+            f"Current parameters: {params}. "
+            f"Expected: ['self', 'command']"
+        )
+        
+        assert 'command' in params, f"Expected parameter named 'command', got: {params}"
+
+    def test_use_case_should_return_confirmation_dto_not_none(self):
+        """
+        ARCHITECTURAL VIOLATION TEST: Use case returns None instead of confirmation DTO.
+        
+        This test PASSES NOW because:
+        - DeleteVehicleUseCase.execute() returns DeleteVehicleResultDTO
+        - Clear output contract with confirmation
+        """
+        # Arrange
+        mock_repository = Mock()
+        vehicle = Vehicle(
+            id="V-001",
+            plate="ABC-123",
+            model="Toyota Corolla",
+            current_mileage=5000
+        )
+        mock_repository.get_by_id.return_value = vehicle
+        mock_repository.delete = Mock()
+        
+        use_case = DeleteVehicleUseCase(vehicle_repository=mock_repository)
+        
+        command = DeleteVehicleCommand(vehicle_id="V-001")
+        
+        # Act
+        result = use_case.execute(command)
+        
+        # Assert - THIS SHOULD NOW PASS
+        assert result is not None, "Use case should return a confirmation DTO"
+        assert isinstance(result, DeleteVehicleResultDTO), (
+            f"Expected DeleteVehicleResultDTO, got {type(result).__name__}"
+        )
+        assert result.deleted_vehicle_id == "V-001"
+        assert result.success is True
+
+    def test_use_case_return_type_should_be_dto_not_none(self):
+        """
+        ARCHITECTURAL VIOLATION TEST: Use case return type annotation shows None.
+        
+        This test PASSES NOW because:
+        - Method signature shows -> DeleteVehicleResultDTO
+        - Clear API contract
+        """
+        # Arrange
+        use_case = DeleteVehicleUseCase(vehicle_repository=Mock())
+        
+        # Act - Check return type annotation
+        import inspect
+        sig = inspect.signature(use_case.execute)
+        return_annotation = sig.return_annotation
+        
+        # Assert - THIS SHOULD NOW PASS
+        is_dto = (return_annotation == DeleteVehicleResultDTO or 
+                 (hasattr(return_annotation, '__name__') and 
+                  return_annotation.__name__ == 'DeleteVehicleResultDTO'))
+        
+        assert is_dto, f"Use case should return DeleteVehicleResultDTO. Got: {return_annotation}"
+        
+        is_none_return = (return_annotation is None or 
+                         return_annotation == type(None) or
+                         str(return_annotation) == 'None')
+        
+        assert not is_none_return, "Use case should not return None"
 
     def test_delete_vehicle_cascades_alerts(
         self, vehicle_repository, alert_repository
@@ -105,9 +216,11 @@ class TestDeleteVehicleUseCase:
         assert len(alerts_before) == 3
 
         use_case = DeleteVehicleUseCase(vehicle_repository=vehicle_repository)
+        
+        command = DeleteVehicleCommand(vehicle_id="V-777")
 
         # Act
-        use_case.execute(vehicle_id="V-777")
+        use_case.execute(command)
 
         # Assert - Vehicle deleted
         with pytest.raises(VehicleNotFoundException):
