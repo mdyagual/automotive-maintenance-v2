@@ -68,6 +68,125 @@ class TestVehicleCreation:
         assert vehicle.current_mileage == current_mileage
 
 
+class TestVehicleStatusUpdate:
+    """Test cases for Vehicle status updates - HU-005 Escenario 1."""
+
+    def test_update_vehicle_status_to_in_maintenance(self) -> None:
+        """
+        Test updating vehicle status from active to in_maintenance.
+        
+        Given: A vehicle with ID 'V-123' with status 'active'
+        When: I update the vehicle status to 'in_maintenance'
+        Then: The vehicle status should be 'in_maintenance'
+        And: The vehicle should remain visible in the vehicle list
+        And: The status change should record the update timestamp
+        
+        User Story: HU-005 - Escenario 1
+        Business Rule: RN-028 - Status change must record update timestamp
+        
+        EXPECTED TO FAIL: Vehicle entity doesn't have update_status() method yet
+        """
+        # Arrange
+        from datetime import datetime
+        from src.domain.entities.vehicle import Vehicle
+        from src.domain.entities.vehicle_status import VehicleStatus
+        
+        vehicle = Vehicle(
+            id="V-123",
+            plate="ABC-123",
+            model="Toyota Corolla",
+            current_mileage=5000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Verify initial state
+        assert vehicle.status == VehicleStatus.ACTIVE
+        assert vehicle.status == "active"
+        
+        # Act - Update status to in_maintenance
+        timestamp_before = datetime.now()
+        vehicle.update_status(VehicleStatus.IN_MAINTENANCE)
+        timestamp_after = datetime.now()
+        
+        # Assert
+        assert vehicle.status == VehicleStatus.IN_MAINTENANCE
+        assert vehicle.status == "in_maintenance"
+        
+        # Verify timestamp was recorded (RN-028)
+        assert hasattr(vehicle, 'status_updated_at'), "Vehicle should track status update timestamp"
+        assert vehicle.status_updated_at is not None
+        assert timestamp_before <= vehicle.status_updated_at <= timestamp_after
+        
+        # Verify vehicle is still accessible (not deleted or hidden)
+        assert vehicle.id == "V-123"
+        assert vehicle.plate == "ABC-123"
+        assert vehicle.model == "Toyota Corolla"
+        assert vehicle.current_mileage == 5000
+    
+    def test_update_vehicle_status_from_active_to_inactive(self) -> None:
+        """Test updating vehicle status from active to inactive."""
+        # Arrange
+        vehicle = Vehicle(
+            id="V-456",
+            plate="XYZ-456",
+            model="Honda Civic",
+            current_mileage=10000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act
+        vehicle.update_status(VehicleStatus.INACTIVE)
+        
+        # Assert
+        assert vehicle.status == VehicleStatus.INACTIVE
+        assert vehicle.status == "inactive"
+    
+    def test_update_vehicle_status_to_retired(self) -> None:
+        """Test updating vehicle status to retired."""
+        # Arrange
+        vehicle = Vehicle(
+            id="V-789",
+            plate="DEF-789",
+            model="Ford Focus",
+            current_mileage=200000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act
+        vehicle.update_status(VehicleStatus.RETIRED)
+        
+        # Assert
+        assert vehicle.status == VehicleStatus.RETIRED
+        assert vehicle.status == "retired"
+    
+    def test_update_status_records_timestamp_on_each_change(self) -> None:
+        """Test that each status change updates the timestamp."""
+        from datetime import datetime
+        import time
+        
+        # Arrange
+        vehicle = Vehicle(
+            id="V-100",
+            plate="TST-100",
+            model="Test Vehicle",
+            current_mileage=5000,
+            status=VehicleStatus.ACTIVE
+        )
+        
+        # Act - First status change
+        vehicle.update_status(VehicleStatus.IN_MAINTENANCE)
+        first_timestamp = vehicle.status_updated_at
+        
+        time.sleep(0.01)  # Small delay to ensure different timestamps
+        
+        # Act - Second status change
+        vehicle.update_status(VehicleStatus.ACTIVE)
+        second_timestamp = vehicle.status_updated_at
+        
+        # Assert
+        assert first_timestamp is not None
+        assert second_timestamp is not None
+        assert second_timestamp > first_timestamp, "Timestamp should update on each status change"
 
 
 
