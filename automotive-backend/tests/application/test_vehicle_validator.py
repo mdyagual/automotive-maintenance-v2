@@ -6,10 +6,10 @@ from unittest.mock import Mock
 from src.application.validators.vehicle_validator import VehicleValidator
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
 
-# TODO: Create these domain exceptions
-# from src.domain.exceptions.invalid_vehicle_id_exception import InvalidVehicleIdException
-# from src.domain.exceptions.invalid_plate_exception import InvalidPlateException
-# from src.domain.exceptions.invalid_model_exception import InvalidModelException
+
+from src.domain.exceptions.invalid_vehicle_id_exception import InvalidVehicleIdException
+from src.domain.exceptions.invalid_plate_exception import InvalidPlateException
+from src.domain.exceptions.invalid_model_exception import InvalidModelException
 
 
 class TestVehicleValidator:
@@ -61,8 +61,7 @@ class TestVehicleValidator:
         ]
         
         for vehicle_id in invalid_ids:
-            # TODO: Change to InvalidVehicleIdException when created
-            with pytest.raises((ValueError, Exception)) as exc_info:
+            with pytest.raises(InvalidVehicleIdException) as exc_info:
                 self.validator.validate_vehicle_id(vehicle_id)
             # Verify error message is descriptive
             error_msg = str(exc_info.value).lower()
@@ -74,8 +73,7 @@ class TestVehicleValidator:
         
         Should raise: InvalidVehicleIdException (domain exception)
         """
-        # TODO: Change to InvalidVehicleIdException when created
-        with pytest.raises((ValueError, TypeError, Exception)):
+        with pytest.raises(InvalidVehicleIdException):
             self.validator.validate_vehicle_id(None)
 
     # ==================== PLATE VALIDATION TESTS ====================
@@ -133,8 +131,7 @@ class TestVehicleValidator:
         ]
         
         for plate in invalid_plates:
-            # TODO: Change to InvalidPlateException when created
-            with pytest.raises((ValueError, Exception)) as exc_info:
+            with pytest.raises(InvalidPlateException) as exc_info:
                 self.validator.validate_plate(plate)
             # Verify error message is descriptive
             error_msg = str(exc_info.value).lower()
@@ -146,8 +143,7 @@ class TestVehicleValidator:
         
         Should raise: InvalidPlateException (domain exception)
         """
-        # TODO: Change to InvalidPlateException when created
-        with pytest.raises((ValueError, TypeError, Exception)):
+        with pytest.raises(InvalidPlateException):
             self.validator.validate_plate(None)
 
     # ==================== MODEL VALIDATION TESTS ====================
@@ -180,8 +176,7 @@ class TestVehicleValidator:
         
         Should raise: InvalidModelException (domain exception)
         """
-        # TODO: Change to InvalidModelException when created
-        with pytest.raises((ValueError, Exception)) as exc_info:
+        with pytest.raises(InvalidModelException) as exc_info:
             self.validator.validate_model("")
         error_msg = str(exc_info.value).lower()
         assert "model" in error_msg or "modelo" in error_msg or "vacío" in error_msg
@@ -195,8 +190,7 @@ class TestVehicleValidator:
         invalid_models = ["   ", "\t", "\n", "  \t  "]
         
         for model in invalid_models:
-            # TODO: Change to InvalidModelException when created
-            with pytest.raises((ValueError, Exception)) as exc_info:
+            with pytest.raises(InvalidModelException) as exc_info:
                 self.validator.validate_model(model)
             error_msg = str(exc_info.value).lower()
             assert "model" in error_msg or "modelo" in error_msg or "vacío" in error_msg
@@ -207,8 +201,7 @@ class TestVehicleValidator:
         
         Should raise: InvalidModelException (domain exception)
         """
-        # TODO: Change to InvalidModelException when created
-        with pytest.raises((ValueError, TypeError, Exception)):
+        with pytest.raises(InvalidModelException):
             self.validator.validate_model(None)
 
     def test_validate_model_rejects_too_long(self):
@@ -221,8 +214,7 @@ class TestVehicleValidator:
         # Model name longer than 100 characters should be rejected
         too_long_model = "A" * 101
         
-        # TODO: Change to InvalidModelException when created
-        with pytest.raises((ValueError, Exception)) as exc_info:
+        with pytest.raises(InvalidModelException) as exc_info:
             self.validator.validate_model(too_long_model)
         error_msg = str(exc_info.value).lower()
         assert "model" in error_msg or "modelo" in error_msg or "longitud" in error_msg
@@ -276,7 +268,7 @@ class TestVehicleValidator:
         
         Should raise: InvalidMileageException (domain exception)
         """
-        with pytest.raises((InvalidMileageException, TypeError, Exception)):
+        with pytest.raises(InvalidMileageException):
             self.validator.validate_initial_mileage(None)
 
     # ==================== COMPLETE VEHICLE DATA VALIDATION TESTS ====================
@@ -301,8 +293,7 @@ class TestVehicleValidator:
         
         Should raise: InvalidVehicleIdException (domain exception)
         """
-        # TODO: Change to InvalidVehicleIdException when created
-        with pytest.raises((ValueError, Exception)):
+        with pytest.raises(InvalidVehicleIdException):
             self.validator.validate_vehicle_data(
                 vehicle_id="INVALID",
                 plate="ABC-123",
@@ -316,8 +307,7 @@ class TestVehicleValidator:
         
         Should raise: InvalidPlateException (domain exception)
         """
-        # TODO: Change to InvalidPlateException when created
-        with pytest.raises((ValueError, Exception)):
+        with pytest.raises(InvalidPlateException):
             self.validator.validate_vehicle_data(
                 vehicle_id="V-123",
                 plate="INVALID",
@@ -331,8 +321,7 @@ class TestVehicleValidator:
         
         Should raise: InvalidModelException (domain exception)
         """
-        # TODO: Change to InvalidModelException when created
-        with pytest.raises((ValueError, Exception)):
+        with pytest.raises(InvalidModelException):
             self.validator.validate_vehicle_data(
                 vehicle_id="V-123",
                 plate="ABC-123",
@@ -398,23 +387,20 @@ class TestVehicleValidator:
         Error messages should help developers understand what went wrong.
         """
         # Test vehicle_id error message
-        # TODO: Change to InvalidVehicleIdException when created
-        with pytest.raises((ValueError, Exception)) as exc_info:
+        with pytest.raises(InvalidVehicleIdException) as exc_info:
             self.validator.validate_vehicle_id("INVALID")
         error_msg = str(exc_info.value)
         assert len(error_msg) > 0
         assert "V-" in error_msg or "formato" in error_msg.lower()
         
         # Test plate error message
-        # TODO: Change to InvalidPlateException when created
-        with pytest.raises((ValueError, Exception)) as exc_info:
+        with pytest.raises(InvalidPlateException) as exc_info:
             self.validator.validate_plate("INVALID")
         error_msg = str(exc_info.value)
         assert len(error_msg) > 0
         
         # Test model error message
-        # TODO: Change to InvalidModelException when created
-        with pytest.raises((ValueError, Exception)) as exc_info:
+        with pytest.raises(InvalidModelException) as exc_info:
             self.validator.validate_model("")
         error_msg = str(exc_info.value)
         assert len(error_msg) > 0
