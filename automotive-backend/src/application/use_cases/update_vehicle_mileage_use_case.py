@@ -58,5 +58,6 @@ class UpdateVehicleMileageUseCase:
             id=vehicle.id,
             plate=vehicle.plate,
             model=vehicle.model,
-            current_mileage=vehicle.current_mileage
+            current_mileage=vehicle.current_mileage,
+            status=vehicle.status.value,  # Convert enum to string
         )
