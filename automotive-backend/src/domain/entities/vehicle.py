@@ -1,7 +1,6 @@
 """Vehicle entity - Domain model."""
 
 from datetime import datetime
-from typing import Optional
 
 from src.domain.entities.vehicle_status import VehicleStatus
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
@@ -22,7 +21,7 @@ class Vehicle:
         model: str,
         current_mileage: int,
         status: VehicleStatus = VehicleStatus.ACTIVE,
-        status_updated_at: Optional[datetime] = None
+        status_updated_at: datetime | None = None
     ) -> None:
         """
         Initialize a Vehicle instance.
@@ -76,13 +75,13 @@ class Vehicle:
     def update_status(self, new_status: VehicleStatus) -> None:
         """
         Update vehicle operational status.
-        
+
         Args:
             new_status: New status value (must be VehicleStatus enum)
-            
+
         Raises:
             TypeError: If new_status is not a VehicleStatus enum
-            
+
         Business Rules:
         - RN-025: Valid statuses are: active, inactive, in_maintenance, retired
         - RN-028: Status change must record update timestamp
@@ -93,7 +92,7 @@ class Vehicle:
                 f"Status must be a VehicleStatus enum. "
                 f"Valid statuses are: {', '.join([s.value for s in VehicleStatus])}"
             )
-        
+
         self.status = new_status
         self.status_updated_at = datetime.now()
 
@@ -107,7 +106,7 @@ class Vehicle:
         Raises:
             InvalidMileageException: If new mileage is not greater than current
                                     or if vehicle is retired
-        
+
         Business Rules:
         - RN-027: Cannot update mileage of retired vehicles
         """
@@ -116,7 +115,7 @@ class Vehicle:
             raise InvalidMileageException(
                 "No se puede actualizar kilometraje de vehículos retirados"
             )
-        
+
         if new_mileage <= self.current_mileage:
             raise InvalidMileageException(
                 f"El kilometraje {new_mileage} debe ser mayor al actual {self.current_mileage}"
@@ -134,7 +133,6 @@ class Vehicle:
                 f"{self.MAX_MILEAGE_INCREMENT:,} km"
             )
 
-        old_mileage = self.current_mileage
         self.current_mileage = new_mileage
 
         # Notify observers on every mileage update

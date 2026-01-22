@@ -1,6 +1,6 @@
 """Get All Vehicles Use Case - Application layer."""
 
-from src.application.dtos.vehicle_dtos import VehicleDTO, AlertDTO, VehicleWithAlertsDTO
+from src.application.dtos.vehicle_dtos import AlertDTO, VehicleDTO, VehicleWithAlertsDTO
 from src.domain.ports.alert_repository import AlertRepository
 from src.domain.ports.vehicle_repository import VehicleRepository
 
@@ -38,7 +38,7 @@ class GetAllVehiclesUseCase:
         result: list[VehicleWithAlertsDTO] = []
         for vehicle in vehicles:
             alerts = self._alert_repository.get_by_vehicle_id(vehicle.id)
-            
+
             # Map domain entities to DTOs
             vehicle_dto = VehicleDTO(
                 id=vehicle.id,
@@ -47,7 +47,7 @@ class GetAllVehiclesUseCase:
                 current_mileage=vehicle.current_mileage,
                 status=vehicle.status.value,  # Convert enum to string
             )
-            
+
             alert_dtos = [
                 AlertDTO(
                     id=alert.id,
@@ -58,7 +58,7 @@ class GetAllVehiclesUseCase:
                 )
                 for alert in alerts
             ]
-            
+
             result.append(
                 VehicleWithAlertsDTO(
                     vehicle=vehicle_dto,

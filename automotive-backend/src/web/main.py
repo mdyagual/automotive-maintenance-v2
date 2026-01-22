@@ -5,14 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
 from src.application.dtos.vehicle_dtos import (
+    DeleteVehicleCommand,
     RegisterVehicleCommand,
     UpdateMileageCommand,
-    DeleteVehicleCommand,
 )
 from src.application.use_cases.delete_vehicle_use_case import DeleteVehicleUseCase
 from src.application.use_cases.get_all_vehicles_use_case import GetAllVehiclesUseCase
-from src.application.use_cases.get_vehicle_use_case import GetVehicleUseCase
 from src.application.use_cases.get_vehicle_alerts_use_case import GetVehicleAlertsUseCase
+from src.application.use_cases.get_vehicle_use_case import GetVehicleUseCase
 from src.application.use_cases.register_vehicle_use_case import RegisterVehicleUseCase
 from src.application.use_cases.update_vehicle_mileage_use_case import (
     UpdateVehicleMileageUseCase,
@@ -143,7 +143,7 @@ def create_vehicle(
             vehicle_repository=vehicle_repo,
             observer_factory=observer_factory
         )
-        
+
         # Map web DTO to application DTO
         command = RegisterVehicleCommand(
             vehicle_id=request.id,
@@ -151,7 +151,7 @@ def create_vehicle(
             model=request.model,
             initial_mileage=request.initial_mileage
         )
-        
+
         # Execute use case
         vehicle_dto = use_case.execute(command)
 
@@ -243,7 +243,7 @@ def get_vehicle(
         # Use use case instead of direct repository access
         use_case = GetVehicleUseCase(vehicle_repository=vehicle_repo)
         vehicle_dto = use_case.execute(vehicle_id)
-        
+
         # Map DTO to response
         return VehicleResponse(
             id=vehicle_dto.id,
@@ -293,10 +293,10 @@ def update_vehicle_mileage(
             vehicle_id=vehicle_id,
             new_mileage=request.new_mileage
         )
-        
+
         # Execute use case
         vehicle_dto = use_case.execute(command)
-        
+
         # Map DTO to response
         return VehicleResponse(
             id=vehicle_dto.id,
@@ -332,7 +332,7 @@ def get_vehicle_alerts(
     # Use use case instead of direct repository access
     use_case = GetVehicleAlertsUseCase(alert_repository=alert_repo)
     alert_dtos = use_case.execute(vehicle_id)
-    
+
     # Map DTOs to responses
     return [
         AlertResponse(
@@ -371,10 +371,10 @@ def delete_vehicle(
     """
     try:
         use_case = DeleteVehicleUseCase(vehicle_repository=vehicle_repo)
-        
+
         # Map to command DTO
         command = DeleteVehicleCommand(vehicle_id=vehicle_id)
-        
+
         # Execute use case (returns confirmation DTO, but we don't use it for 204 response)
         use_case.execute(command)
     except VehicleNotFoundException as e:

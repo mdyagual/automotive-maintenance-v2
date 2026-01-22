@@ -5,17 +5,18 @@ These tests will FAIL until GetVehicleAlertsUseCase is implemented.
 They define the expected behavior of the missing use case.
 """
 
-import pytest
-from unittest.mock import Mock
 from datetime import datetime
+from unittest.mock import Mock
 
-from src.domain.entities.maintenance_alert import MaintenanceAlert, AlertType
+import pytest
+
+from src.domain.entities.maintenance_alert import AlertType, MaintenanceAlert
 
 
 class TestGetVehicleAlertsUseCase:
     """
     Tests for GetVehicleAlertsUseCase (currently doesn't exist - tests will FAIL).
-    
+
     These tests define the expected behavior:
     1. Use case should accept vehicle_id as parameter
     2. Use case should return list[AlertDTO] (not domain entities)
@@ -65,7 +66,7 @@ class TestGetVehicleAlertsUseCase:
     def test_get_vehicle_alerts_use_case_exists(self):
         """
         Test that GetVehicleAlertsUseCase class exists.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
         """
         try:
@@ -77,16 +78,16 @@ class TestGetVehicleAlertsUseCase:
     def test_execute_returns_list_of_alert_dtos(self, mock_repository, sample_alerts):
         """
         Test that execute() returns list[AlertDTO], not domain entities.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should return list of AlertDTO
         - Domain entities should NOT be returned
         """
         try:
-            from src.application.use_cases.get_vehicle_alerts_use_case import GetVehicleAlertsUseCase
             from src.application.dtos.alert_dtos import AlertDTO
+            from src.application.use_cases.get_vehicle_alerts_use_case import GetVehicleAlertsUseCase
         except ImportError:
             pytest.skip("GetVehicleAlertsUseCase or AlertDTO not implemented yet")
 
@@ -100,7 +101,7 @@ class TestGetVehicleAlertsUseCase:
         # Assert
         assert isinstance(result, list), "Use case should return a list"
         assert len(result) > 0, "Should return alerts for V-001"
-        
+
         for alert_dto in result:
             assert isinstance(alert_dto, AlertDTO), "Each item should be AlertDTO"
             assert not isinstance(alert_dto, MaintenanceAlert), "Should NOT return domain entities"
@@ -108,9 +109,9 @@ class TestGetVehicleAlertsUseCase:
     def test_execute_filters_alerts_by_vehicle_id(self, mock_repository, sample_alerts):
         """
         Test that execute() filters alerts by vehicle_id (business logic).
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should filter alerts for the specified vehicle
         - Should only return alerts matching vehicle_id
@@ -130,7 +131,7 @@ class TestGetVehicleAlertsUseCase:
 
         # Assert
         assert len(result) == 3, "Should return 3 alerts for V-001"
-        
+
         # All returned alerts should be for V-001
         for alert_dto in result:
             assert alert_dto.vehicle_id == "V-001", "All alerts should be for V-001"
@@ -138,9 +139,9 @@ class TestGetVehicleAlertsUseCase:
     def test_execute_returns_empty_list_when_no_alerts(self, mock_repository):
         """
         Test that execute() returns empty list when vehicle has no alerts.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Should return empty list, not None
         - Should not raise exception
@@ -164,9 +165,9 @@ class TestGetVehicleAlertsUseCase:
     def test_execute_calls_repository_get_all(self, mock_repository, sample_alerts):
         """
         Test that execute() delegates to repository.get_all().
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should call repository.get_all()
         - Should call it exactly once
@@ -189,9 +190,9 @@ class TestGetVehicleAlertsUseCase:
     def test_execute_with_different_vehicle_ids(self, mock_repository, sample_alerts):
         """
         Test that execute() correctly filters for different vehicle IDs.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Should return correct alerts for each vehicle
         - Filtering should work for any vehicle_id
@@ -212,16 +213,16 @@ class TestGetVehicleAlertsUseCase:
         # Assert
         assert len(result_v001) == 3, "V-001 should have 3 alerts"
         assert len(result_v002) == 1, "V-002 should have 1 alert"
-        
+
         assert all(a.vehicle_id == "V-001" for a in result_v001)
         assert all(a.vehicle_id == "V-002" for a in result_v002)
 
     def test_use_case_accepts_repository_in_constructor(self, mock_repository):
         """
         Test that GetVehicleAlertsUseCase accepts repository in constructor.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Constructor should accept alert_repository parameter
         - Should follow dependency injection pattern
@@ -241,9 +242,9 @@ class TestGetVehicleAlertsUseCase:
     def test_alert_dto_is_immutable(self, mock_repository, sample_alerts):
         """
         Test that returned AlertDTOs are immutable (frozen dataclass).
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - AlertDTO should be immutable
         - Attempting to modify should raise exception
@@ -267,9 +268,9 @@ class TestGetVehicleAlertsUseCase:
     def test_use_case_maps_all_alert_properties_to_dto(self, mock_repository):
         """
         Test that all alert properties are mapped to DTO.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - All alert properties should be in DTO
         - No data should be lost in mapping
@@ -296,13 +297,13 @@ class TestGetVehicleAlertsUseCase:
         # Assert - All properties should be present
         assert len(result) == 1
         alert_dto = result[0]
-        
+
         assert hasattr(alert_dto, 'id'), "DTO should have id"
         assert hasattr(alert_dto, 'vehicle_id'), "DTO should have vehicle_id"
         assert hasattr(alert_dto, 'alert_type'), "DTO should have alert_type"
         assert hasattr(alert_dto, 'mileage'), "DTO should have mileage"
         assert hasattr(alert_dto, 'timestamp'), "DTO should have timestamp"
-        
+
         assert alert_dto.id == "A-TEST-123"
         assert alert_dto.vehicle_id == "V-TEST"
         assert alert_dto.alert_type == "BASIC_MAINTENANCE"
@@ -312,9 +313,9 @@ class TestGetVehicleAlertsUseCase:
     def test_alert_type_is_converted_to_string_in_dto(self, mock_repository):
         """
         Test that AlertType enum is converted to string in DTO.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - alert_type should be string in DTO, not enum
         - Should use enum.value for conversion
@@ -358,7 +359,7 @@ class TestGetVehicleAlertsUseCase:
         assert result[0].alert_type == "BASIC_MAINTENANCE"
         assert result[1].alert_type == "MAJOR_MAINTENANCE"
         assert result[2].alert_type == "CRITICAL_THRESHOLD"
-        
+
         # Should be strings, not enums
         assert isinstance(result[0].alert_type, str)
         assert isinstance(result[1].alert_type, str)
@@ -367,9 +368,9 @@ class TestGetVehicleAlertsUseCase:
     def test_use_case_does_not_modify_domain_entities(self, mock_repository, sample_alerts):
         """
         Test that use case doesn't modify domain entities.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should only read from entities
         - Entity state should remain unchanged
@@ -382,7 +383,7 @@ class TestGetVehicleAlertsUseCase:
         # Arrange
         original_count = len(sample_alerts)
         original_ids = [alert.id for alert in sample_alerts]
-        
+
         mock_repository.get_all.return_value = sample_alerts
         use_case = GetVehicleAlertsUseCase(alert_repository=mock_repository)
 
@@ -396,9 +397,9 @@ class TestGetVehicleAlertsUseCase:
     def test_execute_returns_alerts_in_original_order(self, mock_repository):
         """
         Test that execute() preserves the order of alerts from repository.
-        
+
         EXPECTED TO FAIL: GetVehicleAlertsUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Should maintain the order from repository
         - Should not sort or reorder alerts

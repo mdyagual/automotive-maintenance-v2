@@ -5,8 +5,9 @@ These tests will FAIL until GetVehicleUseCase is implemented.
 They define the expected behavior of the missing use case.
 """
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.vehicle_not_found_exception import VehicleNotFoundException
@@ -15,7 +16,7 @@ from src.domain.exceptions.vehicle_not_found_exception import VehicleNotFoundExc
 class TestGetVehicleUseCase:
     """
     Tests for GetVehicleUseCase (currently doesn't exist - tests will FAIL).
-    
+
     These tests define the expected behavior:
     1. Use case should accept vehicle_id as parameter
     2. Use case should return VehicleDTO (not domain entity)
@@ -41,7 +42,7 @@ class TestGetVehicleUseCase:
     def test_get_vehicle_use_case_exists(self):
         """
         Test that GetVehicleUseCase class exists.
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
         """
         try:
@@ -53,16 +54,16 @@ class TestGetVehicleUseCase:
     def test_execute_returns_vehicle_dto_not_entity(self, mock_repository, sample_vehicle):
         """
         Test that execute() returns VehicleDTO, not domain entity.
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should return VehicleDTO
         - Domain entity should NOT be returned
         """
         try:
-            from src.application.use_cases.get_vehicle_use_case import GetVehicleUseCase
             from src.application.dtos.vehicle_dtos import VehicleDTO
+            from src.application.use_cases.get_vehicle_use_case import GetVehicleUseCase
         except ImportError:
             pytest.skip("GetVehicleUseCase or VehicleDTO not implemented yet")
 
@@ -84,9 +85,9 @@ class TestGetVehicleUseCase:
     def test_execute_calls_repository_get_by_id(self, mock_repository, sample_vehicle):
         """
         Test that execute() delegates to repository.get_by_id().
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should call repository.get_by_id(vehicle_id)
         - Use case should pass the correct vehicle_id
@@ -109,9 +110,9 @@ class TestGetVehicleUseCase:
     def test_execute_raises_vehicle_not_found_exception(self, mock_repository):
         """
         Test that execute() propagates VehicleNotFoundException.
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - If repository raises VehicleNotFoundException, use case should propagate it
         - Exception should not be caught or transformed
@@ -134,23 +135,22 @@ class TestGetVehicleUseCase:
     def test_execute_with_different_vehicle_ids(self, mock_repository):
         """
         Test that execute() works with different vehicle IDs.
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should work with any valid vehicle_id
         - Should return correct data for each vehicle
         """
         try:
             from src.application.use_cases.get_vehicle_use_case import GetVehicleUseCase
-            from src.application.dtos.vehicle_dtos import VehicleDTO
         except ImportError:
-            pytest.skip("GetVehicleUseCase or VehicleDTO not implemented yet")
+            pytest.skip("GetVehicleUseCase not implemented yet")
 
         # Arrange
         vehicle1 = Vehicle(id="V-001", plate="ABC-123", model="Toyota", current_mileage=10000)
         vehicle2 = Vehicle(id="V-002", plate="XYZ-789", model="Honda", current_mileage=20000)
-        
+
         mock_repository.get_by_id.side_effect = [vehicle1, vehicle2]
         use_case = GetVehicleUseCase(vehicle_repository=mock_repository)
 
@@ -162,7 +162,7 @@ class TestGetVehicleUseCase:
         assert result1.id == "V-001"
         assert result1.plate == "ABC-123"
         assert result1.current_mileage == 10000
-        
+
         assert result2.id == "V-002"
         assert result2.plate == "XYZ-789"
         assert result2.current_mileage == 20000
@@ -170,9 +170,9 @@ class TestGetVehicleUseCase:
     def test_use_case_accepts_repository_in_constructor(self, mock_repository):
         """
         Test that GetVehicleUseCase accepts repository in constructor.
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Constructor should accept vehicle_repository parameter
         - Should follow dependency injection pattern
@@ -192,9 +192,9 @@ class TestGetVehicleUseCase:
     def test_dto_is_immutable(self, mock_repository, sample_vehicle):
         """
         Test that returned DTO is immutable (frozen dataclass).
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - VehicleDTO should be immutable
         - Attempting to modify should raise exception
@@ -218,9 +218,9 @@ class TestGetVehicleUseCase:
     def test_use_case_does_not_modify_domain_entity(self, mock_repository, sample_vehicle):
         """
         Test that use case doesn't modify the domain entity.
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should only read from entity
         - Entity state should remain unchanged
@@ -244,9 +244,9 @@ class TestGetVehicleUseCase:
     def test_use_case_maps_all_entity_properties_to_dto(self, mock_repository):
         """
         Test that all entity properties are mapped to DTO.
-        
+
         EXPECTED TO FAIL: GetVehicleUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - All vehicle properties should be in DTO
         - No data should be lost in mapping
@@ -274,7 +274,7 @@ class TestGetVehicleUseCase:
         assert hasattr(result, 'plate'), "DTO should have plate"
         assert hasattr(result, 'model'), "DTO should have model"
         assert hasattr(result, 'current_mileage'), "DTO should have current_mileage"
-        
+
         assert result.id == "V-123"
         assert result.plate == "TEST-999"
         assert result.model == "Test Model"

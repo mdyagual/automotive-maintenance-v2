@@ -53,7 +53,7 @@ class RegisterVehicleUseCase:
             model=command.model,
             initial_mileage=command.initial_mileage
         )
-        
+
         # Validate vehicle ID doesn't exist
         try:
             self._vehicle_repository.get_by_id(command.vehicle_id)
@@ -78,7 +78,7 @@ class RegisterVehicleUseCase:
                 initial_mileage=0
             )
             vehicle.attach(observer)
-            
+
             # Update to initial mileage - this triggers alert generation via observer
             vehicle.update_mileage(command.initial_mileage)
 

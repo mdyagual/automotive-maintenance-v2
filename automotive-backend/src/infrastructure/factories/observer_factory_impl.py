@@ -1,8 +1,8 @@
 """Observer Factory Implementation - Infrastructure layer."""
 
+from src.domain.ports.alert_repository import AlertRepository
 from src.domain.ports.observer import Observer
 from src.domain.ports.observer_factory import ObserverFactory
-from src.domain.ports.alert_repository import AlertRepository
 from src.domain.strategies.maintenance_strategy import MaintenanceStrategy
 from src.infrastructure.observers.maintenance_alert_observer import (
     MaintenanceAlertObserver,

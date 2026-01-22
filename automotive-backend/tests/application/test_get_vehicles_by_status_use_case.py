@@ -1,7 +1,8 @@
 """Tests for GetVehiclesByStatusUseCase - Application layer."""
 
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 from src.domain.entities.vehicle import Vehicle
 from src.domain.entities.vehicle_status import VehicleStatus
@@ -10,7 +11,7 @@ from src.domain.entities.vehicle_status import VehicleStatus
 class TestGetVehiclesByStatusUseCase:
     """
     Tests for GetVehiclesByStatusUseCase (currently doesn't exist - tests will FAIL).
-    
+
     These tests define the expected behavior for HU-005 Escenario 2:
     1. Use case should accept status parameter
     2. Use case should return list of VehicleDTO (not domain entities)
@@ -88,7 +89,7 @@ class TestGetVehiclesByStatusUseCase:
     def test_get_vehicles_by_status_use_case_exists(self):
         """
         Test that GetVehiclesByStatusUseCase class exists.
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
         """
         try:
@@ -104,18 +105,18 @@ class TestGetVehiclesByStatusUseCase:
     ):
         """
         Test that execute() returns list of VehicleDTO, not domain entities.
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should return list of VehicleDTO
         - Domain entities should NOT be returned
         """
         try:
+            from src.application.dtos.vehicle_dtos import VehicleDTO
             from src.application.use_cases.get_vehicles_by_status_use_case import (
                 GetVehiclesByStatusUseCase,
             )
-            from src.application.dtos.vehicle_dtos import VehicleDTO
         except ImportError:
             pytest.skip("GetVehiclesByStatusUseCase or VehicleDTO not implemented yet")
 
@@ -129,7 +130,7 @@ class TestGetVehiclesByStatusUseCase:
         # Assert
         assert isinstance(result, list), "Use case should return a list"
         assert len(result) == 2, "Should return 2 vehicles"
-        
+
         for vehicle_dto in result:
             assert isinstance(vehicle_dto, VehicleDTO), "Each item should be VehicleDTO"
             assert not isinstance(vehicle_dto, Vehicle), "Should NOT return domain entities"
@@ -139,9 +140,9 @@ class TestGetVehiclesByStatusUseCase:
     ):
         """
         Test that execute() delegates to repository.get_by_status().
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should call repository.get_by_status(status)
         - Use case should pass the correct status parameter
@@ -166,9 +167,9 @@ class TestGetVehiclesByStatusUseCase:
     def test_execute_returns_empty_list_when_no_vehicles_match(self, mock_repository):
         """
         Test that execute() returns empty list when no vehicles have the status.
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Should return empty list, not None
         - Should not raise exception
@@ -196,9 +197,9 @@ class TestGetVehiclesByStatusUseCase:
     ):
         """
         Test filtering vehicles with ACTIVE status.
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Should return only vehicles with ACTIVE status
         - Should return correct vehicle data in DTOs
@@ -227,9 +228,9 @@ class TestGetVehiclesByStatusUseCase:
     def test_execute_with_different_status_values(self, mock_repository):
         """
         Test that execute() works correctly with all status values.
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Should work with ACTIVE, INACTIVE, IN_MAINTENANCE, RETIRED
         - Should call repository with correct status each time
@@ -261,9 +262,9 @@ class TestGetVehiclesByStatusUseCase:
     def test_use_case_accepts_repository_in_constructor(self, mock_repository):
         """
         Test that GetVehiclesByStatusUseCase accepts repository in constructor.
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Constructor should accept vehicle_repository parameter
         - Should follow dependency injection pattern
@@ -287,9 +288,9 @@ class TestGetVehiclesByStatusUseCase:
     ):
         """
         Test that returned DTOs contain all vehicle fields including status.
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - DTOs should include: id, plate, model, current_mileage, status
         - Status should be string representation
@@ -322,9 +323,9 @@ class TestGetVehiclesByStatusUseCase:
     ):
         """
         Test that use case doesn't modify domain entities.
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
-        
+
         CORRECT BEHAVIOR:
         - Use case should only read from entities
         - Entity state should remain unchanged
@@ -355,12 +356,12 @@ class TestGetVehiclesByStatusUseCase:
     def test_execute_with_gherkin_scenario_data(self, mock_repository):
         """
         Test the exact Gherkin scenario from HU-005 Escenario 2.
-        
+
         Given: 5 vehicles in the system with different statuses
         When: I request vehicles with status='active'
         Then: System should return 2 vehicles
         And: Both vehicles should have status 'active'
-        
+
         EXPECTED TO FAIL: GetVehiclesByStatusUseCase doesn't exist yet.
         """
         try:
