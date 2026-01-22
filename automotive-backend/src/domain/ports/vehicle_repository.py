@@ -55,3 +55,17 @@ class VehicleRepository(ABC):
             VehicleNotFoundException: If vehicle not found
         """
         pass
+
+    @abstractmethod
+    def get_by_status(self, status: "VehicleStatus") -> list[Vehicle]:
+        """
+        Get all vehicles with a specific status.
+
+        Args:
+            status: VehicleStatus enum value to filter by
+
+        Returns:
+            List of Vehicle instances with the specified status
+            Empty list if no vehicles match
+        """
+        pass

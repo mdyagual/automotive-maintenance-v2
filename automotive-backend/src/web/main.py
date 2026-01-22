@@ -1,6 +1,6 @@
 """FastAPI application - Web layer."""
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -175,19 +175,61 @@ def create_vehicle(
     status_code=status.HTTP_200_OK,
 )
 def get_all_vehicles(
+    status: str | None = Query(None, alias="status"),
     vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository),
     alert_repo: SqliteAlertRepository = Depends(get_alert_repository)
 ):
     """
-    Get all vehicles with their alerts.
+    Get all vehicles with their alerts, optionally filtered by status.
 
     Args:
+        status: Optional status to filter vehicles (active, inactive, in_maintenance, retired)
         vehicle_repo: Vehicle repository injected by FastAPI
         alert_repo: Alert repository injected by FastAPI
 
     Returns:
-        List of all vehicles with their alerts ordered by timestamp descending
+        List of all vehicles (or filtered by status) with their alerts ordered by timestamp descending
+
+    Raises:
+        HTTPException: 400 if invalid status value provided
     """
+    from src.application.use_cases.get_vehicles_by_status_use_case import GetVehiclesByStatusUseCase
+    from src.domain.entities.vehicle_status import VehicleStatus
+    from fastapi import status as http_status
+    
+    # If status filter is provided, use GetVehiclesByStatusUseCase
+    if status is not None:
+        # Validate and convert status string to enum
+        try:
+            # Case-insensitive conversion
+            status_enum = VehicleStatus(status.lower())
+        except ValueError:
+            valid_statuses = [s.value for s in VehicleStatus]
+            raise HTTPException(
+                status_code=http_status.HTTP_400_BAD_REQUEST,
+                detail=f"Estado inválido '{status}'. Estados válidos: {', '.join(valid_statuses)}"
+            )
+        
+        # Use GetVehiclesByStatusUseCase for filtering
+        use_case = GetVehiclesByStatusUseCase(vehicle_repository=vehicle_repo)
+        vehicle_dtos = use_case.execute(status_enum)
+        
+        # Convert DTOs to response models (without alerts for filtered results)
+        response = []
+        for vehicle_dto in vehicle_dtos:
+            response.append(
+                VehicleWithAlertsResponse(
+                    id=vehicle_dto.id,
+                    plate=vehicle_dto.plate,
+                    model=vehicle_dto.model,
+                    current_mileage=vehicle_dto.current_mileage,
+                    status=vehicle_dto.status,
+                    alerts=[],  # No alerts in filtered response
+                )
+            )
+        return response
+    
+    # No filter - use GetAllVehiclesUseCase (original behavior)
     use_case = GetAllVehiclesUseCase(
         vehicle_repository=vehicle_repo,
         alert_repository=alert_repo,

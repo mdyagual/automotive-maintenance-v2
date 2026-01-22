@@ -144,3 +144,26 @@ class SqliteVehicleRepository(VehicleRepository):
         vehicle_model = self._get_vehicle_model_or_raise(vehicle_id)
         self._db.delete(vehicle_model)
         self._db.commit()
+
+    def get_by_status(self, status: "VehicleStatus") -> list[Vehicle]:
+        """
+        Get all vehicles with a specific status.
+
+        Args:
+            status: VehicleStatus enum value to filter by
+
+        Returns:
+            List of Vehicle instances with the specified status
+            Empty list if no vehicles match
+        """
+        from src.domain.entities.vehicle_status import VehicleStatus
+        
+        # Convert enum to string value for database query
+        status_value = status.value if isinstance(status, VehicleStatus) else status
+        
+        vehicle_models = (
+            self._db.query(VehicleModel)
+            .filter_by(status=status_value)
+            .all()
+        )
+        return self._to_entities(vehicle_models)
