@@ -496,9 +496,11 @@ class TestVehicleEndpoints:
         When: GET /vehicles/search?plate=ABC-123
         Then: The system should return 1 vehicle
         And: The vehicle should have plate "ABC-123"
+        And: The vehicle should include alerts (RN-034)
 
         User Story: HU-006 - Escenario 1
         Business Rule: RN-031 - Search must be case-insensitive
+        Business Rule: RN-034 - Search results must include alerts
         """
         # Arrange
         client = TestClient(app)
@@ -520,6 +522,9 @@ class TestVehicleEndpoints:
         assert data["plate"] == "ABC-123"
         assert data["model"] == "Toyota Corolla"
         assert data["current_mileage"] == 5000
+        # Verify alerts are included (RN-034)
+        assert "alerts" in data
+        assert isinstance(data["alerts"], list)
 
     def test_search_vehicle_by_plate_case_insensitive(self) -> None:
         """
@@ -528,9 +533,11 @@ class TestVehicleEndpoints:
         Given: A vehicle exists with plate "ABC-123"
         When: GET /vehicles/search?plate=abc-123 (lowercase)
         Then: The system should return the vehicle with plate "ABC-123"
+        And: The vehicle should include alerts (RN-034)
 
         User Story: HU-006 - Escenario 4
         Business Rule: RN-031 - Search must be case-insensitive
+        Business Rule: RN-034 - Search results must include alerts
         """
         # Arrange
         client = TestClient(app)
@@ -543,6 +550,9 @@ class TestVehicleEndpoints:
         data = response.json()
         assert data["plate"] == "ABC-123"
         assert data["id"] == "V-123"
+        # Verify alerts are included (RN-034)
+        assert "alerts" in data
+        assert isinstance(data["alerts"], list)
 
     def test_search_vehicle_by_nonexistent_plate_returns_404(self) -> None:
         """
@@ -591,9 +601,11 @@ class TestVehicleEndpoints:
         When: GET /vehicles/search?plate=ABC
         Then: The system should return 2 vehicles
         And: Both vehicles should have plates containing "ABC"
+        And: Each vehicle should include alerts (RN-034)
 
         User Story: HU-006 - Escenario 2
         Business Rule: RN-032 - Search must support partial matches
+        Business Rule: RN-034 - Search results must include alerts
         """
         # Arrange
         client = TestClient(app)
@@ -618,6 +630,11 @@ class TestVehicleEndpoints:
         plates = [v["plate"] for v in data]
         assert "ABC-123" in plates
         assert "ABC-789" in plates
+
+        # Verify each vehicle includes alerts (RN-034)
+        for vehicle in data:
+            assert "alerts" in vehicle
+            assert isinstance(vehicle["alerts"], list)
 
         # Verify structure
         for vehicle in data:
