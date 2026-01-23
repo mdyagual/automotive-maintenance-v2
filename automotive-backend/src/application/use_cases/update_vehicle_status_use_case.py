@@ -47,9 +47,7 @@ class UpdateVehicleStatusUseCase:
             status_enum = VehicleStatus(command.new_status.lower())
         except ValueError:
             valid_statuses = [s.value for s in VehicleStatus]
-            raise InvalidStatusException(
-                f"Estado inválido '{command.new_status}'. Estados válidos: {', '.join(valid_statuses)}"
-            )
+            raise InvalidStatusException(f"Estado inválido '{command.new_status}'. Estados válidos: {', '.join(valid_statuses)}")
 
         # Get vehicle
         vehicle = self._vehicle_repository.get_by_id(command.vehicle_id)

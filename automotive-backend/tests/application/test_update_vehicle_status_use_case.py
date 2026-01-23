@@ -26,13 +26,7 @@ class TestUpdateVehicleStatusUseCase:
         Business Rules: RN-025, RN-028
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123",
-            plate="ABC-123",
-            model="Toyota",
-            current_mileage=5000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000, status=VehicleStatus.ACTIVE)
         vehicle_repository.save(vehicle)
 
         use_case = UpdateVehicleStatusUseCase(vehicle_repository=vehicle_repository)
@@ -57,13 +51,7 @@ class TestUpdateVehicleStatusUseCase:
         Business Rules: RN-025, RN-026
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123",
-            plate="ABC-123",
-            model="Toyota",
-            current_mileage=5000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000, status=VehicleStatus.ACTIVE)
         vehicle_repository.save(vehicle)
 
         use_case = UpdateVehicleStatusUseCase(vehicle_repository=vehicle_repository)
@@ -86,13 +74,7 @@ class TestUpdateVehicleStatusUseCase:
         Business Rules: RN-025
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123",
-            plate="ABC-123",
-            model="Toyota",
-            current_mileage=5000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000, status=VehicleStatus.ACTIVE)
         vehicle_repository.save(vehicle)
 
         use_case = UpdateVehicleStatusUseCase(vehicle_repository=vehicle_repository)
@@ -115,13 +97,7 @@ class TestUpdateVehicleStatusUseCase:
         Business Rules: RN-025
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123",
-            plate="ABC-123",
-            model="Toyota",
-            current_mileage=5000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000, status=VehicleStatus.ACTIVE)
         vehicle_repository.save(vehicle)
 
         use_case = UpdateVehicleStatusUseCase(vehicle_repository=vehicle_repository)
@@ -155,13 +131,7 @@ class TestUpdateVehicleStatusUseCase:
         And: Vehicle status should be updated
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123",
-            plate="ABC-123",
-            model="Toyota",
-            current_mileage=5000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000, status=VehicleStatus.ACTIVE)
         vehicle_repository.save(vehicle)
 
         use_case = UpdateVehicleStatusUseCase(vehicle_repository=vehicle_repository)

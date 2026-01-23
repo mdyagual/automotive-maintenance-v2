@@ -24,13 +24,7 @@ def reset_test_data():
 
     # Create test vehicle V-123 with active status
     vehicle_repo = get_vehicle_repository()
-    test_vehicle = Vehicle(
-        id="V-123",
-        plate="ABC-123",
-        model="Toyota Corolla",
-        current_mileage=5000,
-        status=VehicleStatus.ACTIVE
-    )
+    test_vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000, status=VehicleStatus.ACTIVE)
     vehicle_repo.save(test_vehicle)
 
     yield
@@ -58,10 +52,7 @@ class TestUpdateVehicleStatusEndpoint:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-123/status",
-            json={"new_status": "in_maintenance"}
-        )
+        response = client.put("/vehicles/V-123/status", json={"new_status": "in_maintenance"})
 
         # Assert
         assert response.status_code == 200
@@ -82,10 +73,7 @@ class TestUpdateVehicleStatusEndpoint:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-123/status",
-            json={"new_status": "retired"}
-        )
+        response = client.put("/vehicles/V-123/status", json={"new_status": "retired"})
 
         # Assert
         assert response.status_code == 200
@@ -105,10 +93,7 @@ class TestUpdateVehicleStatusEndpoint:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-123/status",
-            json={"new_status": "inactive"}
-        )
+        response = client.put("/vehicles/V-123/status", json={"new_status": "inactive"})
 
         # Assert
         assert response.status_code == 200
@@ -131,10 +116,7 @@ class TestUpdateVehicleStatusEndpoint:
         client.put("/vehicles/V-123/status", json={"new_status": "inactive"})
 
         # Act - change back to active
-        response = client.put(
-            "/vehicles/V-123/status",
-            json={"new_status": "active"}
-        )
+        response = client.put("/vehicles/V-123/status", json={"new_status": "active"})
 
         # Assert
         assert response.status_code == 200
@@ -154,10 +136,7 @@ class TestUpdateVehicleStatusEndpoint:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-123/status",
-            json={"new_status": "invalid_status"}
-        )
+        response = client.put("/vehicles/V-123/status", json={"new_status": "invalid_status"})
 
         # Assert
         assert response.status_code == 400
@@ -175,10 +154,7 @@ class TestUpdateVehicleStatusEndpoint:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-999/status",
-            json={"new_status": "inactive"}
-        )
+        response = client.put("/vehicles/V-999/status", json={"new_status": "inactive"})
 
         # Assert
         assert response.status_code == 404
@@ -196,10 +172,7 @@ class TestUpdateVehicleStatusEndpoint:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-123/status",
-            json={"new_status": "IN_MAINTENANCE"}
-        )
+        response = client.put("/vehicles/V-123/status", json={"new_status": "IN_MAINTENANCE"})
 
         # Assert
         assert response.status_code == 200
@@ -217,10 +190,7 @@ class TestUpdateVehicleStatusEndpoint:
         client = TestClient(app)
 
         # Act - Update status
-        update_response = client.put(
-            "/vehicles/V-123/status",
-            json={"new_status": "in_maintenance"}
-        )
+        update_response = client.put("/vehicles/V-123/status", json={"new_status": "in_maintenance"})
 
         # Assert - Verify update response
         assert update_response.status_code == 200
