@@ -254,17 +254,22 @@ def get_all_vehicles(status: str | None = Query(None, alias="status"), vehicle_r
     return response
 
 
-@app.get("/vehicles/search", response_model=VehicleResponse | list[VehicleResponse], status_code=status.HTTP_200_OK)
-def search_vehicle_by_plate(plate: str = Query(..., description="License plate to search for (supports partial match)"), vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
+@app.get("/vehicles/search", response_model=VehicleWithAlertsResponse | list[VehicleWithAlertsResponse], status_code=status.HTTP_200_OK)
+def search_vehicle_by_plate(
+    plate: str = Query(..., description="License plate to search for (supports partial match)"),
+    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository),
+    alert_repo: SqliteAlertRepository = Depends(get_alert_repository)
+):
     """
     Search vehicles by plate number (case-insensitive, supports partial match).
 
     Args:
         plate: License plate or partial plate to search for
         vehicle_repo: Vehicle repository injected by FastAPI
+        alert_repo: Alert repository injected by FastAPI
 
     Returns:
-        Single vehicle or list of vehicles matching the plate
+        Single vehicle or list of vehicles matching the plate (with alerts)
 
     Raises:
         HTTPException: 400 if plate format is invalid, 404 if no vehicles found
@@ -274,6 +279,8 @@ def search_vehicle_by_plate(plate: str = Query(..., description="License plate t
     - RN-010: Plate must follow XXX-123 or XXX-1234 format (for exact matches)
     - RN-031: Search must be case-insensitive
     - RN-032: Search must support partial matches
+    - RN-034: Search results must include alerts for each vehicle
+    - RN-035: Search results must maintain chronological order of alerts
     """
     from src.application.use_cases.get_vehicle_by_plate_use_case import GetVehicleByPlateUseCase
     from src.domain.exceptions.invalid_plate_exception import InvalidPlateException
@@ -284,25 +291,60 @@ def search_vehicle_by_plate(plate: str = Query(..., description="License plate t
 
         # Handle both single result and multiple results
         if isinstance(result, list):
-            # Multiple vehicles found
-            return [
-                VehicleResponse(
-                    id=vehicle_dto.id,
-                    plate=vehicle_dto.plate,
-                    model=vehicle_dto.model,
-                    current_mileage=vehicle_dto.current_mileage,
-                    status=vehicle_dto.status,
+            # Multiple vehicles found - include alerts for each
+            response_list = []
+            for vehicle_dto in result:
+                # Get alerts for this vehicle
+                alerts = alert_repo.get_by_vehicle_id(vehicle_dto.id)
+                # Sort alerts by timestamp descending (most recent first) - RN-035
+                alerts_sorted = sorted(alerts, key=lambda a: a.timestamp, reverse=True)
+
+                alert_responses = [
+                    AlertResponse(
+                        id=alert.id,
+                        vehicle_id=alert.vehicle_id,
+                        alert_type=alert.alert_type.value,
+                        mileage=alert.mileage,
+                        timestamp=alert.timestamp.isoformat(),
+                    )
+                    for alert in alerts_sorted
+                ]
+
+                response_list.append(
+                    VehicleWithAlertsResponse(
+                        id=vehicle_dto.id,
+                        plate=vehicle_dto.plate,
+                        model=vehicle_dto.model,
+                        current_mileage=vehicle_dto.current_mileage,
+                        status=vehicle_dto.status,
+                        alerts=alert_responses,
+                    )
                 )
-                for vehicle_dto in result
-            ]
+            return response_list
         else:
-            # Single vehicle found
-            return VehicleResponse(
+            # Single vehicle found - include alerts
+            alerts = alert_repo.get_by_vehicle_id(result.id)
+            # Sort alerts by timestamp descending (most recent first) - RN-035
+            alerts_sorted = sorted(alerts, key=lambda a: a.timestamp, reverse=True)
+
+            alert_responses = [
+                AlertResponse(
+                    id=alert.id,
+                    vehicle_id=alert.vehicle_id,
+                    alert_type=alert.alert_type.value,
+                    mileage=alert.mileage,
+                    timestamp=alert.timestamp.isoformat(),
+                )
+                for alert in alerts_sorted
+            ]
+
+            return VehicleWithAlertsResponse(
                 id=result.id,
                 plate=result.plate,
                 model=result.model,
                 current_mileage=result.current_mileage,
                 status=result.status,
+                alerts=alert_responses,
             )
     except InvalidPlateException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
