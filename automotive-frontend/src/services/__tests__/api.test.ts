@@ -238,9 +238,7 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(result).toEqual(mockVehicle);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'http://127.0.0.1:8000/vehicles/search?plate=ABC-123'
-      );
+      expect(mockFetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles/search?plate=ABC-123');
     });
 
     it('should return multiple vehicles when partial plate match is found', async () => {
@@ -300,9 +298,7 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(result).toEqual(mockVehicle);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'http://127.0.0.1:8000/vehicles/search?plate=abc-123'
-      );
+      expect(mockFetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles/search?plate=abc-123');
     });
 
     it('should throw error when no vehicles found (404)', async () => {
