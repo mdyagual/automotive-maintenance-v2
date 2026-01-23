@@ -6,7 +6,9 @@ interface PaginationProps {
 export const Pagination = ({ currentPage = 1, totalPages = 6 }: PaginationProps) => {
   return (
     <div className="pagination">
-      <span className="pagination-info">Página {currentPage} de {totalPages}</span>
+      <span className="pagination-info">
+        Página {currentPage} de {totalPages}
+      </span>
       <div className="pagination-controls">
         <button className="pagination-btn" disabled={currentPage === 1}>
           <span className="material-symbols-outlined">chevron_left</span>

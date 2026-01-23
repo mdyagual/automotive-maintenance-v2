@@ -10,7 +10,12 @@ interface UpdateStatusModalProps {
   onSubmit: (vehicleId: string, newStatus: VehicleStatus) => Promise<void>;
 }
 
-export const UpdateStatusModal = ({ isOpen, onClose, vehicle, onSubmit }: UpdateStatusModalProps) => {
+export const UpdateStatusModal = ({
+  isOpen,
+  onClose,
+  vehicle,
+  onSubmit,
+}: UpdateStatusModalProps) => {
   const [selectedStatus, setSelectedStatus] = useState<VehicleStatus>('active');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -18,7 +23,7 @@ export const UpdateStatusModal = ({ isOpen, onClose, vehicle, onSubmit }: Update
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (selectedStatus === vehicle.status) {
       onClose();
       return;
@@ -42,7 +47,12 @@ export const UpdateStatusModal = ({ isOpen, onClose, vehicle, onSubmit }: Update
       <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isSubmitting}>
         Cancelar
       </button>
-      <button type="submit" form="update-status-form" className="btn btn-primary" disabled={isSubmitting}>
+      <button
+        type="submit"
+        form="update-status-form"
+        className="btn btn-primary"
+        disabled={isSubmitting}
+      >
         {isSubmitting ? 'Actualizando...' : 'Actualizar Estado'}
       </button>
     </>
@@ -52,8 +62,12 @@ export const UpdateStatusModal = ({ isOpen, onClose, vehicle, onSubmit }: Update
     <Modal isOpen={isOpen} onClose={onClose} title="Actualizar Estado del Vehículo" footer={footer}>
       <form id="update-status-form" onSubmit={handleSubmit}>
         <div className="info-box">
-          <p><strong>Vehículo:</strong> {vehicle.plate} - {vehicle.model}</p>
-          <p><strong>Estado actual:</strong> {getStatusText(vehicle.status)}</p>
+          <p>
+            <strong>Vehículo:</strong> {vehicle.plate} - {vehicle.model}
+          </p>
+          <p>
+            <strong>Estado actual:</strong> {getStatusText(vehicle.status)}
+          </p>
         </div>
 
         <div className="form-group">
@@ -70,9 +84,7 @@ export const UpdateStatusModal = ({ isOpen, onClose, vehicle, onSubmit }: Update
               </option>
             ))}
           </select>
-          <span className="form-hint">
-            Selecciona el nuevo estado operativo del vehículo
-          </span>
+          <span className="form-hint">Selecciona el nuevo estado operativo del vehículo</span>
         </div>
 
         <div className="status-descriptions">
@@ -86,7 +98,8 @@ export const UpdateStatusModal = ({ isOpen, onClose, vehicle, onSubmit }: Update
             <strong>🔧 En Mantenimiento:</strong> Vehículo en proceso de mantenimiento
           </div>
           <div className="status-description">
-            <strong>🚫 Retirado:</strong> Vehículo permanentemente fuera de servicio (no se puede actualizar kilometraje)
+            <strong>🚫 Retirado:</strong> Vehículo permanentemente fuera de servicio (no se puede
+            actualizar kilometraje)
           </div>
         </div>
       </form>

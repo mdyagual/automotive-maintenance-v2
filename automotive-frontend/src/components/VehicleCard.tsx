@@ -1,5 +1,12 @@
 import type { Vehicle } from '../types/vehicle';
-import { formatNumber, getAlertBadgeClass, getAlertIcon, getStatusText, getStatusBadgeClass, getStatusIcon } from '../utils/formatters';
+import {
+  formatNumber,
+  getAlertBadgeClass,
+  getAlertIcon,
+  getStatusText,
+  getStatusBadgeClass,
+  getStatusIcon,
+} from '../utils/formatters';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
@@ -10,7 +17,14 @@ interface VehicleCardProps {
   onUpdateStatus: (vehicleId: string) => void;
 }
 
-export const VehicleCard = ({ vehicle, onUpdate, onDetails, onDelete, onAlerts, onUpdateStatus }: VehicleCardProps) => {
+export const VehicleCard = ({
+  vehicle,
+  onUpdate,
+  onDetails,
+  onDelete,
+  onAlerts,
+  onUpdateStatus,
+}: VehicleCardProps) => {
   const alertCount = vehicle.alerts?.length || 0;
   const badgeClass = getAlertBadgeClass(alertCount);
   const badgeIcon = getAlertIcon(alertCount);
@@ -29,7 +43,10 @@ export const VehicleCard = ({ vehicle, onUpdate, onDetails, onDelete, onAlerts, 
           <p className="vehicle-model">{vehicle.model}</p>
         </div>
         <div className="vehicle-badges">
-          <span className={`status-badge ${statusBadgeClass}`} onClick={() => onUpdateStatus(vehicle.id)}>
+          <span
+            className={`status-badge ${statusBadgeClass}`}
+            onClick={() => onUpdateStatus(vehicle.id)}
+          >
             {statusText}
           </span>
         </div>
@@ -47,11 +64,15 @@ export const VehicleCard = ({ vehicle, onUpdate, onDetails, onDelete, onAlerts, 
         <button className="btn btn-small btn-danger" onClick={() => onDelete(vehicle.id)}>
           <span className="material-symbols-outlined btn-icon">delete</span> Eliminar
         </button>
-        <button 
-          className="btn btn-small btn-primary btn-update-km" 
+        <button
+          className="btn btn-small btn-primary btn-update-km"
           onClick={() => onUpdate(vehicle.id)}
           disabled={isRetired}
-          title={isRetired ? 'No se puede actualizar kilometraje de vehículos retirados' : 'Actualizar kilometraje'}
+          title={
+            isRetired
+              ? 'No se puede actualizar kilometraje de vehículos retirados'
+              : 'Actualizar kilometraje'
+          }
         >
           <span className="material-symbols-outlined btn-icon">speed</span> Actualizar KM
         </button>

@@ -14,7 +14,7 @@ export const useToast = () => {
   const showToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = Date.now().toString();
     const newToast: Toast = { id, message, type };
-    
+
     setToasts((prev) => [...prev, newToast]);
 
     setTimeout(() => {

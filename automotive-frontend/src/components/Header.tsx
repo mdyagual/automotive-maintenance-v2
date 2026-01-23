@@ -19,11 +19,7 @@ export const Header = ({ onNewVehicle }: HeaderProps) => {
         </div>
         <div className="header-actions">
           <div className="header-search">
-            <input
-              className="header-search-input"
-              placeholder="Buscar vehículo..."
-              type="text"
-            />
+            <input className="header-search-input" placeholder="Buscar vehículo..." type="text" />
             <span className="material-symbols-outlined header-search-icon">search</span>
           </div>
           <button className="btn btn-primary" onClick={onNewVehicle}>

@@ -1,6 +1,6 @@
 /**
  * Tests for formatter utility functions
- * 
+ *
  * Tests number formatting, date formatting, and status/alert utilities
  */
 
@@ -42,7 +42,7 @@ describe('formatters', () => {
     it('should format ISO date string to Spanish locale', () => {
       const isoDate = '2026-01-20T09:15:00';
       const formatted = formatDate(isoDate);
-      
+
       // Check that the formatted string contains key elements
       expect(formatted).toContain('2026');
       expect(formatted).toContain('09:15');
@@ -54,7 +54,7 @@ describe('formatters', () => {
       const feb = formatDate('2026-02-15T10:00:00');
       const mar = formatDate('2026-03-15T10:00:00');
       const dec = formatDate('2026-12-25T10:00:00');
-      
+
       // Just verify they're different and contain the year
       expect(feb).toContain('2026');
       expect(mar).toContain('2026');

@@ -17,7 +17,17 @@ import type { Vehicle, CreateVehicleRequest, VehicleStatus } from './types/vehic
 import './App.css';
 
 function App() {
-  const { vehicles, loading, error, statusFilter, setStatusFilter, createVehicle, updateMileage, updateStatus, deleteVehicle } = useVehicles();
+  const {
+    vehicles,
+    loading,
+    error,
+    statusFilter,
+    setStatusFilter,
+    createVehicle,
+    updateMileage,
+    updateStatus,
+    deleteVehicle,
+  } = useVehicles();
   const { toasts, showToast } = useToast();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -33,7 +43,10 @@ function App() {
       await createVehicle(data);
       showToast('Vehículo registrado exitosamente', 'success');
     } catch (err) {
-      showToast(`Error al registrar vehículo: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+      showToast(
+        `Error al registrar vehículo: ${err instanceof Error ? err.message : 'Error desconocido'}`,
+        'error'
+      );
     }
   };
 
@@ -42,7 +55,10 @@ function App() {
       await updateMileage(vehicleId, { new_mileage: newMileage });
       showToast('Kilometraje actualizado exitosamente', 'success');
     } catch (err) {
-      showToast(`Error al actualizar kilometraje: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+      showToast(
+        `Error al actualizar kilometraje: ${err instanceof Error ? err.message : 'Error desconocido'}`,
+        'error'
+      );
     }
   };
 
@@ -51,7 +67,10 @@ function App() {
       await updateStatus(vehicleId, { new_status: newStatus });
       showToast('Estado actualizado exitosamente', 'success');
     } catch (err) {
-      showToast(`Error al actualizar estado: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+      showToast(
+        `Error al actualizar estado: ${err instanceof Error ? err.message : 'Error desconocido'}`,
+        'error'
+      );
     }
   };
 
@@ -60,7 +79,10 @@ function App() {
       await deleteVehicle(vehicleId);
       showToast('Vehículo eliminado exitosamente', 'success');
     } catch (err) {
-      showToast(`Error al eliminar vehículo: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+      showToast(
+        `Error al eliminar vehículo: ${err instanceof Error ? err.message : 'Error desconocido'}`,
+        'error'
+      );
     }
   };
 
@@ -130,13 +152,13 @@ function App() {
       <main className="main-content">
         <div className="container">
           <Stats vehicles={vehicles} />
-          
+
           <section className="vehicles-section">
             <div className="section-header">
               <h2 className="section-title">Listado de Vehículos</h2>
               <StatusFilter currentFilter={statusFilter} onFilterChange={setStatusFilter} />
             </div>
-            
+
             <VehicleGrid
               vehicles={vehicles}
               onUpdate={openUpdateModal}

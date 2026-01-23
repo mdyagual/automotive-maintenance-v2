@@ -7,10 +7,10 @@ interface StatsProps {
 export const Stats = ({ vehicles }: StatsProps) => {
   const totalVehicles = vehicles.length;
   const totalAlerts = vehicles.reduce((sum, v) => sum + (v.alerts?.length || 0), 0);
-  
+
   // HU-005: Count vehicles by status
-  const activeVehicles = vehicles.filter(v => v.status === 'active').length;
-  const inMaintenanceVehicles = vehicles.filter(v => v.status === 'in_maintenance').length;
+  const activeVehicles = vehicles.filter((v) => v.status === 'active').length;
+  const inMaintenanceVehicles = vehicles.filter((v) => v.status === 'in_maintenance').length;
 
   return (
     <section className="stats-section">

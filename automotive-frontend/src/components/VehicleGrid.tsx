@@ -11,7 +11,15 @@ interface VehicleGridProps {
   onNewVehicle: () => void;
 }
 
-export const VehicleGrid = ({ vehicles, onUpdate, onDetails, onDelete, onAlerts, onUpdateStatus, onNewVehicle }: VehicleGridProps) => {
+export const VehicleGrid = ({
+  vehicles,
+  onUpdate,
+  onDetails,
+  onDelete,
+  onAlerts,
+  onUpdateStatus,
+  onNewVehicle,
+}: VehicleGridProps) => {
   if (vehicles.length === 0) {
     return (
       <div className="empty-state">

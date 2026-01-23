@@ -1,6 +1,6 @@
 /**
  * Tests for Stats Component - HU-005
- * 
+ *
  * Tests statistics display including total fleet, active vehicles, in maintenance, and alerts
  */
 
@@ -54,19 +54,61 @@ describe('Stats - HU-005', () => {
 
   it('should correctly count vehicles by status', () => {
     const testVehicles: Vehicle[] = [
-      { id: 'V-001', plate: 'AAA-001', model: 'Car 1', current_mileage: 1000, status: 'active', alerts: [] },
-      { id: 'V-002', plate: 'AAA-002', model: 'Car 2', current_mileage: 2000, status: 'active', alerts: [] },
-      { id: 'V-003', plate: 'AAA-003', model: 'Car 3', current_mileage: 3000, status: 'in_maintenance', alerts: [] },
-      { id: 'V-004', plate: 'AAA-004', model: 'Car 4', current_mileage: 4000, status: 'in_maintenance', alerts: [] },
-      { id: 'V-005', plate: 'AAA-005', model: 'Car 5', current_mileage: 5000, status: 'inactive', alerts: [] },
-      { id: 'V-006', plate: 'AAA-006', model: 'Car 6', current_mileage: 6000, status: 'retired', alerts: [] },
+      {
+        id: 'V-001',
+        plate: 'AAA-001',
+        model: 'Car 1',
+        current_mileage: 1000,
+        status: 'active',
+        alerts: [],
+      },
+      {
+        id: 'V-002',
+        plate: 'AAA-002',
+        model: 'Car 2',
+        current_mileage: 2000,
+        status: 'active',
+        alerts: [],
+      },
+      {
+        id: 'V-003',
+        plate: 'AAA-003',
+        model: 'Car 3',
+        current_mileage: 3000,
+        status: 'in_maintenance',
+        alerts: [],
+      },
+      {
+        id: 'V-004',
+        plate: 'AAA-004',
+        model: 'Car 4',
+        current_mileage: 4000,
+        status: 'in_maintenance',
+        alerts: [],
+      },
+      {
+        id: 'V-005',
+        plate: 'AAA-005',
+        model: 'Car 5',
+        current_mileage: 5000,
+        status: 'inactive',
+        alerts: [],
+      },
+      {
+        id: 'V-006',
+        plate: 'AAA-006',
+        model: 'Car 6',
+        current_mileage: 6000,
+        status: 'retired',
+        alerts: [],
+      },
     ];
 
     render(<Stats vehicles={testVehicles} />);
 
     // Total fleet: 6
     expect(screen.getByText('6')).toBeInTheDocument();
-    
+
     // Active (En Ruta): 2
     const twoValues = screen.getAllByText('2');
     expect(twoValues.length).toBeGreaterThan(0);
@@ -81,8 +123,20 @@ describe('Stats - HU-005', () => {
         current_mileage: 10000,
         status: 'active',
         alerts: [
-          { id: 'a1', vehicle_id: 'V-001', alert_type: 'BASIC', mileage: 10000, timestamp: '2026-01-01T00:00:00' },
-          { id: 'a2', vehicle_id: 'V-001', alert_type: 'BASIC', mileage: 20000, timestamp: '2026-01-02T00:00:00' },
+          {
+            id: 'a1',
+            vehicle_id: 'V-001',
+            alert_type: 'BASIC',
+            mileage: 10000,
+            timestamp: '2026-01-01T00:00:00',
+          },
+          {
+            id: 'a2',
+            vehicle_id: 'V-001',
+            alert_type: 'BASIC',
+            mileage: 20000,
+            timestamp: '2026-01-02T00:00:00',
+          },
         ],
       },
       {
@@ -92,7 +146,13 @@ describe('Stats - HU-005', () => {
         current_mileage: 30000,
         status: 'active',
         alerts: [
-          { id: 'a3', vehicle_id: 'V-002', alert_type: 'MAJOR', mileage: 30000, timestamp: '2026-01-03T00:00:00' },
+          {
+            id: 'a3',
+            vehicle_id: 'V-002',
+            alert_type: 'MAJOR',
+            mileage: 30000,
+            timestamp: '2026-01-03T00:00:00',
+          },
         ],
       },
     ];

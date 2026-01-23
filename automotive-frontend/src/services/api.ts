@@ -1,4 +1,10 @@
-import type { Vehicle, CreateVehicleRequest, UpdateMileageRequest, UpdateStatusRequest, VehicleStatus } from '../types/vehicle';
+import type {
+  Vehicle,
+  CreateVehicleRequest,
+  UpdateMileageRequest,
+  UpdateStatusRequest,
+  VehicleStatus,
+} from '../types/vehicle';
 
 const API_BASE_URL = 'http://127.0.0.1:8000';
 

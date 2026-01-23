@@ -1,6 +1,6 @@
 /**
  * Tests for StatusFilter Component - HU-005 Escenario 2
- * 
+ *
  * Tests status filter functionality for filtering vehicles by operational status
  */
 

@@ -1,6 +1,6 @@
 /**
  * Tests for CreateVehicleModal Component - HU-002
- * 
+ *
  * Tests vehicle creation form, validation, and submission
  */
 
@@ -11,25 +11,13 @@ import userEvent from '@testing-library/user-event';
 
 describe('CreateVehicleModal - HU-002', () => {
   it('should display modal title', () => {
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={async () => {}} />);
 
     expect(screen.getByText('Registrar Nuevo Vehículo')).toBeInTheDocument();
   });
 
   it('should display all form fields', () => {
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={async () => {}} />);
 
     expect(screen.getByLabelText(/ID del Vehículo/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Placa/i)).toBeInTheDocument();
@@ -38,13 +26,7 @@ describe('CreateVehicleModal - HU-002', () => {
   });
 
   it('should display form hints for validation', () => {
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={async () => {}} />);
 
     expect(screen.getByText(/Formato: V-XXX/i)).toBeInTheDocument();
     expect(screen.getByText(/Formato: XXX-123 o XXX-1234/i)).toBeInTheDocument();
@@ -52,13 +34,7 @@ describe('CreateVehicleModal - HU-002', () => {
   });
 
   it('should have Cancelar and Registrar buttons', () => {
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={async () => {}} />);
 
     expect(screen.getByRole('button', { name: /Cancelar/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Registrar/i })).toBeInTheDocument();
@@ -68,13 +44,7 @@ describe('CreateVehicleModal - HU-002', () => {
     const user = userEvent.setup();
     const mockOnClose = vi.fn();
 
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={mockOnClose} onSubmit={async () => {}} />);
 
     const cancelButton = screen.getByRole('button', { name: /Cancelar/i });
     await user.click(cancelButton);
@@ -87,13 +57,7 @@ describe('CreateVehicleModal - HU-002', () => {
     const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
     const mockOnClose = vi.fn();
 
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={mockOnClose} onSubmit={mockOnSubmit} />);
 
     // Fill form
     await user.type(screen.getByLabelText(/ID del Vehículo/i), 'V-456');
@@ -120,13 +84,7 @@ describe('CreateVehicleModal - HU-002', () => {
     const user = userEvent.setup();
     const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
 
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={mockOnSubmit}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={mockOnSubmit} />);
 
     // Fill form with lowercase plate
     await user.type(screen.getByLabelText(/ID del Vehículo/i), 'V-999');
@@ -152,13 +110,7 @@ describe('CreateVehicleModal - HU-002', () => {
     const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
     const mockOnClose = vi.fn();
 
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={mockOnClose} onSubmit={mockOnSubmit} />);
 
     // Fill and submit form
     await user.type(screen.getByLabelText(/ID del Vehículo/i), 'V-001');
@@ -172,13 +124,7 @@ describe('CreateVehicleModal - HU-002', () => {
   });
 
   it('should have required attribute on all input fields', () => {
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={async () => {}} />);
 
     expect(screen.getByLabelText(/ID del Vehículo/i)).toBeRequired();
     expect(screen.getByLabelText(/Placa/i)).toBeRequired();
@@ -187,39 +133,21 @@ describe('CreateVehicleModal - HU-002', () => {
   });
 
   it('should have pattern validation for vehicle ID', () => {
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={async () => {}} />);
 
     const idInput = screen.getByLabelText(/ID del Vehículo/i);
     expect(idInput).toHaveAttribute('pattern', 'V-\\d{3}');
   });
 
   it('should have pattern validation for plate', () => {
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={async () => {}} />);
 
     const plateInput = screen.getByLabelText(/Placa/i);
     expect(plateInput).toHaveAttribute('pattern', '[A-Z]{3}-\\d{3,4}');
   });
 
   it('should have min and max validation for mileage', () => {
-    render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
-    );
+    render(<CreateVehicleModal isOpen={true} onClose={() => {}} onSubmit={async () => {}} />);
 
     const mileageInput = screen.getByLabelText(/Kilometraje Inicial/i);
     expect(mileageInput).toHaveAttribute('min', '0');
@@ -228,11 +156,7 @@ describe('CreateVehicleModal - HU-002', () => {
 
   it('should not render when modal is closed', () => {
     const { container } = render(
-      <CreateVehicleModal
-        isOpen={false}
-        onClose={() => {}}
-        onSubmit={async () => {}}
-      />
+      <CreateVehicleModal isOpen={false} onClose={() => {}} onSubmit={async () => {}} />
     );
 
     expect(container.firstChild).toBeNull();
@@ -243,28 +167,18 @@ describe('CreateVehicleModal - HU-002', () => {
     const mockOnClose = vi.fn();
 
     const { rerender } = render(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={async () => {}}
-      />
+      <CreateVehicleModal isOpen={true} onClose={mockOnClose} onSubmit={async () => {}} />
     );
 
     // Fill form
     await user.type(screen.getByLabelText(/ID del Vehículo/i), 'V-123');
-    
+
     // Close modal
     await user.click(screen.getByRole('button', { name: /Cancelar/i }));
     expect(mockOnClose).toHaveBeenCalled();
 
     // Reopen modal
-    rerender(
-      <CreateVehicleModal
-        isOpen={true}
-        onClose={mockOnClose}
-        onSubmit={async () => {}}
-      />
-    );
+    rerender(<CreateVehicleModal isOpen={true} onClose={mockOnClose} onSubmit={async () => {}} />);
 
     // Form should be empty
     expect(screen.getByLabelText(/ID del Vehículo/i)).toHaveValue('');

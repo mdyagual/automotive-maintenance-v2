@@ -1,6 +1,6 @@
 /**
  * Tests for VehicleCard Component
- * 
+ *
  * Tests vehicle card display, status badges, action buttons, and retired vehicle restrictions
  */
 
@@ -43,7 +43,9 @@ describe('VehicleCard', () => {
   });
 
   it('should not apply has-alert class when vehicle has no alerts', () => {
-    const { container } = render(<VehicleCard vehicle={mockVehicleWithoutAlerts} {...mockHandlers} />);
+    const { container } = render(
+      <VehicleCard vehicle={mockVehicleWithoutAlerts} {...mockHandlers} />
+    );
 
     const card = container.querySelector('.vehicle-card');
     expect(card).not.toHaveClass('has-alert');
@@ -99,7 +101,10 @@ describe('VehicleCard', () => {
 
     const updateButton = screen.getByRole('button', { name: /Actualizar KM/i });
     expect(updateButton).toBeDisabled();
-    expect(updateButton).toHaveAttribute('title', 'No se puede actualizar kilometraje de vehículos retirados');
+    expect(updateButton).toHaveAttribute(
+      'title',
+      'No se puede actualizar kilometraje de vehículos retirados'
+    );
   });
 
   it('should enable Actualizar KM button for active vehicles', () => {

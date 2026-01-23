@@ -1,6 +1,6 @@
 /**
  * Tests for UpdateMileageModal Component - HU-001
- * 
+ *
  * Tests mileage update form, validation, and business rules
  */
 
@@ -166,11 +166,11 @@ describe('UpdateMileageModal - HU-001', () => {
     );
 
     const input = screen.getByLabelText(/Nuevo Kilometraje/i);
-    
+
     // Trigger error
     await user.type(input, '30000');
     await user.click(screen.getByRole('button', { name: /Actualizar/i }));
-    
+
     await waitFor(() => {
       expect(screen.getByText(/debe ser mayor al actual/i)).toBeInTheDocument();
     });

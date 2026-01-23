@@ -1,6 +1,6 @@
 /**
  * Tests for UpdateStatusModal Component - HU-005 Escenario 1
- * 
+ *
  * Tests vehicle status update functionality
  */
 
@@ -52,9 +52,9 @@ describe('UpdateStatusModal - HU-005 Escenario 1', () => {
 
     const select = screen.getByRole('combobox');
     const options = Array.from(select.querySelectorAll('option'));
-    
+
     expect(options).toHaveLength(4);
-    expect(options.map(o => o.textContent)).toEqual([
+    expect(options.map((o) => o.textContent)).toEqual([
       'Activo',
       'Inactivo',
       'En Mantenimiento',
@@ -202,7 +202,9 @@ describe('UpdateStatusModal - HU-005 Escenario 1', () => {
 
   it('should disable buttons while submitting', async () => {
     const user = userEvent.setup();
-    const mockOnSubmit = vi.fn().mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    const mockOnSubmit = vi
+      .fn()
+      .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100)));
 
     render(
       <UpdateStatusModal
@@ -215,7 +217,7 @@ describe('UpdateStatusModal - HU-005 Escenario 1', () => {
 
     const select = screen.getByRole('combobox');
     await user.selectOptions(select, 'inactive');
-    
+
     const submitButton = screen.getByRole('button', { name: /Actualizar Estado/i });
     await user.click(submitButton);
 

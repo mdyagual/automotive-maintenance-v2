@@ -10,9 +10,9 @@ interface DetailsModalProps {
 
 const formatAlertType = (type: string): string => {
   const types: Record<string, string> = {
-    'BASIC': 'Mantenimiento Básico',
-    'MAJOR': 'Mantenimiento Mayor',
-    'CRITICAL': 'Mantenimiento Crítico',
+    BASIC: 'Mantenimiento Básico',
+    MAJOR: 'Mantenimiento Mayor',
+    CRITICAL: 'Mantenimiento Crítico',
   };
   return types[type] || type;
 };
@@ -30,9 +30,9 @@ const formatDate = (timestamp: string): string => {
 
 const getAlertTypeClass = (type: string): string => {
   const classes: Record<string, string> = {
-    'BASIC': 'alert-type-basic',
-    'MAJOR': 'alert-type-major',
-    'CRITICAL': 'alert-type-critical',
+    BASIC: 'alert-type-basic',
+    MAJOR: 'alert-type-major',
+    CRITICAL: 'alert-type-critical',
   };
   return classes[type] || 'alert-type-basic';
 };
@@ -83,19 +83,17 @@ export const DetailsModal = ({ isOpen, onClose, vehicle }: DetailsModalProps) =>
             <span className="material-symbols-outlined">notifications</span>
             Alertas de Mantenimiento
           </h3>
-          
+
           {hasAlerts ? (
             <div className="alerts-list">
               {vehicle.alerts.map((alert) => (
-                <div 
-                  key={alert.id} 
+                <div
+                  key={alert.id}
                   className={`alert-item ${getAlertTypeClass(alert.alert_type)}`}
                   data-testid={`alert-item-${alert.id}`}
                 >
                   <div className="alert-header">
-                    <span className="alert-type-badge">
-                      {formatAlertType(alert.alert_type)}
-                    </span>
+                    <span className="alert-type-badge">{formatAlertType(alert.alert_type)}</span>
                     <span className="alert-date">{formatDate(alert.timestamp)}</span>
                   </div>
                   <div className="alert-body">

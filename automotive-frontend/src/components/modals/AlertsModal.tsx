@@ -1,6 +1,12 @@
 import { Modal } from '../Modal';
 import type { Vehicle } from '../../types/vehicle';
-import { formatNumber, formatDate, getAlertTypeText, getAlertItemClass, getAlertItemIcon } from '../../utils/formatters';
+import {
+  formatNumber,
+  formatDate,
+  getAlertTypeText,
+  getAlertItemClass,
+  getAlertItemIcon,
+} from '../../utils/formatters';
 
 interface AlertsModalProps {
   isOpen: boolean;

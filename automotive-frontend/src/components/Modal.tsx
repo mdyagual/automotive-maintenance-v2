@@ -9,7 +9,14 @@ interface ModalProps {
   size?: 'small' | 'medium' | 'wide';
 }
 
-export const Modal = ({ isOpen, onClose, title, children, footer, size = 'medium' }: ModalProps) => {
+export const Modal = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  footer,
+  size = 'medium',
+}: ModalProps) => {
   if (!isOpen) return null;
 
   const sizeClass = size === 'small' ? 'modal-small' : size === 'wide' ? 'modal-wide' : '';

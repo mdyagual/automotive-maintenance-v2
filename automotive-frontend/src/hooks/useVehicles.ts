@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { vehicleApi } from '../services/api';
-import type { Vehicle, CreateVehicleRequest, UpdateMileageRequest, UpdateStatusRequest, VehicleStatus } from '../types/vehicle';
+import type {
+  Vehicle,
+  CreateVehicleRequest,
+  UpdateMileageRequest,
+  UpdateStatusRequest,
+  VehicleStatus,
+} from '../types/vehicle';
 
 export const useVehicles = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -12,9 +18,10 @@ export const useVehicles = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = statusFilter === 'all' 
-        ? await vehicleApi.getAllVehicles()
-        : await vehicleApi.getVehiclesByStatus(statusFilter);
+      const data =
+        statusFilter === 'all'
+          ? await vehicleApi.getAllVehicles()
+          : await vehicleApi.getVehiclesByStatus(statusFilter);
       setVehicles(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar vehículos');

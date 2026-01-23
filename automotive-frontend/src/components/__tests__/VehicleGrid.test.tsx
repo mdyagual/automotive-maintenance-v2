@@ -1,6 +1,6 @@
 /**
  * Tests for VehicleGrid Component
- * 
+ *
  * Tests vehicle grid display, empty state, and vehicle card rendering
  */
 

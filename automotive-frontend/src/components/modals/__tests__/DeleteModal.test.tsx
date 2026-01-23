@@ -1,6 +1,6 @@
 /**
  * Tests for DeleteModal Component - HU-004
- * 
+ *
  * Tests vehicle deletion confirmation modal
  */
 
@@ -60,7 +60,9 @@ describe('DeleteModal - HU-004', () => {
       />
     );
 
-    expect(screen.getByText(/eliminará el vehículo y todas sus alertas asociadas/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/eliminará el vehículo y todas sus alertas asociadas/i)
+    ).toBeInTheDocument();
     expect(screen.getByText(/No se puede deshacer/i)).toBeInTheDocument();
   });
 
@@ -145,12 +147,7 @@ describe('DeleteModal - HU-004', () => {
 
   it('should not render when vehicle is null', () => {
     const { container } = render(
-      <DeleteModal
-        isOpen={true}
-        onClose={() => {}}
-        vehicle={null}
-        onConfirm={async () => {}}
-      />
+      <DeleteModal isOpen={true} onClose={() => {}} vehicle={null} onConfirm={async () => {}} />
     );
 
     expect(container.firstChild).toBeNull();

@@ -37,7 +37,9 @@ export const DeleteModal = ({ isOpen, onClose, vehicle, onConfirm }: DeleteModal
         <div className="warning-icon">⚠️</div>
         <p>¿Está seguro que desea eliminar este vehículo?</p>
         <p>
-          <strong>{vehicle.plate} - {vehicle.model}</strong>
+          <strong>
+            {vehicle.plate} - {vehicle.model}
+          </strong>
         </p>
         <p className="text-small">
           Esta acción eliminará el vehículo y todas sus alertas asociadas. No se puede deshacer.
