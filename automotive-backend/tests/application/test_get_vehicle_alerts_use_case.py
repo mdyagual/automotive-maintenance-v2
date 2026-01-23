@@ -33,34 +33,16 @@ class TestGetVehicleAlertsUseCase:
     def sample_alerts(self):
         """Create sample alert entities for multiple vehicles."""
         return [
-            MaintenanceAlert(
-                id="A-V-001-10000-BASIC",
-                vehicle_id="V-001",
-                alert_type=AlertType.BASIC_MAINTENANCE,
-                mileage=10000,
-                timestamp=datetime(2024, 1, 1, 10, 0, 0)
-            ),
+            MaintenanceAlert(id="A-V-001-10000-BASIC", vehicle_id="V-001", alert_type=AlertType.BASIC_MAINTENANCE, mileage=10000, timestamp=datetime(2024, 1, 1, 10, 0, 0)),
             MaintenanceAlert(
                 id="A-V-002-10000-BASIC",
                 vehicle_id="V-002",  # Different vehicle
                 alert_type=AlertType.BASIC_MAINTENANCE,
                 mileage=10000,
-                timestamp=datetime(2024, 1, 2, 10, 0, 0)
+                timestamp=datetime(2024, 1, 2, 10, 0, 0),
             ),
-            MaintenanceAlert(
-                id="A-V-001-30000-MAJOR",
-                vehicle_id="V-001",
-                alert_type=AlertType.MAJOR_MAINTENANCE,
-                mileage=30000,
-                timestamp=datetime(2024, 6, 1, 10, 0, 0)
-            ),
-            MaintenanceAlert(
-                id="A-V-001-50000-CRITICAL",
-                vehicle_id="V-001",
-                alert_type=AlertType.CRITICAL_THRESHOLD,
-                mileage=50000,
-                timestamp=datetime(2024, 12, 1, 10, 0, 0)
-            )
+            MaintenanceAlert(id="A-V-001-30000-MAJOR", vehicle_id="V-001", alert_type=AlertType.MAJOR_MAINTENANCE, mileage=30000, timestamp=datetime(2024, 6, 1, 10, 0, 0)),
+            MaintenanceAlert(id="A-V-001-50000-CRITICAL", vehicle_id="V-001", alert_type=AlertType.CRITICAL_THRESHOLD, mileage=50000, timestamp=datetime(2024, 12, 1, 10, 0, 0)),
         ]
 
     def test_get_vehicle_alerts_use_case_exists(self):
@@ -71,6 +53,7 @@ class TestGetVehicleAlertsUseCase:
         """
         try:
             from src.application.use_cases.get_vehicle_alerts_use_case import GetVehicleAlertsUseCase
+
             assert GetVehicleAlertsUseCase is not None
         except ImportError:
             pytest.fail("GetVehicleAlertsUseCase does not exist. Please create it at src/application/use_cases/get_vehicle_alerts_use_case.py")
@@ -237,7 +220,7 @@ class TestGetVehicleAlertsUseCase:
 
         # Assert
         assert use_case is not None
-        assert hasattr(use_case, 'execute'), "Use case should have execute method"
+        assert hasattr(use_case, "execute"), "Use case should have execute method"
 
     def test_alert_dto_is_immutable(self, mock_repository, sample_alerts):
         """
@@ -281,13 +264,7 @@ class TestGetVehicleAlertsUseCase:
             pytest.skip("GetVehicleAlertsUseCase not implemented yet")
 
         # Arrange
-        alert = MaintenanceAlert(
-            id="A-TEST-123",
-            vehicle_id="V-TEST",
-            alert_type=AlertType.BASIC_MAINTENANCE,
-            mileage=15000,
-            timestamp=datetime(2024, 3, 15, 14, 30, 0)
-        )
+        alert = MaintenanceAlert(id="A-TEST-123", vehicle_id="V-TEST", alert_type=AlertType.BASIC_MAINTENANCE, mileage=15000, timestamp=datetime(2024, 3, 15, 14, 30, 0))
         mock_repository.get_all.return_value = [alert]
         use_case = GetVehicleAlertsUseCase(alert_repository=mock_repository)
 
@@ -298,11 +275,11 @@ class TestGetVehicleAlertsUseCase:
         assert len(result) == 1
         alert_dto = result[0]
 
-        assert hasattr(alert_dto, 'id'), "DTO should have id"
-        assert hasattr(alert_dto, 'vehicle_id'), "DTO should have vehicle_id"
-        assert hasattr(alert_dto, 'alert_type'), "DTO should have alert_type"
-        assert hasattr(alert_dto, 'mileage'), "DTO should have mileage"
-        assert hasattr(alert_dto, 'timestamp'), "DTO should have timestamp"
+        assert hasattr(alert_dto, "id"), "DTO should have id"
+        assert hasattr(alert_dto, "vehicle_id"), "DTO should have vehicle_id"
+        assert hasattr(alert_dto, "alert_type"), "DTO should have alert_type"
+        assert hasattr(alert_dto, "mileage"), "DTO should have mileage"
+        assert hasattr(alert_dto, "timestamp"), "DTO should have timestamp"
 
         assert alert_dto.id == "A-TEST-123"
         assert alert_dto.vehicle_id == "V-TEST"
@@ -327,27 +304,9 @@ class TestGetVehicleAlertsUseCase:
 
         # Arrange
         alerts = [
-            MaintenanceAlert(
-                id="A-1",
-                vehicle_id="V-001",
-                alert_type=AlertType.BASIC_MAINTENANCE,
-                mileage=10000,
-                timestamp=datetime(2024, 1, 1)
-            ),
-            MaintenanceAlert(
-                id="A-2",
-                vehicle_id="V-001",
-                alert_type=AlertType.MAJOR_MAINTENANCE,
-                mileage=30000,
-                timestamp=datetime(2024, 6, 1)
-            ),
-            MaintenanceAlert(
-                id="A-3",
-                vehicle_id="V-001",
-                alert_type=AlertType.CRITICAL_THRESHOLD,
-                mileage=50000,
-                timestamp=datetime(2024, 12, 1)
-            )
+            MaintenanceAlert(id="A-1", vehicle_id="V-001", alert_type=AlertType.BASIC_MAINTENANCE, mileage=10000, timestamp=datetime(2024, 1, 1)),
+            MaintenanceAlert(id="A-2", vehicle_id="V-001", alert_type=AlertType.MAJOR_MAINTENANCE, mileage=30000, timestamp=datetime(2024, 6, 1)),
+            MaintenanceAlert(id="A-3", vehicle_id="V-001", alert_type=AlertType.CRITICAL_THRESHOLD, mileage=50000, timestamp=datetime(2024, 12, 1)),
         ]
         mock_repository.get_all.return_value = alerts
         use_case = GetVehicleAlertsUseCase(alert_repository=mock_repository)
@@ -411,27 +370,9 @@ class TestGetVehicleAlertsUseCase:
 
         # Arrange - Alerts in specific order
         alerts = [
-            MaintenanceAlert(
-                id="A-3",
-                vehicle_id="V-001",
-                alert_type=AlertType.CRITICAL_THRESHOLD,
-                mileage=50000,
-                timestamp=datetime(2024, 12, 1)
-            ),
-            MaintenanceAlert(
-                id="A-1",
-                vehicle_id="V-001",
-                alert_type=AlertType.BASIC_MAINTENANCE,
-                mileage=10000,
-                timestamp=datetime(2024, 1, 1)
-            ),
-            MaintenanceAlert(
-                id="A-2",
-                vehicle_id="V-001",
-                alert_type=AlertType.MAJOR_MAINTENANCE,
-                mileage=30000,
-                timestamp=datetime(2024, 6, 1)
-            )
+            MaintenanceAlert(id="A-3", vehicle_id="V-001", alert_type=AlertType.CRITICAL_THRESHOLD, mileage=50000, timestamp=datetime(2024, 12, 1)),
+            MaintenanceAlert(id="A-1", vehicle_id="V-001", alert_type=AlertType.BASIC_MAINTENANCE, mileage=10000, timestamp=datetime(2024, 1, 1)),
+            MaintenanceAlert(id="A-2", vehicle_id="V-001", alert_type=AlertType.MAJOR_MAINTENANCE, mileage=30000, timestamp=datetime(2024, 6, 1)),
         ]
         mock_repository.get_all.return_value = alerts
         use_case = GetVehicleAlertsUseCase(alert_repository=mock_repository)

@@ -198,6 +198,17 @@ Then las alertas del vehículo 'V-200' deben estar ordenadas cronológicamente
 And la alerta más reciente debe aparecer primero
 ```
 
+#### Escenario 6: Visualización de alertas en detalles del vehículo
+
+```gherkin
+Given existe un vehículo 'V-123' con 3 alertas de mantenimiento
+When el usuario hace clic en el botón "Detalles" del vehículo
+Then el sistema debe mostrar un modal con la información del vehículo
+And el modal debe incluir una sección de "Alertas de Mantenimiento"
+And debe mostrar las 3 alertas ordenadas cronológicamente (más reciente primero)
+And cada alerta debe mostrar: tipo, mensaje, kilometraje y fecha de generación
+
+```
 ---
 
 ## HU-004: Eliminación de vehículos por ID
@@ -334,6 +345,70 @@ And debe retornar un código 400 Bad Request
 And el mensaje debe indicar "No se puede actualizar kilometraje de vehículos retirados"
 ```
 
+---
+
+## HU-006: Búsqueda de vehículos por placa
+
+**Como** gestor de flota  
+**Quiero** buscar vehículos por su placa  
+**Para** encontrar rápidamente un vehículo específico sin revisar toda la lista
+
+### Criterios de Aceptación
+
+#### Escenario 1: Búsqueda exitosa por placa completa
+
+```gherkin
+Given existen los siguientes vehículos en el sistema:
+  | ID    | Placa   | Modelo        |
+  | V-001 | ABC-123 | Toyota Corolla|
+  | V-002 | XYZ-456 | Honda Civic   |
+  | V-003 | ABC-789 | Mazda 3       |
+When busco vehículos con la placa "ABC-123"
+Then el sistema debe devolver 1 vehículo
+And el vehículo debe tener placa "ABC-123"
+```
+
+#### Escenario 2: Búsqueda por placa parcial (coincidencia parcial)
+
+```gherkin
+Given existen los siguientes vehículos en el sistema:
+  | ID    | Placa   | Modelo        |
+  | V-001 | ABC-123 | Toyota Corolla|
+  | V-002 | XYZ-456 | Honda Civic   |
+  | V-003 | ABC-789 | Mazda 3       |
+When busco vehículos con la placa "ABC"
+Then el sistema debe devolver 2 vehículos
+And ambos vehículos deben tener placas que contengan "ABC"
+```
+
+#### Escenario 3: Búsqueda sin resultados
+
+```gherkin
+Given existen vehículos registrados en el sistema
+When busco vehículos con la placa "ZZZ-999"
+Then el sistema debe retornar un código 404 Not Found
+And el mensaje debe indicar que no se encontraron vehículos con esa placa
+
+```
+
+#### Escenario 4: Búsqueda case-insensitive (sin distinción de mayúsculas/minúsculas)
+
+```gherkin
+Given existe un vehículo con placa "ABC-123"
+When busco vehículos con la placa "abc-123"
+Then el sistema debe devolver el vehículo con placa "ABC-123"
+And la búsqueda debe ser insensible a mayúsculas/minúsculas
+```
+
+#### Escenario 5: Búsqueda con término vacío (Anti-Happy Path)
+
+```gherkin
+Given existen vehículos registrados en el sistema
+When busco vehículos con una placa vacía o solo espacios
+Then el sistema debe retornar un código 404 Not Found
+And el mensaje debe indicar "La placa de búsqueda no puede estar vacía"
+```
+
 ## Reglas de Negocio
 
 ### Gestión de Kilometraje (HU-001)
@@ -375,5 +450,12 @@ And el mensaje debe indicar "No se puede actualizar kilometraje de vehículos re
 - RN-028: El cambio de estado debe registrar la fecha de actualización
 - RN-029: Los vehículos pueden filtrarse por estado en las consultas
 - RN-030: Todos los estados son visibles en la lista de vehículos
+
+### Búsqueda de Vehículos (HU-006)
+- RN-031: La búsqueda debe ser case-insensitive (sin distinción de mayúsculas/minúsculas)
+- RN-032: La búsqueda debe soportar coincidencias parciales en la placa
+- RN-033: Un término de búsqueda vacío o solo espacios debe retornar error 404 Not Found
+- RN-034: Los resultados de búsqueda deben incluir las alertas de cada vehículo
+- RN-035: Los resultados de búsqueda deben mantener el orden cronológico de las alertas
 
 ---

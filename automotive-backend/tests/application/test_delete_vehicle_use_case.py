@@ -27,9 +27,7 @@ class TestDeleteVehicleUseCase:
         And subsequent queries for the vehicle should raise VehicleNotFoundException
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-999", plate="XYZ-999", model="Honda Accord", current_mileage=20000
-        )
+        vehicle = Vehicle(id="V-999", plate="XYZ-999", model="Honda Accord", current_mileage=20000)
         vehicle_repository.save(vehicle)
 
         use_case = DeleteVehicleUseCase(vehicle_repository=vehicle_repository)
@@ -91,19 +89,16 @@ class TestDeleteVehicleUseCase:
 
         # Act & Assert - THIS SHOULD NOW PASS
         import inspect
+
         sig = inspect.signature(use_case.execute)
         params = list(sig.parameters.keys())
 
         # Check if it accepts a single command parameter (correct)
         has_primitive_params = len(params) > 2  # More than self and command
 
-        assert not has_primitive_params, (
-            f"Use case should accept a single Command DTO. "
-            f"Current parameters: {params}. "
-            f"Expected: ['self', 'command']"
-        )
+        assert not has_primitive_params, f"Use case should accept a single Command DTO. Current parameters: {params}. Expected: ['self', 'command']"
 
-        assert 'command' in params, f"Expected parameter named 'command', got: {params}"
+        assert "command" in params, f"Expected parameter named 'command', got: {params}"
 
     def test_use_case_should_return_confirmation_dto_not_none(self):
         """
@@ -115,12 +110,7 @@ class TestDeleteVehicleUseCase:
         """
         # Arrange
         mock_repository = Mock()
-        vehicle = Vehicle(
-            id="V-001",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            current_mileage=5000
-        )
+        vehicle = Vehicle(id="V-001", plate="ABC-123", model="Toyota Corolla", current_mileage=5000)
         mock_repository.get_by_id.return_value = vehicle
         mock_repository.delete = Mock()
 
@@ -133,9 +123,7 @@ class TestDeleteVehicleUseCase:
 
         # Assert - THIS SHOULD NOW PASS
         assert result is not None, "Use case should return a confirmation DTO"
-        assert isinstance(result, DeleteVehicleResultDTO), (
-            f"Expected DeleteVehicleResultDTO, got {type(result).__name__}"
-        )
+        assert isinstance(result, DeleteVehicleResultDTO), f"Expected DeleteVehicleResultDTO, got {type(result).__name__}"
         assert result.deleted_vehicle_id == "V-001"
         assert result.success is True
 
@@ -152,25 +140,20 @@ class TestDeleteVehicleUseCase:
 
         # Act - Check return type annotation
         import inspect
+
         sig = inspect.signature(use_case.execute)
         return_annotation = sig.return_annotation
 
         # Assert - THIS SHOULD NOW PASS
-        is_dto = (return_annotation == DeleteVehicleResultDTO or
-                 (hasattr(return_annotation, '__name__') and
-                  return_annotation.__name__ == 'DeleteVehicleResultDTO'))
+        is_dto = return_annotation == DeleteVehicleResultDTO or (hasattr(return_annotation, "__name__") and return_annotation.__name__ == "DeleteVehicleResultDTO")
 
         assert is_dto, f"Use case should return DeleteVehicleResultDTO. Got: {return_annotation}"
 
-        is_none_return = (return_annotation is None or
-                         return_annotation is type(None) or
-                         str(return_annotation) == 'None')
+        is_none_return = return_annotation is None or return_annotation is type(None) or str(return_annotation) == "None"
 
         assert not is_none_return, "Use case should not return None"
 
-    def test_delete_vehicle_cascades_alerts(
-        self, vehicle_repository, alert_repository
-    ):
+    def test_delete_vehicle_cascades_alerts(self, vehicle_repository, alert_repository):
         """
         Test that deleting a vehicle also deletes all associated alerts (cascade).
 
@@ -180,9 +163,7 @@ class TestDeleteVehicleUseCase:
         And no orphan alerts should remain in the database
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-777", plate="ABC-777", model="Toyota Camry", current_mileage=30000
-        )
+        vehicle = Vehicle(id="V-777", plate="ABC-777", model="Toyota Camry", current_mileage=30000)
         vehicle_repository.save(vehicle)
 
         # Create multiple alerts for the vehicle

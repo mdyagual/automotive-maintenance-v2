@@ -10,7 +10,12 @@ interface UpdateMileageModalProps {
   onSubmit: (vehicleId: string, newMileage: number) => Promise<void>;
 }
 
-export const UpdateMileageModal = ({ isOpen, onClose, vehicle, onSubmit }: UpdateMileageModalProps) => {
+export const UpdateMileageModal = ({
+  isOpen,
+  onClose,
+  vehicle,
+  onSubmit,
+}: UpdateMileageModalProps) => {
   const [newMileage, setNewMileage] = useState<number>(0);
   const [error, setError] = useState<string>('');
 
@@ -90,7 +95,11 @@ export const UpdateMileageModal = ({ isOpen, onClose, vehicle, onSubmit }: Updat
           <small className="form-hint">
             Debe ser mayor a {formatNumber(vehicle.current_mileage)} km
           </small>
-          {error && <small className="form-hint" style={{ color: 'var(--error-600)' }}>{error}</small>}
+          {error && (
+            <small className="form-hint" style={{ color: 'var(--error-600)' }}>
+              {error}
+            </small>
+          )}
         </div>
       </form>
     </Modal>

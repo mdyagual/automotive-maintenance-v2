@@ -1,4 +1,5 @@
 """Tests for MaintenanceAlert entity following TDD approach."""
+
 from datetime import datetime
 
 from src.domain.entities.maintenance_alert import AlertType, MaintenanceAlert
@@ -21,13 +22,7 @@ class TestMaintenanceAlertCreation:
         timestamp = datetime(2026, 1, 6, 10, 0, 0)
 
         # Act
-        alert = MaintenanceAlert(
-            id=alert_id,
-            vehicle_id=vehicle_id,
-            alert_type=alert_type,
-            mileage=mileage,
-            timestamp=timestamp
-        )
+        alert = MaintenanceAlert(id=alert_id, vehicle_id=vehicle_id, alert_type=alert_type, mileage=mileage, timestamp=timestamp)
 
         # Assert
         assert alert.id == alert_id

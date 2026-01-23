@@ -107,7 +107,9 @@ export const CreateVehicleModal = ({ isOpen, onClose, onSubmit }: CreateVehicleM
             min="0"
             max="1000000"
             value={formData.initial_mileage}
-            onChange={(e) => setFormData({ ...formData, initial_mileage: parseInt(e.target.value) || 0 })}
+            onChange={(e) =>
+              setFormData({ ...formData, initial_mileage: parseInt(e.target.value) || 0 })
+            }
           />
           <small className="form-hint">Rango: 0 - 1,000,000 km</small>
         </div>

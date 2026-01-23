@@ -7,6 +7,7 @@ from datetime import datetime
 @dataclass(frozen=True)
 class AlertDTO:
     """Output DTO for alert data."""
+
     id: str
     vehicle_id: str
     alert_type: str  # String, not enum

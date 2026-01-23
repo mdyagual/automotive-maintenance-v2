@@ -45,9 +45,7 @@ def get_db_session() -> Generator[Session, None, None]:
         session.close()
 
 
-def get_vehicle_repository(
-    db: Session = Depends(get_db_session)
-) -> SqliteVehicleRepository:
+def get_vehicle_repository(db: Session = Depends(get_db_session)) -> SqliteVehicleRepository:
     """
     Create vehicle repository with request-scoped session.
 
@@ -71,9 +69,7 @@ def get_vehicle_repository(
     return SqliteVehicleRepository(db)
 
 
-def get_alert_repository(
-    db: Session = Depends(get_db_session)
-) -> SqliteAlertRepository:
+def get_alert_repository(db: Session = Depends(get_db_session)) -> SqliteAlertRepository:
     """
     Create alert repository with request-scoped session.
 
@@ -97,9 +93,7 @@ def get_alert_repository(
     return SqliteAlertRepository(db)
 
 
-def get_observer_factory(
-    alert_repo: SqliteAlertRepository = Depends(get_alert_repository)
-) -> ObserverFactoryImpl:
+def get_observer_factory(alert_repo: SqliteAlertRepository = Depends(get_alert_repository)) -> ObserverFactoryImpl:
     """
     Create observer factory with dependencies.
 
@@ -119,17 +113,11 @@ def get_observer_factory(
         # Manually call get_alert_repository for direct calls
         alert_repo = get_alert_repository()
 
-    strategies = [
-        BasicMaintenanceStrategy(),
-        MajorMaintenanceStrategy(),
-        CriticalThresholdStrategy()
-    ]
+    strategies = [BasicMaintenanceStrategy(), MajorMaintenanceStrategy(), CriticalThresholdStrategy()]
     return ObserverFactoryImpl(alert_repo, strategies)
 
 
-def initialize_test_data(
-    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)
-) -> None:
+def initialize_test_data(vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)) -> None:
     """
     Initialize test data for development.
 
@@ -143,7 +131,5 @@ def initialize_test_data(
         return
     except VehicleNotFoundException:
         # Vehicle doesn't exist, create it
-        test_vehicle = Vehicle(
-            id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000
-        )
+        test_vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000)
         vehicle_repo.save(test_vehicle)

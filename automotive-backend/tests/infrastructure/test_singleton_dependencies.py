@@ -12,7 +12,6 @@ These tests demonstrate BEHAVIORAL problems caused by the singleton pattern.
 They should FAIL with the current implementation and PASS after fixing.
 """
 
-
 from src.web.dependencies import (
     get_alert_repository,
     get_observer_factory,
@@ -63,13 +62,9 @@ class TestSingletonDependencyViolation:
             "4. Thread safety issues"
         )
 
-        assert repo2 is not repo3, (
-            "ARCHITECTURAL VIOLATION: Repository instances are shared across requests"
-        )
+        assert repo2 is not repo3, "ARCHITECTURAL VIOLATION: Repository instances are shared across requests"
 
-        assert repo1 is not repo3, (
-            "ARCHITECTURAL VIOLATION: Same repository instance reused"
-        )
+        assert repo1 is not repo3, "ARCHITECTURAL VIOLATION: Same repository instance reused"
 
     def test_get_alert_repository_returns_same_instance_violation(self):
         """
@@ -83,14 +78,9 @@ class TestSingletonDependencyViolation:
         repo3 = get_alert_repository()
 
         # Assert - THIS SHOULD FAIL
-        assert repo1 is not repo2, (
-            "ARCHITECTURAL VIOLATION: get_alert_repository() returns singleton instance. "
-            "Each call should return a NEW instance with its own database session."
-        )
+        assert repo1 is not repo2, "ARCHITECTURAL VIOLATION: get_alert_repository() returns singleton instance. Each call should return a NEW instance with its own database session."
 
-        assert repo2 is not repo3, (
-            "ARCHITECTURAL VIOLATION: Alert repository instances are shared"
-        )
+        assert repo2 is not repo3, "ARCHITECTURAL VIOLATION: Alert repository instances are shared"
 
     def test_get_observer_factory_returns_same_instance_violation(self):
         """
@@ -104,14 +94,9 @@ class TestSingletonDependencyViolation:
         factory3 = get_observer_factory()
 
         # Assert - THIS SHOULD FAIL
-        assert factory1 is not factory2, (
-            "ARCHITECTURAL VIOLATION: get_observer_factory() returns singleton instance. "
-            "Each call should return a NEW instance."
-        )
+        assert factory1 is not factory2, "ARCHITECTURAL VIOLATION: get_observer_factory() returns singleton instance. Each call should return a NEW instance."
 
-        assert factory2 is not factory3, (
-            "ARCHITECTURAL VIOLATION: Observer factory instances are shared"
-        )
+        assert factory2 is not factory3, "ARCHITECTURAL VIOLATION: Observer factory instances are shared"
 
     def test_repositories_share_same_database_session_violation(self):
         """
@@ -147,13 +132,9 @@ class TestSingletonDependencyViolation:
             "EXPECTED: Each repository should have its own request-scoped session."
         )
 
-        assert alert_repo1._db is not alert_repo2._db, (
-            "ARCHITECTURAL VIOLATION: Alert repositories share the same session"
-        )
+        assert alert_repo1._db is not alert_repo2._db, "ARCHITECTURAL VIOLATION: Alert repositories share the same session"
 
-        assert vehicle_repo1._db is not alert_repo1._db, (
-            "ARCHITECTURAL VIOLATION: Different repository types share the same session"
-        )
+        assert vehicle_repo1._db is not alert_repo1._db, "ARCHITECTURAL VIOLATION: Different repository types share the same session"
 
     def test_concurrent_requests_cause_transaction_isolation_violation(self):
         """
@@ -171,12 +152,7 @@ class TestSingletonDependencyViolation:
         repo_request2 = get_vehicle_repository()
 
         # Assert - Each request should have its own session
-        assert repo_request1._db is not repo_request2._db, (
-            "ARCHITECTURAL VIOLATION: Concurrent requests share the same database session. "
-            "This breaks transaction isolation. "
-            "Request 2 can see Request 1's uncommitted changes. "
-            "EXPECTED: Each request should have its own isolated session."
-        )
+        assert repo_request1._db is not repo_request2._db, "ARCHITECTURAL VIOLATION: Concurrent requests share the same database session. This breaks transaction isolation. Request 2 can see Request 1's uncommitted changes. EXPECTED: Each request should have its own isolated session."
 
     def test_session_is_never_closed_memory_leak_violation(self):
         """
@@ -236,12 +212,7 @@ class TestSingletonDependencyViolation:
         repo_request2 = get_vehicle_repository()
 
         # Assert - Each request should have its own session
-        assert repo_request1._db is not repo_request2._db, (
-            "ARCHITECTURAL VIOLATION: Cannot rollback per request. "
-            "Shared session means rolling back Request 1 would affect Request 2. "
-            "EXPECTED: Each request should have its own session that can be "
-            "independently committed or rolled back."
-        )
+        assert repo_request1._db is not repo_request2._db, "ARCHITECTURAL VIOLATION: Cannot rollback per request. Shared session means rolling back Request 1 would affect Request 2. EXPECTED: Each request should have its own session that can be independently committed or rolled back."
 
     def test_thread_safety_violation_with_shared_session(self):
         """
@@ -272,9 +243,7 @@ class TestSingletonDependencyViolation:
             "to ensure thread safety."
         )
 
-        assert repo2._db is not repo3._db, (
-            "ARCHITECTURAL VIOLATION: Thread safety not guaranteed"
-        )
+        assert repo2._db is not repo3._db, "ARCHITECTURAL VIOLATION: Thread safety not guaranteed"
 
     def test_correct_implementation_should_use_fastapi_depends(self):
         """

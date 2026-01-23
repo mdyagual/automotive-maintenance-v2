@@ -9,11 +9,7 @@ from src.domain.ports.vehicle_repository import VehicleRepository
 class UpdateVehicleMileageUseCase:
     """Use case for updating vehicle mileage following SRP."""
 
-    def __init__(
-        self,
-        vehicle_repository: VehicleRepository,
-        observer_factory: ObserverFactory
-    ) -> None:
+    def __init__(self, vehicle_repository: VehicleRepository, observer_factory: ObserverFactory) -> None:
         """
         Initialize use case with dependencies.
 
@@ -47,10 +43,7 @@ class UpdateVehicleMileageUseCase:
         vehicle = self._vehicle_repository.get_by_id(command.vehicle_id)
 
         # ✅ Use factory (domain abstraction) to create observer
-        observer = self._observer_factory.create_maintenance_observer(
-            vehicle_id=command.vehicle_id,
-            initial_mileage=vehicle.current_mileage
-        )
+        observer = self._observer_factory.create_maintenance_observer(vehicle_id=command.vehicle_id, initial_mileage=vehicle.current_mileage)
         vehicle.attach(observer)
 
         # Update mileage (notification and alert generation occurs via observer)

@@ -17,9 +17,7 @@ from src.domain.exceptions.invalid_mileage_exception import InvalidMileageExcept
 class TestUpdateVehicleMileageUseCase:
     """Test cases for UpdateVehicleMileageUseCase."""
 
-    def test_update_mileage_successfully(
-        self, vehicle_repository, observer_factory
-    ) -> None:
+    def test_update_mileage_successfully(self, vehicle_repository, observer_factory) -> None:
         """
         Given: A vehicle with 5,000 km
         When: Updating mileage to 8,000 km
@@ -27,20 +25,12 @@ class TestUpdateVehicleMileageUseCase:
         And: Vehicle should be persisted
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000)
         vehicle_repository.save(vehicle)
 
-        use_case = UpdateVehicleMileageUseCase(
-            vehicle_repository=vehicle_repository,
-            observer_factory=observer_factory
-        )
+        use_case = UpdateVehicleMileageUseCase(vehicle_repository=vehicle_repository, observer_factory=observer_factory)
 
-        command = UpdateMileageCommand(
-            vehicle_id="V-123",
-            new_mileage=8000
-        )
+        command = UpdateMileageCommand(vehicle_id="V-123", new_mileage=8000)
 
         # Act
         result = use_case.execute(command)
@@ -52,57 +42,37 @@ class TestUpdateVehicleMileageUseCase:
         updated_vehicle = vehicle_repository.get_by_id("V-123")
         assert updated_vehicle.current_mileage == 8000
 
-    def test_update_mileage_with_invalid_value_raises_exception(
-        self, vehicle_repository, observer_factory
-    ) -> None:
+    def test_update_mileage_with_invalid_value_raises_exception(self, vehicle_repository, observer_factory) -> None:
         """
         Given: A vehicle with 5,000 km
         When: Attempting to update with invalid mileage (4,000 km)
         Then: Should raise InvalidMileageException
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000)
         vehicle_repository.save(vehicle)
 
-        use_case = UpdateVehicleMileageUseCase(
-            vehicle_repository=vehicle_repository,
-            observer_factory=observer_factory
-        )
+        use_case = UpdateVehicleMileageUseCase(vehicle_repository=vehicle_repository, observer_factory=observer_factory)
 
-        command = UpdateMileageCommand(
-            vehicle_id="V-123",
-            new_mileage=4000
-        )
+        command = UpdateMileageCommand(vehicle_id="V-123", new_mileage=4000)
 
         # Act & Assert
         with pytest.raises(InvalidMileageException):
             use_case.execute(command)
 
-    def test_update_mileage_crossing_10k_threshold_generates_alert(
-        self, vehicle_repository, observer_factory, alert_repository
-    ) -> None:
+    def test_update_mileage_crossing_10k_threshold_generates_alert(self, vehicle_repository, observer_factory, alert_repository) -> None:
         """
         Given: A vehicle with 5,000 km and basic maintenance strategy
         When: Updating mileage to 10,001 km
         Then: Should generate and persist a basic maintenance alert
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=5000)
         vehicle_repository.save(vehicle)
 
-        use_case = UpdateVehicleMileageUseCase(
-            vehicle_repository=vehicle_repository,
-            observer_factory=observer_factory
-        )
+        use_case = UpdateVehicleMileageUseCase(vehicle_repository=vehicle_repository, observer_factory=observer_factory)
 
-        command = UpdateMileageCommand(
-            vehicle_id="V-123",
-            new_mileage=10001
-        )
+        command = UpdateMileageCommand(vehicle_id="V-123", new_mileage=10001)
 
         # Act
         use_case.execute(command)
@@ -136,10 +106,7 @@ class TestUpdateVehicleMileageUseCase:
         mock_repository = Mock()
         mock_observer_factory = Mock()
 
-        use_case = UpdateVehicleMileageUseCase(
-            vehicle_repository=mock_repository,
-            observer_factory=mock_observer_factory
-        )
+        use_case = UpdateVehicleMileageUseCase(vehicle_repository=mock_repository, observer_factory=mock_observer_factory)
 
         # Act & Assert - THIS SHOULD NOW PASS
         sig = inspect.signature(use_case.execute)
@@ -148,13 +115,9 @@ class TestUpdateVehicleMileageUseCase:
         # Check if it accepts a single command parameter (correct)
         has_primitive_params = len(params) > 2  # More than self and command
 
-        assert not has_primitive_params, (
-            f"Use case should accept a single Command DTO. "
-            f"Current parameters: {params}. "
-            f"Expected: ['self', 'command']"
-        )
+        assert not has_primitive_params, f"Use case should accept a single Command DTO. Current parameters: {params}. Expected: ['self', 'command']"
 
-        assert 'command' in params, f"Expected parameter named 'command', got: {params}"
+        assert "command" in params, f"Expected parameter named 'command', got: {params}"
 
     def test_use_case_should_return_dto_not_none(self):
         """
@@ -171,24 +134,13 @@ class TestUpdateVehicleMileageUseCase:
 
         mock_observer_factory.create_maintenance_observer.return_value = mock_observer
 
-        vehicle = Vehicle(
-            id="V-001",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            current_mileage=5000
-        )
+        vehicle = Vehicle(id="V-001", plate="ABC-123", model="Toyota Corolla", current_mileage=5000)
         mock_repository.get_by_id.return_value = vehicle
         mock_repository.save = Mock()
 
-        use_case = UpdateVehicleMileageUseCase(
-            vehicle_repository=mock_repository,
-            observer_factory=mock_observer_factory
-        )
+        use_case = UpdateVehicleMileageUseCase(vehicle_repository=mock_repository, observer_factory=mock_observer_factory)
 
-        command = UpdateMileageCommand(
-            vehicle_id="V-001",
-            new_mileage=15000
-        )
+        command = UpdateMileageCommand(vehicle_id="V-001", new_mileage=15000)
 
         # Act
         result = use_case.execute(command)
@@ -206,24 +158,18 @@ class TestUpdateVehicleMileageUseCase:
         - Clear API contract
         """
         # Arrange
-        use_case = UpdateVehicleMileageUseCase(
-            vehicle_repository=Mock(),
-            observer_factory=Mock()
-        )
+        use_case = UpdateVehicleMileageUseCase(vehicle_repository=Mock(), observer_factory=Mock())
 
         # Act - Check return type annotation
         sig = inspect.signature(use_case.execute)
         return_annotation = sig.return_annotation
 
         # Assert - THIS SHOULD NOW PASS
-        is_dto = (return_annotation == VehicleDTO or
-                 (hasattr(return_annotation, '__name__') and return_annotation.__name__ == 'VehicleDTO'))
+        is_dto = return_annotation == VehicleDTO or (hasattr(return_annotation, "__name__") and return_annotation.__name__ == "VehicleDTO")
 
         assert is_dto, f"Use case should return VehicleDTO. Got: {return_annotation}"
 
-        is_none_return = (return_annotation is None or
-                         return_annotation is type(None) or
-                         str(return_annotation) == 'None')
+        is_none_return = return_annotation is None or return_annotation is type(None) or str(return_annotation) == "None"
 
         assert not is_none_return, "Use case should not return None"
 
@@ -248,7 +194,7 @@ class TestUpdateVehicleMileageUseCase:
         # ACT (We try to instantiate the use case by INJECTING the factory)
         use_case = UpdateVehicleMileageUseCase(
             vehicle_repository=mock_repo,
-            observer_factory=mock_observer_factory  # <--- La inyección clave
+            observer_factory=mock_observer_factory,  # <--- La inyección clave
         )
 
         command = UpdateMileageCommand(vehicle_id="V-001", new_mileage=6000)
@@ -259,20 +205,15 @@ class TestUpdateVehicleMileageUseCase:
         # ASSERT (We verify behavior, not text)
 
         # 1. We verify that the factory was used (and not a direct 'new Observer' instantiation).
-        mock_observer_factory.create_maintenance_observer.assert_called_once_with(
-            vehicle_id="V-001",
-            initial_mileage=5000
-        )
+        mock_observer_factory.create_maintenance_observer.assert_called_once_with(vehicle_id="V-001", initial_mileage=5000)
 
-        #2. We verified that the observer created was attached to the vehicle.
+        # 2. We verified that the observer created was attached to the vehicle.
         vehicle_mock.attach.assert_called_once_with(mock_observer)
 
-        #3. We verified that the mileage was updated.
+        # 3. We verified that the mileage was updated.
         vehicle_mock.update_mileage.assert_called_once_with(6000)
 
-    def test_update_mileage_on_retired_vehicle_raises_exception(
-        self, vehicle_repository, observer_factory
-    ) -> None:
+    def test_update_mileage_on_retired_vehicle_raises_exception(self, vehicle_repository, observer_factory) -> None:
         """
         Test that updating mileage on a retired vehicle is rejected.
 
@@ -288,24 +229,12 @@ class TestUpdateVehicleMileageUseCase:
         from src.domain.entities.vehicle_status import VehicleStatus
 
         # Arrange
-        vehicle = Vehicle(
-            id="V-789",
-            plate="DEF-789",
-            model="Ford Focus",
-            current_mileage=200000,
-            status=VehicleStatus.RETIRED
-        )
+        vehicle = Vehicle(id="V-789", plate="DEF-789", model="Ford Focus", current_mileage=200000, status=VehicleStatus.RETIRED)
         vehicle_repository.save(vehicle)
 
-        use_case = UpdateVehicleMileageUseCase(
-            vehicle_repository=vehicle_repository,
-            observer_factory=observer_factory
-        )
+        use_case = UpdateVehicleMileageUseCase(vehicle_repository=vehicle_repository, observer_factory=observer_factory)
 
-        command = UpdateMileageCommand(
-            vehicle_id="V-789",
-            new_mileage=205000
-        )
+        command = UpdateMileageCommand(vehicle_id="V-789", new_mileage=205000)
 
         # Act & Assert
         with pytest.raises(InvalidMileageException) as exc_info:
@@ -313,10 +242,8 @@ class TestUpdateVehicleMileageUseCase:
 
         # Verify error message indicates retired vehicle restriction
         error_message = str(exc_info.value)
-        assert "retirado" in error_message.lower() or "retired" in error_message.lower(), \
-            f"Error message should indicate retired vehicle restriction. Got: {error_message}"
+        assert "retirado" in error_message.lower() or "retired" in error_message.lower(), f"Error message should indicate retired vehicle restriction. Got: {error_message}"
 
         # Verify vehicle mileage was not updated
         unchanged_vehicle = vehicle_repository.get_by_id("V-789")
-        assert unchanged_vehicle.current_mileage == 200000, \
-            "Vehicle mileage should remain unchanged after failed update"
+        assert unchanged_vehicle.current_mileage == 200000, "Vehicle mileage should remain unchanged after failed update"

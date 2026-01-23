@@ -1,4 +1,5 @@
 """MaintenanceAlert entity for tracking vehicle maintenance alerts."""
+
 from datetime import datetime
 from enum import Enum
 
@@ -14,14 +15,7 @@ class AlertType(Enum):
 class MaintenanceAlert:
     """Alert generated when vehicle reaches maintenance threshold."""
 
-    def __init__(
-        self,
-        id: str,
-        vehicle_id: str,
-        alert_type: AlertType,
-        mileage: int,
-        timestamp: datetime
-    ) -> None:
+    def __init__(self, id: str, vehicle_id: str, alert_type: AlertType, mileage: int, timestamp: datetime) -> None:
         """
         Initialize a MaintenanceAlert instance.
 

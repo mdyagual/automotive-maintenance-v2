@@ -12,11 +12,7 @@ from src.infrastructure.observers.maintenance_alert_observer import (
 class ObserverFactoryImpl(ObserverFactory):
     """Infrastructure implementation of observer factory."""
 
-    def __init__(
-        self,
-        alert_repository: AlertRepository,
-        strategies: list[MaintenanceStrategy]
-    ) -> None:
+    def __init__(self, alert_repository: AlertRepository, strategies: list[MaintenanceStrategy]) -> None:
         """
         Initialize factory with dependencies.
 
@@ -27,9 +23,7 @@ class ObserverFactoryImpl(ObserverFactory):
         self._alert_repository = alert_repository
         self._strategies = strategies
 
-    def create_maintenance_observer(
-        self, vehicle_id: str, initial_mileage: int
-    ) -> Observer:
+    def create_maintenance_observer(self, vehicle_id: str, initial_mileage: int) -> Observer:
         """
         Create a maintenance alert observer.
 

@@ -1,11 +1,16 @@
 """SQLite implementation of VehicleRepository - Infrastructure layer."""
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy.orm import Session
 
 from src.domain.entities.vehicle import Vehicle
 from src.domain.exceptions.vehicle_not_found_exception import VehicleNotFoundException
 from src.domain.ports.vehicle_repository import VehicleRepository
 from src.infrastructure.database.models import VehicleModel
+
+if TYPE_CHECKING:
+    from src.domain.entities.vehicle_status import VehicleStatus
 
 
 class SqliteVehicleRepository(VehicleRepository):
@@ -83,14 +88,10 @@ class SqliteVehicleRepository(VehicleRepository):
         Raises:
             VehicleNotFoundException: If vehicle not found
         """
-        vehicle_model = (
-            self._db.query(VehicleModel).filter_by(id=vehicle_id).first()
-        )
+        vehicle_model = self._db.query(VehicleModel).filter_by(id=vehicle_id).first()
 
         if vehicle_model is None:
-            raise VehicleNotFoundException(
-                f"Vehículo con ID {vehicle_id} no encontrado"
-            )
+            raise VehicleNotFoundException(f"Vehículo con ID {vehicle_id} no encontrado")
 
         return vehicle_model
 
@@ -144,3 +145,42 @@ class SqliteVehicleRepository(VehicleRepository):
         vehicle_model = self._get_vehicle_model_or_raise(vehicle_id)
         self._db.delete(vehicle_model)
         self._db.commit()
+
+    def get_by_status(self, status: "VehicleStatus") -> list[Vehicle]:
+        """
+        Get all vehicles with a specific status.
+
+        Args:
+            status: VehicleStatus enum value to filter by
+
+        Returns:
+            List of Vehicle instances with the specified status
+            Empty list if no vehicles match
+        """
+        from src.domain.entities.vehicle_status import VehicleStatus
+
+        # Convert enum to string value for database query
+        status_value = status.value if isinstance(status, VehicleStatus) else status
+
+        vehicle_models = self._db.query(VehicleModel).filter_by(status=status_value).all()
+        return self._to_entities(vehicle_models)
+
+    def get_by_plate(self, plate: str) -> list[Vehicle]:
+        """
+        Get vehicles by plate number (case-insensitive, supports partial match).
+
+        Args:
+            plate: License plate number or partial plate
+
+        Returns:
+            List of Vehicle entities matching the plate
+            Empty list if no vehicles match
+
+        Business Rules:
+        - RN-031: Search must be case-insensitive
+        - RN-032: Search must support partial matches
+        """
+        # Case-insensitive partial search using SQL LIKE with wildcards
+        vehicle_models = self._db.query(VehicleModel).filter(VehicleModel.plate.ilike(f"%{plate}%")).all()
+
+        return self._to_entities(vehicle_models)

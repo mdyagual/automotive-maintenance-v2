@@ -1,6 +1,5 @@
 """Unit tests for VehicleValidator in application layer."""
 
-
 import pytest
 
 from src.application.validators.vehicle_validator import VehicleValidator
@@ -46,16 +45,16 @@ class TestVehicleValidator:
         Should raise: InvalidVehicleIdException (domain exception)
         """
         invalid_ids = [
-            "A-001",      # Wrong prefix
-            "V-12",       # Too few digits
-            "V-1234",     # Too many digits
-            "V001",       # Missing hyphen
-            "V-ABC",      # Letters instead of numbers
-            "v-001",      # Lowercase prefix
-            "V-01",       # Only 2 digits
-            "",           # Empty string
-            "V-",         # Missing number
-            "123",        # No prefix
+            "A-001",  # Wrong prefix
+            "V-12",  # Too few digits
+            "V-1234",  # Too many digits
+            "V001",  # Missing hyphen
+            "V-ABC",  # Letters instead of numbers
+            "v-001",  # Lowercase prefix
+            "V-01",  # Only 2 digits
+            "",  # Empty string
+            "V-",  # Missing number
+            "123",  # No prefix
         ]
 
         for vehicle_id in invalid_ids:
@@ -114,18 +113,18 @@ class TestVehicleValidator:
         Should raise: InvalidPlateException (domain exception)
         """
         invalid_plates = [
-            "AB-123",      # Only 2 letters
-            "ABCD-123",    # 4 letters
-            "ABC-12",      # Only 2 digits
-            "ABC-12345",   # 5 digits
-            "abc-123",     # Lowercase letters
-            "ABC123",      # Missing hyphen
-            "123-ABC",     # Reversed format
-            "A1C-123",     # Number in letter section
-            "ABC-12A",     # Letter in number section
-            "",            # Empty string
-            "ABC-",        # Missing numbers
-            "-123",        # Missing letters
+            "AB-123",  # Only 2 letters
+            "ABCD-123",  # 4 letters
+            "ABC-12",  # Only 2 digits
+            "ABC-12345",  # 5 digits
+            "abc-123",  # Lowercase letters
+            "ABC123",  # Missing hyphen
+            "123-ABC",  # Reversed format
+            "A1C-123",  # Number in letter section
+            "ABC-12A",  # Letter in number section
+            "",  # Empty string
+            "ABC-",  # Missing numbers
+            "-123",  # Missing letters
         ]
 
         for plate in invalid_plates:
@@ -278,12 +277,7 @@ class TestVehicleValidator:
         This method should validate all fields together.
         """
         # Should not raise any exception
-        self.validator.validate_vehicle_data(
-            vehicle_id="V-123",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            initial_mileage=5000
-        )
+        self.validator.validate_vehicle_data(vehicle_id="V-123", plate="ABC-123", model="Toyota Corolla", initial_mileage=5000)
 
     def test_validate_vehicle_data_rejects_invalid_vehicle_id(self):
         """
@@ -292,12 +286,7 @@ class TestVehicleValidator:
         Should raise: InvalidVehicleIdException (domain exception)
         """
         with pytest.raises(InvalidVehicleIdException):
-            self.validator.validate_vehicle_data(
-                vehicle_id="INVALID",
-                plate="ABC-123",
-                model="Toyota Corolla",
-                initial_mileage=5000
-            )
+            self.validator.validate_vehicle_data(vehicle_id="INVALID", plate="ABC-123", model="Toyota Corolla", initial_mileage=5000)
 
     def test_validate_vehicle_data_rejects_invalid_plate(self):
         """
@@ -306,12 +295,7 @@ class TestVehicleValidator:
         Should raise: InvalidPlateException (domain exception)
         """
         with pytest.raises(InvalidPlateException):
-            self.validator.validate_vehicle_data(
-                vehicle_id="V-123",
-                plate="INVALID",
-                model="Toyota Corolla",
-                initial_mileage=5000
-            )
+            self.validator.validate_vehicle_data(vehicle_id="V-123", plate="INVALID", model="Toyota Corolla", initial_mileage=5000)
 
     def test_validate_vehicle_data_rejects_invalid_model(self):
         """
@@ -320,12 +304,7 @@ class TestVehicleValidator:
         Should raise: InvalidModelException (domain exception)
         """
         with pytest.raises(InvalidModelException):
-            self.validator.validate_vehicle_data(
-                vehicle_id="V-123",
-                plate="ABC-123",
-                model="",
-                initial_mileage=5000
-            )
+            self.validator.validate_vehicle_data(vehicle_id="V-123", plate="ABC-123", model="", initial_mileage=5000)
 
     def test_validate_vehicle_data_rejects_invalid_mileage(self):
         """
@@ -334,29 +313,19 @@ class TestVehicleValidator:
         Should raise: InvalidMileageException (domain exception)
         """
         with pytest.raises(InvalidMileageException):
-            self.validator.validate_vehicle_data(
-                vehicle_id="V-123",
-                plate="ABC-123",
-                model="Toyota Corolla",
-                initial_mileage=-100
-            )
+            self.validator.validate_vehicle_data(vehicle_id="V-123", plate="ABC-123", model="Toyota Corolla", initial_mileage=-100)
 
     def test_validate_vehicle_data_with_edge_case_values(self):
         """Test validation with edge case but valid values."""
         # Minimum valid values
-        self.validator.validate_vehicle_data(
-            vehicle_id="V-000",
-            plate="AAA-000",
-            model="A",
-            initial_mileage=0
-        )
+        self.validator.validate_vehicle_data(vehicle_id="V-000", plate="AAA-000", model="A", initial_mileage=0)
 
         # Maximum valid values
         self.validator.validate_vehicle_data(
             vehicle_id="V-999",
             plate="ZZZ-9999",
             model="A" * 100,  # Max length
-            initial_mileage=1000000
+            initial_mileage=1000000,
         )
 
     # ==================== INTEGRATION WITH USE CASE TESTS ====================
@@ -371,12 +340,7 @@ class TestVehicleValidator:
         validator = VehicleValidator()
 
         # Should be able to validate data
-        validator.validate_vehicle_data(
-            vehicle_id="V-123",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            initial_mileage=5000
-        )
+        validator.validate_vehicle_data(vehicle_id="V-123", plate="ABC-123", model="Toyota Corolla", initial_mileage=5000)
 
     def test_validator_provides_clear_error_messages(self):
         """

@@ -1,13 +1,13 @@
-import type { VehicleStatus } from '../types/vehicle';
-import { getStatusText, getStatusIcon } from '../utils/formatters';
-
 interface StatusFilterProps {
-  currentFilter: VehicleStatus | 'all';
-  onFilterChange: (filter: VehicleStatus | 'all') => void;
+  currentFilter: 'all' | 'active' | 'inactive' | 'in_maintenance' | 'retired';
+  onFilterChange: (filter: 'all' | 'active' | 'inactive' | 'in_maintenance' | 'retired') => void;
 }
 
 export const StatusFilter = ({ currentFilter, onFilterChange }: StatusFilterProps) => {
-  const filters: Array<{ value: VehicleStatus | 'all'; label: string }> = [
+  const filters: Array<{
+    value: 'all' | 'active' | 'inactive' | 'in_maintenance' | 'retired';
+    label: string;
+  }> = [
     { value: 'all', label: 'TODOS' },
     { value: 'active', label: 'ACTIVO' },
     { value: 'inactive', label: 'INACTIVO' },

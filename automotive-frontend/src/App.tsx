@@ -13,12 +13,36 @@ import { AlertsModal } from './components/modals/AlertsModal';
 import { DeleteModal } from './components/modals/DeleteModal';
 import { useVehicles } from './hooks/useVehicles';
 import { useToast } from './hooks/useToast';
+import { usePagination } from './hooks/usePagination';
+import { useVehicleSearch } from './hooks/useVehicleSearch';
 import type { Vehicle, CreateVehicleRequest, VehicleStatus } from './types/vehicle';
 import './App.css';
 
 function App() {
-  const { vehicles, loading, error, statusFilter, setStatusFilter, createVehicle, updateMileage, updateStatus, deleteVehicle } = useVehicles();
+  const {
+    vehicles,
+    loading,
+    error,
+    statusFilter,
+    setStatusFilter,
+    createVehicle,
+    updateMileage,
+    updateStatus,
+    deleteVehicle,
+  } = useVehicles();
   const { toasts, showToast } = useToast();
+
+  // Search functionality
+  const { searchTerm, setSearchTerm, searchResults, searchError } = useVehicleSearch(vehicles);
+
+  // Pagination: 8 vehicles per page (use search results instead of all vehicles)
+  const ITEMS_PER_PAGE = 8;
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems: paginatedVehicles,
+    goToPage,
+  } = usePagination(searchResults, ITEMS_PER_PAGE);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -33,7 +57,10 @@ function App() {
       await createVehicle(data);
       showToast('Vehículo registrado exitosamente', 'success');
     } catch (err) {
-      showToast(`Error al registrar vehículo: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+      showToast(
+        `Error al registrar vehículo: ${err instanceof Error ? err.message : 'Error desconocido'}`,
+        'error'
+      );
     }
   };
 
@@ -42,7 +69,10 @@ function App() {
       await updateMileage(vehicleId, { new_mileage: newMileage });
       showToast('Kilometraje actualizado exitosamente', 'success');
     } catch (err) {
-      showToast(`Error al actualizar kilometraje: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+      showToast(
+        `Error al actualizar kilometraje: ${err instanceof Error ? err.message : 'Error desconocido'}`,
+        'error'
+      );
     }
   };
 
@@ -51,7 +81,10 @@ function App() {
       await updateStatus(vehicleId, { new_status: newStatus });
       showToast('Estado actualizado exitosamente', 'success');
     } catch (err) {
-      showToast(`Error al actualizar estado: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+      showToast(
+        `Error al actualizar estado: ${err instanceof Error ? err.message : 'Error desconocido'}`,
+        'error'
+      );
     }
   };
 
@@ -60,12 +93,15 @@ function App() {
       await deleteVehicle(vehicleId);
       showToast('Vehículo eliminado exitosamente', 'success');
     } catch (err) {
-      showToast(`Error al eliminar vehículo: ${err instanceof Error ? err.message : 'Error desconocido'}`, 'error');
+      showToast(
+        `Error al eliminar vehículo: ${err instanceof Error ? err.message : 'Error desconocido'}`,
+        'error'
+      );
     }
   };
 
   const openDetailsModal = (vehicleId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    const vehicle = searchResults.find((v) => v.id === vehicleId);
     if (vehicle) {
       setSelectedVehicle(vehicle);
       setIsDetailsModalOpen(true);
@@ -73,7 +109,7 @@ function App() {
   };
 
   const openUpdateModal = (vehicleId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    const vehicle = searchResults.find((v) => v.id === vehicleId);
     if (vehicle) {
       if (vehicle.status === 'retired') {
         showToast('No se puede actualizar el kilometraje de vehículos retirados', 'warning');
@@ -85,23 +121,15 @@ function App() {
   };
 
   const openUpdateStatusModal = (vehicleId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    const vehicle = searchResults.find((v) => v.id === vehicleId);
     if (vehicle) {
       setSelectedVehicle(vehicle);
       setIsUpdateStatusModalOpen(true);
     }
   };
 
-  const openAlertsModal = (vehicleId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
-    if (vehicle) {
-      setSelectedVehicle(vehicle);
-      setIsAlertsModalOpen(true);
-    }
-  };
-
   const openDeleteModal = (vehicleId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
+    const vehicle = searchResults.find((v) => v.id === vehicleId);
     if (vehicle) {
       setSelectedVehicle(vehicle);
       setIsDeleteModalOpen(true);
@@ -126,28 +154,38 @@ function App() {
 
   return (
     <>
-      <Header onNewVehicle={() => setIsCreateModalOpen(true)} />
+      <Header
+        onNewVehicle={() => setIsCreateModalOpen(true)}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+      />
       <main className="main-content">
         <div className="container">
           <Stats vehicles={vehicles} />
-          
+
           <section className="vehicles-section">
             <div className="section-header">
               <h2 className="section-title">Listado de Vehículos</h2>
               <StatusFilter currentFilter={statusFilter} onFilterChange={setStatusFilter} />
             </div>
-            
+
             <VehicleGrid
-              vehicles={vehicles}
+              vehicles={paginatedVehicles}
               onUpdate={openUpdateModal}
               onDetails={openDetailsModal}
               onDelete={openDeleteModal}
-              onAlerts={openAlertsModal}
               onUpdateStatus={openUpdateStatusModal}
               onNewVehicle={() => setIsCreateModalOpen(true)}
+              searchError={searchError}
             />
 
-            <Pagination currentPage={1} totalPages={6} />
+            {totalPages > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+              />
+            )}
           </section>
         </div>
       </main>
@@ -191,7 +229,7 @@ function App() {
         onConfirm={handleDeleteVehicle}
       />
 
-      <Toast toasts={toasts} onRemove={() => {}} />
+      <Toast toasts={toasts} />
     </>
   );
 }

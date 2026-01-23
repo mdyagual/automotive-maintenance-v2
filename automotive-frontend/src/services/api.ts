@@ -1,4 +1,10 @@
-import type { Vehicle, CreateVehicleRequest, UpdateMileageRequest, UpdateStatusRequest, VehicleStatus } from '../types/vehicle';
+import type {
+  Vehicle,
+  CreateVehicleRequest,
+  UpdateMileageRequest,
+  UpdateStatusRequest,
+  VehicleStatus,
+} from '../types/vehicle';
 
 const API_BASE_URL = 'http://127.0.0.1:8000';
 
@@ -33,7 +39,7 @@ export const vehicleApi = {
   },
 
   async getVehiclesByStatus(status: VehicleStatus): Promise<Vehicle[]> {
-    const response = await fetch(`${API_BASE_URL}/vehicles/status/${status}`);
+    const response = await fetch(`${API_BASE_URL}/vehicles?status=${status}`);
     return handleResponse<Vehicle[]>(response) as Promise<Vehicle[]>;
   },
 
@@ -80,5 +86,12 @@ export const vehicleApi = {
       method: 'DELETE',
     });
     return handleResponse<null>(response);
+  },
+
+  async searchVehicleByPlate(plate: string): Promise<Vehicle | Vehicle[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/vehicles/search?plate=${encodeURIComponent(plate)}`
+    );
+    return handleResponse<Vehicle | Vehicle[]>(response) as Promise<Vehicle | Vehicle[]>;
   },
 };

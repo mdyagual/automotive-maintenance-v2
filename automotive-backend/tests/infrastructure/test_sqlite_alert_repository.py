@@ -60,9 +60,7 @@ class TestSqliteAlertRepository:
         # Assert
         from src.infrastructure.database.models import AlertModel
 
-        saved_alert = (
-            test_db.query(AlertModel).filter_by(id="V-123-10000-BASIC").first()
-        )
+        saved_alert = test_db.query(AlertModel).filter_by(id="V-123-10000-BASIC").first()
         assert saved_alert is not None
         assert saved_alert.id == "V-123-10000-BASIC"
         assert saved_alert.vehicle_id == "V-123"

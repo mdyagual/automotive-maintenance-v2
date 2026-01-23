@@ -2,7 +2,6 @@ import type { Toast as ToastType } from '../hooks/useToast';
 
 interface ToastProps {
   toasts: ToastType[];
-  onRemove: (id: string) => void;
 }
 
 const icons = {
@@ -12,7 +11,7 @@ const icons = {
   info: 'ℹ️',
 };
 
-export const Toast = ({ toasts, onRemove }: ToastProps) => {
+export const Toast = ({ toasts }: ToastProps) => {
   return (
     <div className="toast-container">
       {toasts.map((toast) => (

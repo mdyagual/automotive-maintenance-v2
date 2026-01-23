@@ -8,11 +8,7 @@ from src.domain.ports.vehicle_repository import VehicleRepository
 class GetAllVehiclesUseCase:
     """Use case for retrieving all vehicles with their alerts following SRP."""
 
-    def __init__(
-        self,
-        vehicle_repository: VehicleRepository,
-        alert_repository: AlertRepository
-    ) -> None:
+    def __init__(self, vehicle_repository: VehicleRepository, alert_repository: AlertRepository) -> None:
         """
         Initialize use case with dependencies following DIP.
 
@@ -48,22 +44,8 @@ class GetAllVehiclesUseCase:
                 status=vehicle.status.value,  # Convert enum to string
             )
 
-            alert_dtos = [
-                AlertDTO(
-                    id=alert.id,
-                    vehicle_id=alert.vehicle_id,
-                    alert_type=alert.alert_type.value,
-                    mileage=alert.mileage,
-                    timestamp=alert.timestamp
-                )
-                for alert in alerts
-            ]
+            alert_dtos = [AlertDTO(id=alert.id, vehicle_id=alert.vehicle_id, alert_type=alert.alert_type.value, mileage=alert.mileage, timestamp=alert.timestamp) for alert in alerts]
 
-            result.append(
-                VehicleWithAlertsDTO(
-                    vehicle=vehicle_dto,
-                    alerts=alert_dtos
-                )
-            )
+            result.append(VehicleWithAlertsDTO(vehicle=vehicle_dto, alerts=alert_dtos))
 
         return result

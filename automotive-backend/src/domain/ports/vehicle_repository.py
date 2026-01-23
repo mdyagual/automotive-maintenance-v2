@@ -1,7 +1,12 @@
 """Vehicle Repository port - following DIP."""
+
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
 
 from src.domain.entities.vehicle import Vehicle
+
+if TYPE_CHECKING:
+    from src.domain.entities.vehicle_status import VehicleStatus
 
 
 class VehicleRepository(ABC):
@@ -53,5 +58,37 @@ class VehicleRepository(ABC):
 
         Raises:
             VehicleNotFoundException: If vehicle not found
+        """
+        pass
+
+    @abstractmethod
+    def get_by_status(self, status: "VehicleStatus") -> list[Vehicle]:
+        """
+        Get all vehicles with a specific status.
+
+        Args:
+            status: VehicleStatus enum value to filter by
+
+        Returns:
+            List of Vehicle instances with the specified status
+            Empty list if no vehicles match
+        """
+        pass
+
+    @abstractmethod
+    def get_by_plate(self, plate: str) -> list[Vehicle]:
+        """
+        Get vehicles by plate number (supports partial match).
+
+        Args:
+            plate: License plate number or partial plate (case-insensitive)
+
+        Returns:
+            List of Vehicle instances matching the plate
+            Empty list if no vehicles match
+
+        Business Rules:
+        - RN-031: Search must be case-insensitive
+        - RN-032: Search must support partial matches
         """
         pass
