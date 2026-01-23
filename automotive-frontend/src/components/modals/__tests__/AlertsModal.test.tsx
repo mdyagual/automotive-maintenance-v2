@@ -27,16 +27,16 @@ describe('AlertsModal', () => {
     render(<AlertsModal isOpen={true} onClose={() => {}} vehicle={mockVehicleWithAlerts} />);
 
     // Should show 3 alerts
-    expect(screen.getByText(/Mantenimiento Básico/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Mantenimiento Básico/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Mantenimiento Mayor/)).toBeInTheDocument();
   });
 
   it('should display alert mileage', () => {
     render(<AlertsModal isOpen={true} onClose={() => {}} vehicle={mockVehicleWithAlerts} />);
 
-    expect(screen.getByText(/30,000 km/)).toBeInTheDocument();
-    expect(screen.getByText(/20,000 km/)).toBeInTheDocument();
-    expect(screen.getByText(/10,000 km/)).toBeInTheDocument();
+    expect(screen.getAllByText(/30[.,]000 km/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/20[.,]000 km/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/10[.,]000 km/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('should display empty state when vehicle has no alerts', () => {

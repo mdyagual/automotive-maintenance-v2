@@ -6,7 +6,6 @@ interface VehicleGridProps {
   onUpdate: (vehicleId: string) => void;
   onDetails: (vehicleId: string) => void;
   onDelete: (vehicleId: string) => void;
-  onAlerts: (vehicleId: string) => void;
   onUpdateStatus: (vehicleId: string) => void;
   onNewVehicle: () => void;
 }
@@ -16,7 +15,6 @@ export const VehicleGrid = ({
   onUpdate,
   onDetails,
   onDelete,
-  onAlerts,
   onUpdateStatus,
   onNewVehicle,
 }: VehicleGridProps) => {
@@ -42,7 +40,6 @@ export const VehicleGrid = ({
           onUpdate={onUpdate}
           onDetails={onDetails}
           onDelete={onDelete}
-          onAlerts={onAlerts}
           onUpdateStatus={onUpdateStatus}
         />
       ))}

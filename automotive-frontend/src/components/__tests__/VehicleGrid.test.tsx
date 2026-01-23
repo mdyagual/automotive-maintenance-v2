@@ -15,7 +15,6 @@ describe('VehicleGrid', () => {
     onUpdate: vi.fn(),
     onDetails: vi.fn(),
     onDelete: vi.fn(),
-    onAlerts: vi.fn(),
     onUpdateStatus: vi.fn(),
     onNewVehicle: vi.fn(),
   };

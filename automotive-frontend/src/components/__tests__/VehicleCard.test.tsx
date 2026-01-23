@@ -16,7 +16,6 @@ describe('VehicleCard', () => {
     onUpdate: vi.fn(),
     onDetails: vi.fn(),
     onDelete: vi.fn(),
-    onAlerts: vi.fn(),
     onUpdateStatus: vi.fn(),
   };
 
@@ -26,7 +25,7 @@ describe('VehicleCard', () => {
     expect(screen.getByText('ID: V-123')).toBeInTheDocument();
     expect(screen.getByText('ABC-123')).toBeInTheDocument();
     expect(screen.getByText('Toyota Corolla')).toBeInTheDocument();
-    expect(screen.getByText('35,000')).toBeInTheDocument();
+    expect(screen.getByText(/35[.,]000/)).toBeInTheDocument(); // Flexible for locale
   });
 
   it('should display status badge with correct text', () => {

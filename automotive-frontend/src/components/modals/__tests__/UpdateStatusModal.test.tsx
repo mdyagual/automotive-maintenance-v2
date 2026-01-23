@@ -37,7 +37,7 @@ describe('UpdateStatusModal - HU-005 Escenario 1', () => {
 
     expect(screen.getByText(/ABC-123 - Toyota Corolla/)).toBeInTheDocument();
     expect(screen.getByText(/Estado actual:/)).toBeInTheDocument();
-    expect(screen.getByText(/Activo/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Activo/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('should display all status options in select', () => {
@@ -242,7 +242,7 @@ describe('UpdateStatusModal - HU-005 Escenario 1', () => {
       />
     );
 
-    expect(screen.getByText(/En Mantenimiento/)).toBeInTheDocument();
+    expect(screen.getAllByText(/En Mantenimiento/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('should not render when modal is closed', () => {

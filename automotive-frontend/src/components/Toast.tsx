@@ -2,7 +2,6 @@ import type { Toast as ToastType } from '../hooks/useToast';
 
 interface ToastProps {
   toasts: ToastType[];
-  onRemove: (id: string) => void;
 }
 
 const icons = {

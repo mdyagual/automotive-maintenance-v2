@@ -114,14 +114,6 @@ function App() {
     }
   };
 
-  const openAlertsModal = (vehicleId: string) => {
-    const vehicle = vehicles.find((v) => v.id === vehicleId);
-    if (vehicle) {
-      setSelectedVehicle(vehicle);
-      setIsAlertsModalOpen(true);
-    }
-  };
-
   const openDeleteModal = (vehicleId: string) => {
     const vehicle = vehicles.find((v) => v.id === vehicleId);
     if (vehicle) {
@@ -164,7 +156,6 @@ function App() {
               onUpdate={openUpdateModal}
               onDetails={openDetailsModal}
               onDelete={openDeleteModal}
-              onAlerts={openAlertsModal}
               onUpdateStatus={openUpdateStatusModal}
               onNewVehicle={() => setIsCreateModalOpen(true)}
             />
@@ -213,7 +204,7 @@ function App() {
         onConfirm={handleDeleteVehicle}
       />
 
-      <Toast toasts={toasts} onRemove={() => {}} />
+      <Toast toasts={toasts} />
     </>
   );
 }
