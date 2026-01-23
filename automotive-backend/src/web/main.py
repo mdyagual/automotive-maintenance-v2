@@ -286,6 +286,47 @@ def get_vehicle(vehicle_id: str, vehicle_repo: SqliteVehicleRepository = Depends
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
+@app.get("/vehicles/search", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
+def search_vehicle_by_plate(plate: str = Query(..., description="License plate to search for"), vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
+    """
+    Search vehicle by plate number (case-insensitive).
+
+    Args:
+        plate: License plate to search for
+        vehicle_repo: Vehicle repository injected by FastAPI
+
+    Returns:
+        Vehicle data
+
+    Raises:
+        HTTPException: 400 if plate format is invalid, 404 if vehicle not found
+
+    User Story: HU-006 - Búsqueda de vehículos por placa
+    Business Rules:
+    - RN-010: Plate must follow XXX-123 or XXX-1234 format
+    - RN-031: Search must be case-insensitive
+    """
+    from src.application.use_cases.get_vehicle_by_plate_use_case import GetVehicleByPlateUseCase
+    from src.domain.exceptions.invalid_plate_exception import InvalidPlateException
+
+    try:
+        use_case = GetVehicleByPlateUseCase(vehicle_repository=vehicle_repo)
+        vehicle_dto = use_case.execute(plate)
+
+        # Map DTO to response
+        return VehicleResponse(
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage,
+            status=vehicle_dto.status,
+        )
+    except InvalidPlateException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except VehicleNotFoundException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
 @app.put("/vehicles/{vehicle_id}/mileage", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
 def update_vehicle_mileage(vehicle_id: str, request: UpdateMileageRequest, vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository), observer_factory: ObserverFactoryImpl = Depends(get_observer_factory)):
     """
