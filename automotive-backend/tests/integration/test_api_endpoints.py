@@ -487,3 +487,99 @@ class TestVehicleEndpoints:
         for vehicle_data in data:
             assert "status" in vehicle_data, f"Vehicle {vehicle_data['id']} must include status field for HU-005"
             assert vehicle_data["status"] in ["active", "inactive", "in_maintenance", "retired"], f"Status must be a valid value, got: {vehicle_data['status']}"
+
+    def test_search_vehicle_by_exact_plate_returns_one_vehicle(self) -> None:
+        """
+        Test searching vehicle by exact plate match.
+
+        Given: Vehicles exist in the system with plates ABC-123, XYZ-456, ABC-789
+        When: GET /vehicles/search?plate=ABC-123
+        Then: The system should return 1 vehicle
+        And: The vehicle should have plate "ABC-123"
+
+        User Story: HU-006 - Escenario 1
+        Business Rule: RN-031 - Search must be case-insensitive
+        """
+        # Arrange
+        client = TestClient(app)
+        vehicle_repo = get_vehicle_repository()
+
+        # Create additional test vehicles
+        vehicle2 = Vehicle(id="V-002", plate="XYZ-456", model="Honda Civic", current_mileage=10000)
+        vehicle3 = Vehicle(id="V-003", plate="ABC-789", model="Mazda 3", current_mileage=15000)
+        vehicle_repo.save(vehicle2)
+        vehicle_repo.save(vehicle3)
+
+        # Act
+        response = client.get("/vehicles/search?plate=ABC-123")
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == "V-123"
+        assert data["plate"] == "ABC-123"
+        assert data["model"] == "Toyota Corolla"
+        assert data["current_mileage"] == 5000
+
+    def test_search_vehicle_by_plate_case_insensitive(self) -> None:
+        """
+        Test that search is case-insensitive.
+
+        Given: A vehicle exists with plate "ABC-123"
+        When: GET /vehicles/search?plate=abc-123 (lowercase)
+        Then: The system should return the vehicle with plate "ABC-123"
+
+        User Story: HU-006 - Escenario 4
+        Business Rule: RN-031 - Search must be case-insensitive
+        """
+        # Arrange
+        client = TestClient(app)
+
+        # Act
+        response = client.get("/vehicles/search?plate=abc-123")
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["plate"] == "ABC-123"
+        assert data["id"] == "V-123"
+
+    def test_search_vehicle_by_nonexistent_plate_returns_404(self) -> None:
+        """
+        Test searching for a vehicle with a plate that doesn't exist.
+
+        Given: Vehicles exist in the system
+        When: GET /vehicles/search?plate=ZZZ-999
+        Then: The system should return 404 Not Found
+
+        User Story: HU-006 - Escenario 3
+        """
+        # Arrange
+        client = TestClient(app)
+
+        # Act
+        response = client.get("/vehicles/search?plate=ZZZ-999")
+
+        # Assert
+        assert response.status_code == 404
+        assert "ZZZ-999" in response.json()["detail"]
+
+    def test_search_vehicle_with_invalid_plate_format_returns_400(self) -> None:
+        """
+        Test that invalid plate format returns 400 Bad Request.
+
+        Given: I'm searching for a vehicle
+        When: GET /vehicles/search?plate=INVALID
+        Then: The system should return 400 Bad Request
+
+        Business Rule: RN-010 - Plate must follow XXX-123 or XXX-1234 format
+        """
+        # Arrange
+        client = TestClient(app)
+
+        # Act
+        response = client.get("/vehicles/search?plate=INVALID")
+
+        # Assert
+        assert response.status_code == 400
+        assert "placa" in response.json()["detail"].lower() or "formato" in response.json()["detail"].lower()
