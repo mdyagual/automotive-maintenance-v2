@@ -3,12 +3,15 @@ import { vehicleApi } from '../api';
 import type { VehicleStatus } from '../../types/vehicle';
 
 describe('vehicleApi', () => {
+  const mockFetch = vi.fn();
+
   beforeEach(() => {
     // Mock fetch globally
-    global.fetch = vi.fn();
+    vi.stubGlobal('fetch', mockFetch);
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -34,7 +37,7 @@ describe('vehicleApi', () => {
         },
       ];
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicles,
@@ -45,7 +48,7 @@ describe('vehicleApi', () => {
       await vehicleApi.getVehiclesByStatus(status);
 
       // Assert
-      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles?status=active');
+      expect(mockFetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles?status=active');
     });
 
     it('should return filtered vehicles for "in_maintenance" status', async () => {
@@ -61,7 +64,7 @@ describe('vehicleApi', () => {
         },
       ];
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicles,
@@ -73,7 +76,7 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(result).toEqual(mockVehicles);
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mockFetch).toHaveBeenCalledWith(
         'http://127.0.0.1:8000/vehicles?status=in_maintenance'
       );
     });
@@ -91,7 +94,7 @@ describe('vehicleApi', () => {
         },
       ];
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicles,
@@ -103,7 +106,7 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(result).toEqual(mockVehicles);
-      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles?status=inactive');
+      expect(mockFetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles?status=inactive');
     });
 
     it('should return filtered vehicles for "retired" status', async () => {
@@ -119,7 +122,7 @@ describe('vehicleApi', () => {
         },
       ];
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicles,
@@ -131,12 +134,12 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(result).toEqual(mockVehicles);
-      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles?status=retired');
+      expect(mockFetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles?status=retired');
     });
 
     it('should return empty array when no vehicles match the status', async () => {
       // Arrange
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => [],
@@ -152,7 +155,7 @@ describe('vehicleApi', () => {
 
     it('should throw error when API returns 400 for invalid status', async () => {
       // Arrange
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 400,
         statusText: 'Bad Request',
@@ -170,7 +173,7 @@ describe('vehicleApi', () => {
 
     it('should throw error when API returns 500', async () => {
       // Arrange
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
@@ -198,7 +201,7 @@ describe('vehicleApi', () => {
         },
       ];
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicles,
@@ -208,7 +211,7 @@ describe('vehicleApi', () => {
       await vehicleApi.getAllVehicles();
 
       // Assert
-      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles');
+      expect(mockFetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles');
     });
   });
 
@@ -224,7 +227,7 @@ describe('vehicleApi', () => {
         alerts: [],
       };
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicle,
@@ -235,7 +238,7 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(result).toEqual(mockVehicle);
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mockFetch).toHaveBeenCalledWith(
         'http://127.0.0.1:8000/vehicles/search?plate=ABC-123'
       );
     });
@@ -261,7 +264,7 @@ describe('vehicleApi', () => {
         },
       ];
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicles,
@@ -272,7 +275,7 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(result).toEqual(mockVehicles);
-      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles/search?plate=ABC');
+      expect(mockFetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles/search?plate=ABC');
     });
 
     it('should be case-insensitive when searching', async () => {
@@ -286,7 +289,7 @@ describe('vehicleApi', () => {
         alerts: [],
       };
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicle,
@@ -297,14 +300,14 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(result).toEqual(mockVehicle);
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mockFetch).toHaveBeenCalledWith(
         'http://127.0.0.1:8000/vehicles/search?plate=abc-123'
       );
     });
 
     it('should throw error when no vehicles found (404)', async () => {
       // Arrange
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
         statusText: 'Not Found',
@@ -321,7 +324,7 @@ describe('vehicleApi', () => {
 
     it('should throw error when searching with empty plate', async () => {
       // Arrange
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 404,
         statusText: 'Not Found',
@@ -347,7 +350,7 @@ describe('vehicleApi', () => {
         alerts: [],
       };
 
-      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
         json: async () => mockVehicle,
@@ -357,7 +360,7 @@ describe('vehicleApi', () => {
       await vehicleApi.searchVehicleByPlate('ABC 123');
 
       // Assert
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(mockFetch).toHaveBeenCalledWith(
         'http://127.0.0.1:8000/vehicles/search?plate=ABC%20123'
       );
     });
