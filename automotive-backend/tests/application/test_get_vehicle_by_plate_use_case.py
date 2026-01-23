@@ -146,11 +146,11 @@ class TestGetVehicleByPlateUseCase:
         # Assert
         assert isinstance(result, VehicleDTO), f"Expected VehicleDTO, got {type(result).__name__}"
         assert not isinstance(result, Vehicle), "Use case should return DTO, not domain entity"
-        assert hasattr(result, 'id')
-        assert hasattr(result, 'plate')
-        assert hasattr(result, 'model')
-        assert hasattr(result, 'current_mileage')
-        assert hasattr(result, 'status')
+        assert hasattr(result, "id")
+        assert hasattr(result, "plate")
+        assert hasattr(result, "model")
+        assert hasattr(result, "current_mileage")
+        assert hasattr(result, "status")
 
     def test_search_vehicle_by_partial_plate_returns_multiple_vehicles(self, vehicle_repository) -> None:
         """

@@ -181,8 +181,6 @@ class SqliteVehicleRepository(VehicleRepository):
         - RN-032: Search must support partial matches
         """
         # Case-insensitive partial search using SQL LIKE with wildcards
-        vehicle_models = self._db.query(VehicleModel).filter(
-            VehicleModel.plate.ilike(f"%{plate}%")
-        ).all()
+        vehicle_models = self._db.query(VehicleModel).filter(VehicleModel.plate.ilike(f"%{plate}%")).all()
 
         return self._to_entities(vehicle_models)

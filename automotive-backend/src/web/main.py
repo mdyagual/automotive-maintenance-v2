@@ -255,11 +255,7 @@ def get_all_vehicles(status: str | None = Query(None, alias="status"), vehicle_r
 
 
 @app.get("/vehicles/search", response_model=VehicleWithAlertsResponse | list[VehicleWithAlertsResponse], status_code=status.HTTP_200_OK)
-def search_vehicle_by_plate(
-    plate: str = Query(..., description="License plate to search for (supports partial match)"),
-    vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository),
-    alert_repo: SqliteAlertRepository = Depends(get_alert_repository)
-):
+def search_vehicle_by_plate(plate: str = Query(..., description="License plate to search for (supports partial match)"), vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository), alert_repo: SqliteAlertRepository = Depends(get_alert_repository)):
     """
     Search vehicles by plate number (case-insensitive, supports partial match).
 
@@ -350,7 +346,6 @@ def search_vehicle_by_plate(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except VehicleNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-
 
 
 @app.get("/vehicles/{vehicle_id}", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
