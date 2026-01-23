@@ -310,6 +310,7 @@ def search_vehicle_by_plate(plate: str = Query(..., description="License plate t
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
+
 @app.get("/vehicles/{vehicle_id}", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
 def get_vehicle(vehicle_id: str, vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
     """
