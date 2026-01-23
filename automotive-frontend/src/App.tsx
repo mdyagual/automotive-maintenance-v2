@@ -31,8 +31,8 @@ function App() {
   } = useVehicles();
   const { toasts, showToast } = useToast();
 
-  // Pagination: 6 vehicles per page
-  const ITEMS_PER_PAGE = 6;
+  // Pagination: 8 vehicles per page
+  const ITEMS_PER_PAGE = 8;
   const {
     currentPage,
     totalPages,
