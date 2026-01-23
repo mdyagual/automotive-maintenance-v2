@@ -157,7 +157,8 @@ describe('vehicleApi', () => {
         status: 400,
         statusText: 'Bad Request',
         json: async () => ({
-          detail: "Estado inválido 'broken'. Estados válidos: active, inactive, in_maintenance, retired",
+          detail:
+            "Estado inválido 'broken'. Estados válidos: active, inactive, in_maintenance, retired",
         }),
       });
 
@@ -208,6 +209,157 @@ describe('vehicleApi', () => {
 
       // Assert
       expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles');
+    });
+  });
+
+  describe('searchVehicleByPlate', () => {
+    it('should return a single vehicle when exact plate match is found', async () => {
+      // Arrange
+      const mockVehicle = {
+        id: 'V-001',
+        plate: 'ABC-123',
+        model: 'Toyota Corolla',
+        current_mileage: 5000,
+        status: 'active',
+        alerts: [],
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockVehicle,
+      });
+
+      // Act
+      const result = await vehicleApi.searchVehicleByPlate('ABC-123');
+
+      // Assert
+      expect(result).toEqual(mockVehicle);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://127.0.0.1:8000/vehicles/search?plate=ABC-123'
+      );
+    });
+
+    it('should return multiple vehicles when partial plate match is found', async () => {
+      // Arrange
+      const mockVehicles = [
+        {
+          id: 'V-001',
+          plate: 'ABC-123',
+          model: 'Toyota Corolla',
+          current_mileage: 5000,
+          status: 'active',
+          alerts: [],
+        },
+        {
+          id: 'V-003',
+          plate: 'ABC-789',
+          model: 'Mazda 3',
+          current_mileage: 15000,
+          status: 'active',
+          alerts: [],
+        },
+      ];
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockVehicles,
+      });
+
+      // Act
+      const result = await vehicleApi.searchVehicleByPlate('ABC');
+
+      // Assert
+      expect(result).toEqual(mockVehicles);
+      expect(global.fetch).toHaveBeenCalledWith('http://127.0.0.1:8000/vehicles/search?plate=ABC');
+    });
+
+    it('should be case-insensitive when searching', async () => {
+      // Arrange
+      const mockVehicle = {
+        id: 'V-001',
+        plate: 'ABC-123',
+        model: 'Toyota Corolla',
+        current_mileage: 5000,
+        status: 'active',
+        alerts: [],
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockVehicle,
+      });
+
+      // Act
+      const result = await vehicleApi.searchVehicleByPlate('abc-123');
+
+      // Assert
+      expect(result).toEqual(mockVehicle);
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://127.0.0.1:8000/vehicles/search?plate=abc-123'
+      );
+    });
+
+    it('should throw error when no vehicles found (404)', async () => {
+      // Arrange
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({
+          detail: "No se encontraron vehículos con placa que contenga 'ZZZ-999'",
+        }),
+      });
+
+      // Act & Assert
+      await expect(vehicleApi.searchVehicleByPlate('ZZZ-999')).rejects.toThrow(
+        "No se encontraron vehículos con placa que contenga 'ZZZ-999'"
+      );
+    });
+
+    it('should throw error when searching with empty plate', async () => {
+      // Arrange
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        json: async () => ({
+          detail: 'La placa de búsqueda no puede estar vacía',
+        }),
+      });
+
+      // Act & Assert
+      await expect(vehicleApi.searchVehicleByPlate('')).rejects.toThrow(
+        'La placa de búsqueda no puede estar vacía'
+      );
+    });
+
+    it('should encode special characters in plate search', async () => {
+      // Arrange
+      const mockVehicle = {
+        id: 'V-001',
+        plate: 'ABC-123',
+        model: 'Toyota Corolla',
+        current_mileage: 5000,
+        status: 'active',
+        alerts: [],
+      };
+
+      (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => mockVehicle,
+      });
+
+      // Act
+      await vehicleApi.searchVehicleByPlate('ABC 123');
+
+      // Assert
+      expect(global.fetch).toHaveBeenCalledWith(
+        'http://127.0.0.1:8000/vehicles/search?plate=ABC%20123'
+      );
     });
   });
 });
