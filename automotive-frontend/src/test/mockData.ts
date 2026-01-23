@@ -40,23 +40,43 @@ export const mockVehicleWithoutAlerts: Vehicle = {
   alerts: [],
 };
 
+export const mockVehicleInMaintenance: Vehicle = {
+  id: 'V-789',
+  plate: 'DEF-789',
+  model: 'Mazda 3',
+  current_mileage: 15000,
+  status: 'in_maintenance',
+  alerts: [
+    {
+      id: 'alert-4',
+      vehicle_id: 'V-789',
+      alert_type: 'BASIC',
+      mileage: 10000,
+      timestamp: '2026-01-18T12:00:00',
+    },
+  ],
+};
+
+export const mockVehicleRetired: Vehicle = {
+  id: 'V-999',
+  plate: 'RET-999',
+  model: 'Old Truck',
+  current_mileage: 250000,
+  status: 'retired',
+  alerts: [],
+};
+
+export const mockVehicleInactive: Vehicle = {
+  id: 'V-888',
+  plate: 'INA-888',
+  model: 'Inactive Car',
+  current_mileage: 50000,
+  status: 'inactive',
+  alerts: [],
+};
+
 export const mockVehicles: Vehicle[] = [
   mockVehicleWithAlerts,
   mockVehicleWithoutAlerts,
-  {
-    id: 'V-789',
-    plate: 'DEF-789',
-    model: 'Mazda 3',
-    current_mileage: 15000,
-    status: 'in_maintenance',
-    alerts: [
-      {
-        id: 'alert-4',
-        vehicle_id: 'V-789',
-        alert_type: 'BASIC',
-        mileage: 10000,
-        timestamp: '2026-01-18T12:00:00',
-      },
-    ],
-  },
+  mockVehicleInMaintenance,
 ];

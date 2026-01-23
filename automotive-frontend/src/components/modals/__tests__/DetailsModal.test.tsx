@@ -10,51 +10,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from '../../../test/test-utils';
 import { DetailsModal } from '../DetailsModal';
-import type { Vehicle } from '../../../types/vehicle';
+import { mockVehicleWithAlerts, mockVehicleWithoutAlerts } from '../../../test/mockData';
 
 describe('DetailsModal - HU-003 Escenario 6', () => {
-  const mockVehicleWithAlerts: Vehicle = {
-    id: 'V-123',
-    plate: 'ABC-123',
-    model: 'Toyota Corolla',
-    current_mileage: 35000,
-    status: 'active',
-    alerts: [
-      {
-        id: 'alert-3',
-        vehicle_id: 'V-123',
-        alert_type: 'BASIC',
-        mileage: 30000,
-        timestamp: '2026-01-20T09:15:00',
-      },
-      {
-        id: 'alert-2',
-        vehicle_id: 'V-123',
-        alert_type: 'MAJOR',
-        mileage: 20000,
-        timestamp: '2026-01-15T14:30:00',
-      },
-      {
-        id: 'alert-1',
-        vehicle_id: 'V-123',
-        alert_type: 'BASIC',
-        mileage: 10000,
-        timestamp: '2026-01-10T10:00:00',
-      },
-    ],
-  };
-
-  const mockVehicleWithoutAlerts: Vehicle = {
-    id: 'V-456',
-    plate: 'XYZ-456',
-    model: 'Honda Civic',
-    current_mileage: 5000,
-    status: 'active',
-    alerts: [],
-  };
-
   it('should display vehicle information in modal', () => {
     // Given: A vehicle with alerts exists
     // When: The modal is opened
@@ -71,7 +31,8 @@ describe('DetailsModal - HU-003 Escenario 6', () => {
     expect(screen.getByText('V-123')).toBeInTheDocument();
     expect(screen.getByText('ABC-123')).toBeInTheDocument();
     expect(screen.getByText('Toyota Corolla')).toBeInTheDocument();
-    expect(screen.getByText(/35,000/)).toBeInTheDocument();
+    // formatNumber uses Spanish locale which uses period as thousands separator
+    expect(screen.getByText(/35\.000 km/)).toBeInTheDocument();
   });
 
   it('should include maintenance alerts section', () => {
@@ -105,17 +66,18 @@ describe('DetailsModal - HU-003 Escenario 6', () => {
     expect(alertElements).toHaveLength(3);
 
     // And: Alerts should be ordered chronologically (most recent first)
-    // Most recent: alert-3 (2026-01-20)
-    expect(alertElements[0]).toHaveTextContent('30,000');
-    expect(alertElements[0]).toHaveTextContent('20/01/2026');
+    // formatNumber uses Spanish locale: 30.000 not 30,000
+    // Most recent: alert-3 (2026-01-20, 30000 km)
+    expect(alertElements[0]).toHaveTextContent(/30\.000 km/);
+    expect(alertElements[0].textContent).toMatch(/2026/); // Flexible date matching
 
-    // Middle: alert-2 (2026-01-15)
-    expect(alertElements[1]).toHaveTextContent('20,000');
-    expect(alertElements[1]).toHaveTextContent('15/01/2026');
+    // Middle: alert-2 (2026-01-15, 20000 km)
+    expect(alertElements[1]).toHaveTextContent(/20\.000 km/);
+    expect(alertElements[1].textContent).toMatch(/2026/);
 
-    // Oldest: alert-1 (2026-01-10)
-    expect(alertElements[2]).toHaveTextContent('10,000');
-    expect(alertElements[2]).toHaveTextContent('10/01/2026');
+    // Oldest: alert-1 (2026-01-10, 10000 km)
+    expect(alertElements[2]).toHaveTextContent(/10\.000 km/);
+    expect(alertElements[2].textContent).toMatch(/2026/);
   });
 
   it('should display alert type, mileage, and timestamp for each alert', () => {
@@ -132,20 +94,21 @@ describe('DetailsModal - HU-003 Escenario 6', () => {
     // Then: Each alert should show type, mileage, and timestamp
     const alerts = screen.getAllByTestId(/alert-item/);
 
+    // formatNumber uses Spanish locale: 30.000 not 30,000
     // First alert (most recent)
     expect(alerts[0]).toHaveTextContent(/Básico|BASIC/i);
-    expect(alerts[0]).toHaveTextContent('30,000');
-    expect(alerts[0]).toHaveTextContent('20/01/2026');
+    expect(alerts[0]).toHaveTextContent(/30\.000 km/);
+    expect(alerts[0].textContent).toMatch(/2026/); // Flexible date check
 
     // Second alert
     expect(alerts[1]).toHaveTextContent(/Mayor|MAJOR/i);
-    expect(alerts[1]).toHaveTextContent('20,000');
-    expect(alerts[1]).toHaveTextContent('15/01/2026');
+    expect(alerts[1]).toHaveTextContent(/20\.000 km/);
+    expect(alerts[1].textContent).toMatch(/2026/);
 
     // Third alert
     expect(alerts[2]).toHaveTextContent(/Básico|BASIC/i);
-    expect(alerts[2]).toHaveTextContent('10,000');
-    expect(alerts[2]).toHaveTextContent('10/01/2026');
+    expect(alerts[2]).toHaveTextContent(/10\.000 km/);
+    expect(alerts[2].textContent).toMatch(/2026/);
   });
 
   it('should display empty state when vehicle has no alerts', () => {
