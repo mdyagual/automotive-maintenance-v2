@@ -88,14 +88,10 @@ class SqliteVehicleRepository(VehicleRepository):
         Raises:
             VehicleNotFoundException: If vehicle not found
         """
-        vehicle_model = (
-            self._db.query(VehicleModel).filter_by(id=vehicle_id).first()
-        )
+        vehicle_model = self._db.query(VehicleModel).filter_by(id=vehicle_id).first()
 
         if vehicle_model is None:
-            raise VehicleNotFoundException(
-                f"Vehículo con ID {vehicle_id} no encontrado"
-            )
+            raise VehicleNotFoundException(f"Vehículo con ID {vehicle_id} no encontrado")
 
         return vehicle_model
 
@@ -166,9 +162,5 @@ class SqliteVehicleRepository(VehicleRepository):
         # Convert enum to string value for database query
         status_value = status.value if isinstance(status, VehicleStatus) else status
 
-        vehicle_models = (
-            self._db.query(VehicleModel)
-            .filter_by(status=status_value)
-            .all()
-        )
+        vehicle_models = self._db.query(VehicleModel).filter_by(status=status_value).all()
         return self._to_entities(vehicle_models)

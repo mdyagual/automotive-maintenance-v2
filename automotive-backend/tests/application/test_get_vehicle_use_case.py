@@ -32,12 +32,7 @@ class TestGetVehicleUseCase:
     @pytest.fixture
     def sample_vehicle(self):
         """Create a sample vehicle entity."""
-        return Vehicle(
-            id="V-001",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            current_mileage=50000
-        )
+        return Vehicle(id="V-001", plate="ABC-123", model="Toyota Corolla", current_mileage=50000)
 
     def test_get_vehicle_use_case_exists(self):
         """
@@ -47,6 +42,7 @@ class TestGetVehicleUseCase:
         """
         try:
             from src.application.use_cases.get_vehicle_use_case import GetVehicleUseCase
+
             assert GetVehicleUseCase is not None
         except ImportError:
             pytest.fail("GetVehicleUseCase does not exist. Please create it at src/application/use_cases/get_vehicle_use_case.py")
@@ -123,9 +119,7 @@ class TestGetVehicleUseCase:
             pytest.skip("GetVehicleUseCase not implemented yet")
 
         # Arrange
-        mock_repository.get_by_id.side_effect = VehicleNotFoundException(
-            "Vehículo con ID V-999 no encontrado"
-        )
+        mock_repository.get_by_id.side_effect = VehicleNotFoundException("Vehículo con ID V-999 no encontrado")
         use_case = GetVehicleUseCase(vehicle_repository=mock_repository)
 
         # Act & Assert
@@ -187,7 +181,7 @@ class TestGetVehicleUseCase:
 
         # Assert
         assert use_case is not None
-        assert hasattr(use_case, 'execute'), "Use case should have execute method"
+        assert hasattr(use_case, "execute"), "Use case should have execute method"
 
     def test_dto_is_immutable(self, mock_repository, sample_vehicle):
         """
@@ -261,7 +255,7 @@ class TestGetVehicleUseCase:
             id="V-123",
             plate="TST-999",  # Fixed: Valid plate format
             model="Test Model",
-            current_mileage=12345
+            current_mileage=12345,
         )
         mock_repository.get_by_id.return_value = vehicle
         use_case = GetVehicleUseCase(vehicle_repository=mock_repository)
@@ -270,10 +264,10 @@ class TestGetVehicleUseCase:
         result = use_case.execute("V-123")
 
         # Assert - All properties should be present
-        assert hasattr(result, 'id'), "DTO should have id"
-        assert hasattr(result, 'plate'), "DTO should have plate"
-        assert hasattr(result, 'model'), "DTO should have model"
-        assert hasattr(result, 'current_mileage'), "DTO should have current_mileage"
+        assert hasattr(result, "id"), "DTO should have id"
+        assert hasattr(result, "plate"), "DTO should have plate"
+        assert hasattr(result, "model"), "DTO should have model"
+        assert hasattr(result, "current_mileage"), "DTO should have current_mileage"
 
         assert result.id == "V-123"
         assert result.plate == "TST-999"

@@ -24,23 +24,11 @@ class VehicleModel(Base):
     plate: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
     model: Mapped[str] = mapped_column(String(100), nullable=False)
     current_mileage: Mapped[int] = mapped_column(Integer, nullable=False)
-    status: Mapped[VehicleStatus] = mapped_column(
-        Enum(VehicleStatus),
-        nullable=False,
-        default=VehicleStatus.ACTIVE,
-        server_default=VehicleStatus.ACTIVE.value
-    )
-    status_updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        nullable=False,
-        default=datetime.now,
-        onupdate=datetime.now
-    )
+    status: Mapped[VehicleStatus] = mapped_column(Enum(VehicleStatus), nullable=False, default=VehicleStatus.ACTIVE, server_default=VehicleStatus.ACTIVE.value)
+    status_updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
     # Relationship to alerts
-    alerts: Mapped[list["AlertModel"]] = relationship(
-        "AlertModel", back_populates="vehicle", cascade="all, delete-orphan"
-    )
+    alerts: Mapped[list["AlertModel"]] = relationship("AlertModel", back_populates="vehicle", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         """String representation of VehicleModel."""
@@ -53,12 +41,8 @@ class AlertModel(Base):
     __tablename__ = "alerts"
 
     id: Mapped[str] = mapped_column(String(100), primary_key=True)
-    vehicle_id: Mapped[str] = mapped_column(
-        String(50), ForeignKey("vehicles.id"), nullable=False
-    )
-    alert_type: Mapped[AlertType] = mapped_column(
-        Enum(AlertType), nullable=False
-    )
+    vehicle_id: Mapped[str] = mapped_column(String(50), ForeignKey("vehicles.id"), nullable=False)
+    alert_type: Mapped[AlertType] = mapped_column(Enum(AlertType), nullable=False)
     mileage: Mapped[int] = mapped_column(Integer, nullable=False)
     timestamp: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
@@ -67,7 +51,4 @@ class AlertModel(Base):
 
     def __repr__(self) -> str:
         """String representation of AlertModel."""
-        return (
-            f"<AlertModel(id={self.id}, vehicle_id={self.vehicle_id}, "
-            f"type={self.alert_type.value})>"
-        )
+        return f"<AlertModel(id={self.id}, vehicle_id={self.vehicle_id}, type={self.alert_type.value})>"

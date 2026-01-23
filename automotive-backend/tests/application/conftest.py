@@ -46,7 +46,4 @@ def alert_repository(test_db):
 def observer_factory(alert_repository):
     """Create observer factory instance with test dependencies."""
     strategies = [BasicMaintenanceStrategy()]
-    return ObserverFactoryImpl(
-        alert_repository=alert_repository,
-        strategies=strategies
-    )
+    return ObserverFactoryImpl(alert_repository=alert_repository, strategies=strategies)

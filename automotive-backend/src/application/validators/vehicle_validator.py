@@ -22,8 +22,8 @@ class VehicleValidator:
     """
 
     # Validation patterns (same as domain for consistency)
-    VEHICLE_ID_PATTERN = r'^V-\d{3}$'  # V-XXX format (e.g., V-001, V-123)
-    PLATE_PATTERN = r'^[A-Z]{3}-\d{3,4}$'  # XXX-123 or XXX-1234 format
+    VEHICLE_ID_PATTERN = r"^V-\d{3}$"  # V-XXX format (e.g., V-001, V-123)
+    PLATE_PATTERN = r"^[A-Z]{3}-\d{3,4}$"  # XXX-123 or XXX-1234 format
     MAX_MODEL_LENGTH = 100
     MAX_MILEAGE = Vehicle.MAX_MILEAGE  # 1,000,000 km
 
@@ -50,10 +50,7 @@ class VehicleValidator:
             raise InvalidVehicleIdException(f"El vehicle_id debe ser un string, recibido: {type(vehicle_id).__name__}")
 
         if not re.match(self.VEHICLE_ID_PATTERN, vehicle_id):
-            raise InvalidVehicleIdException(
-                f"Formato de vehicle_id inválido: '{vehicle_id}'. "
-                f"Formato esperado: V-XXX (ejemplo: V-001, V-123)"
-            )
+            raise InvalidVehicleIdException(f"Formato de vehicle_id inválido: '{vehicle_id}'. Formato esperado: V-XXX (ejemplo: V-001, V-123)")
 
     def validate_plate(self, plate: str) -> None:
         """
@@ -78,10 +75,7 @@ class VehicleValidator:
             raise InvalidPlateException(f"La placa debe ser un string, recibido: {type(plate).__name__}")
 
         if not re.match(self.PLATE_PATTERN, plate):
-            raise InvalidPlateException(
-                f"Formato de placa inválido: '{plate}'. "
-                f"Formato esperado: XXX-123 o XXX-1234 (ejemplo: ABC-123, XYZ-9999)"
-            )
+            raise InvalidPlateException(f"Formato de placa inválido: '{plate}'. Formato esperado: XXX-123 o XXX-1234 (ejemplo: ABC-123, XYZ-9999)")
 
     def validate_model(self, model: str) -> None:
         """
@@ -108,10 +102,7 @@ class VehicleValidator:
             raise InvalidModelException("El modelo no puede estar vacío")
 
         if len(model) > self.MAX_MODEL_LENGTH:
-            raise InvalidModelException(
-                f"El modelo excede la longitud máxima de {self.MAX_MODEL_LENGTH} caracteres. "
-                f"Longitud actual: {len(model)}"
-            )
+            raise InvalidModelException(f"El modelo excede la longitud máxima de {self.MAX_MODEL_LENGTH} caracteres. Longitud actual: {len(model)}")
 
     def validate_initial_mileage(self, mileage: int) -> None:
         """
@@ -132,23 +123,12 @@ class VehicleValidator:
             raise InvalidMileageException(f"El kilometraje debe ser un entero, recibido: {type(mileage).__name__}")
 
         if mileage < 0:
-            raise InvalidMileageException(
-                f"El kilometraje inicial no puede ser negativo: {mileage}"
-            )
+            raise InvalidMileageException(f"El kilometraje inicial no puede ser negativo: {mileage}")
 
         if mileage > self.MAX_MILEAGE:
-            raise InvalidMileageException(
-                f"El kilometraje inicial {mileage:,} km excede el máximo "
-                f"permitido de {self.MAX_MILEAGE:,} km"
-            )
+            raise InvalidMileageException(f"El kilometraje inicial {mileage:,} km excede el máximo permitido de {self.MAX_MILEAGE:,} km")
 
-    def validate_vehicle_data(
-        self,
-        vehicle_id: str,
-        plate: str,
-        model: str,
-        initial_mileage: int
-    ) -> None:
+    def validate_vehicle_data(self, vehicle_id: str, plate: str, model: str, initial_mileage: int) -> None:
         """
         Validate all vehicle data at application boundary.
 

@@ -23,17 +23,9 @@ class TestRegisterVehicleUseCase:
         And: Vehicle should be retrievable by ID
         """
         # Arrange
-        use_case = RegisterVehicleUseCase(
-            vehicle_repository=vehicle_repository,
-            observer_factory=observer_factory
-        )
+        use_case = RegisterVehicleUseCase(vehicle_repository=vehicle_repository, observer_factory=observer_factory)
 
-        command = RegisterVehicleCommand(
-            vehicle_id="V-456",
-            plate="XYZ-789",
-            model="Honda Civic",
-            initial_mileage=0
-        )
+        command = RegisterVehicleCommand(vehicle_id="V-456", plate="XYZ-789", model="Honda Civic", initial_mileage=0)
 
         # Act
         result = use_case.execute(command)
@@ -52,9 +44,7 @@ class TestRegisterVehicleUseCase:
         assert saved_vehicle.model == "Honda Civic"
         assert saved_vehicle.current_mileage == 0
 
-    def test_register_vehicle_with_duplicate_id_raises_exception(
-        self, vehicle_repository, observer_factory
-    ) -> None:
+    def test_register_vehicle_with_duplicate_id_raises_exception(self, vehicle_repository, observer_factory) -> None:
         """
         Given: A vehicle with ID 'V-123' already exists
         When: Attempting to register another vehicle with same ID
@@ -63,28 +53,17 @@ class TestRegisterVehicleUseCase:
         # Arrange
 
         # Create existing vehicle
-        existing_vehicle = Vehicle(
-            id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000
-        )
+        existing_vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000)
         vehicle_repository.save(existing_vehicle)
 
-        use_case = RegisterVehicleUseCase(
-            vehicle_repository=vehicle_repository,
-            observer_factory=observer_factory
-        )
+        use_case = RegisterVehicleUseCase(vehicle_repository=vehicle_repository, observer_factory=observer_factory)
 
-        command = RegisterVehicleCommand(
-            vehicle_id="V-123",
-            plate="XYZ-999",
-            model="Different Model",
-            initial_mileage=0
-        )
+        command = RegisterVehicleCommand(vehicle_id="V-123", plate="XYZ-999", model="Different Model", initial_mileage=0)
 
         # Act & Assert
-        with pytest.raises(
-            DuplicateVehicleException, match="Ya existe un vehículo con ID V-123"
-        ):
+        with pytest.raises(DuplicateVehicleException, match="Ya existe un vehículo con ID V-123"):
             use_case.execute(command)
+
     """
     Tests to demonstrate Clean Architecture violation: Missing Application Layer DTOs.
 
@@ -115,29 +94,17 @@ class TestRegisterVehicleUseCase:
         mock_repository.get_by_id.side_effect = VehicleNotFoundException("Not found")
         mock_repository.save = Mock()
 
-        use_case = RegisterVehicleUseCase(
-            vehicle_repository=mock_repository,
-            observer_factory=None
-        )
+        use_case = RegisterVehicleUseCase(vehicle_repository=mock_repository, observer_factory=None)
 
-        command = RegisterVehicleCommand(
-            vehicle_id="V-001",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            initial_mileage=5000
-        )
+        command = RegisterVehicleCommand(vehicle_id="V-001", plate="ABC-123", model="Toyota Corolla", initial_mileage=5000)
 
         # Act
         result = use_case.execute(command)
 
         # Assert - THIS SHOULD NOW PASS
         # The result should be a DTO, not a domain entity
-        assert isinstance(result, VehicleDTO), (
-            f"Expected VehicleDTO, got {type(result).__name__}"
-        )
-        assert not isinstance(result, Vehicle), (
-            "Use case should return DTO, not domain entity"
-        )
+        assert isinstance(result, VehicleDTO), f"Expected VehicleDTO, got {type(result).__name__}"
+        assert not isinstance(result, Vehicle), "Use case should return DTO, not domain entity"
 
     def test_use_case_should_accept_command_dto_not_primitives(self):
         """
@@ -153,10 +120,7 @@ class TestRegisterVehicleUseCase:
         mock_repository.get_by_id.side_effect = VehicleNotFoundException("Not found")
         mock_repository.save = Mock()
 
-        use_case = RegisterVehicleUseCase(
-            vehicle_repository=mock_repository,
-            observer_factory=None
-        )
+        use_case = RegisterVehicleUseCase(vehicle_repository=mock_repository, observer_factory=None)
 
         # Act & Assert - THIS SHOULD NOW PASS
         # The execute method should accept a Command DTO
@@ -166,16 +130,10 @@ class TestRegisterVehicleUseCase:
         # Check if it accepts a single command parameter (correct)
         has_primitive_params = len(params) > 2  # More than self and command
 
-        assert not has_primitive_params, (
-            f"Use case should accept a single Command DTO. "
-            f"Current parameters: {params}. "
-            f"Expected: ['self', 'command']"
-        )
+        assert not has_primitive_params, f"Use case should accept a single Command DTO. Current parameters: {params}. Expected: ['self', 'command']"
 
         # Verify the parameter is named 'command'
-        assert 'command' in params, (
-            f"Expected parameter named 'command', got: {params}"
-        )
+        assert "command" in params, f"Expected parameter named 'command', got: {params}"
 
     def test_domain_entity_should_not_be_mutable_by_web_layer(self):
         """
@@ -191,17 +149,9 @@ class TestRegisterVehicleUseCase:
         mock_repository.get_by_id.side_effect = VehicleNotFoundException("Not found")
         mock_repository.save = Mock()
 
-        use_case = RegisterVehicleUseCase(
-            vehicle_repository=mock_repository,
-            observer_factory=None
-        )
+        use_case = RegisterVehicleUseCase(vehicle_repository=mock_repository, observer_factory=None)
 
-        command = RegisterVehicleCommand(
-            vehicle_id="V-001",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            initial_mileage=5000
-        )
+        command = RegisterVehicleCommand(vehicle_id="V-001", plate="ABC-123", model="Toyota Corolla", initial_mileage=5000)
 
         # Act
         result = use_case.execute(command)
@@ -216,10 +166,7 @@ class TestRegisterVehicleUseCase:
         except (AttributeError, Exception):
             is_mutable = False
 
-        assert not is_mutable, (
-            "DTO should be immutable (frozen dataclass). "
-            "Web layer should not be able to modify it."
-        )
+        assert not is_mutable, "DTO should be immutable (frozen dataclass). Web layer should not be able to modify it."
 
     def test_use_case_return_type_should_be_dto_not_entity(self):
         """
@@ -231,10 +178,7 @@ class TestRegisterVehicleUseCase:
         - Clear API contract
         """
         # Arrange
-        use_case = RegisterVehicleUseCase(
-            vehicle_repository=Mock(),
-            observer_factory=None
-        )
+        use_case = RegisterVehicleUseCase(vehicle_repository=Mock(), observer_factory=None)
 
         # Act - Check return type annotation
         sig = inspect.signature(use_case.execute)
@@ -242,21 +186,14 @@ class TestRegisterVehicleUseCase:
 
         # Assert - THIS SHOULD NOW PASS
         # Return type should be VehicleDTO
-        is_dto = (return_annotation == VehicleDTO or
-                 (hasattr(return_annotation, '__name__') and return_annotation.__name__ == 'VehicleDTO'))
+        is_dto = return_annotation == VehicleDTO or (hasattr(return_annotation, "__name__") and return_annotation.__name__ == "VehicleDTO")
 
-        assert is_dto, (
-            f"Use case should return VehicleDTO. "
-            f"Got: {return_annotation}"
-        )
+        assert is_dto, f"Use case should return VehicleDTO. Got: {return_annotation}"
 
         # Ensure it's NOT a domain entity
-        is_domain_entity = (return_annotation == Vehicle or
-                           (hasattr(return_annotation, '__name__') and return_annotation.__name__ == 'Vehicle'))
+        is_domain_entity = return_annotation == Vehicle or (hasattr(return_annotation, "__name__") and return_annotation.__name__ == "Vehicle")
 
-        assert not is_domain_entity, (
-            "Use case should not return domain entity in type signature"
-        )
+        assert not is_domain_entity, "Use case should not return domain entity in type signature"
 
     def test_web_layer_should_not_access_domain_entity_properties(self):
         """
@@ -272,17 +209,9 @@ class TestRegisterVehicleUseCase:
         mock_repository.get_by_id.side_effect = VehicleNotFoundException("Not found")
         mock_repository.save = Mock()
 
-        use_case = RegisterVehicleUseCase(
-            vehicle_repository=mock_repository,
-            observer_factory=None
-        )
+        use_case = RegisterVehicleUseCase(vehicle_repository=mock_repository, observer_factory=None)
 
-        command = RegisterVehicleCommand(
-            vehicle_id="V-001",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            initial_mileage=5000
-        )
+        command = RegisterVehicleCommand(vehicle_id="V-001", plate="ABC-123", model="Toyota Corolla", initial_mileage=5000)
 
         # Act - Simulate what web layer does
         vehicle_dto = use_case.execute(command)
@@ -291,21 +220,12 @@ class TestRegisterVehicleUseCase:
 
         # Assert - THIS SHOULD NOW PASS
         # Check that we're NOT accessing a domain entity (no business logic methods)
-        has_domain_methods = (
-            hasattr(vehicle_dto, 'attach') and
-            hasattr(vehicle_dto, 'update_mileage') and
-            hasattr(vehicle_dto, '_notify_observers')
-        )
+        has_domain_methods = hasattr(vehicle_dto, "attach") and hasattr(vehicle_dto, "update_mileage") and hasattr(vehicle_dto, "_notify_observers")
 
-        assert not has_domain_methods, (
-            "Web layer should receive DTO without business logic methods. "
-            f"Got object with methods: {[m for m in dir(vehicle_dto) if not m.startswith('_')]}"
-        )
+        assert not has_domain_methods, f"Web layer should receive DTO without business logic methods. Got object with methods: {[m for m in dir(vehicle_dto) if not m.startswith('_')]}"
 
         # Verify it's a DTO
-        assert isinstance(vehicle_dto, VehicleDTO), (
-            f"Expected VehicleDTO, got {type(vehicle_dto).__name__}"
-        )
+        assert isinstance(vehicle_dto, VehicleDTO), f"Expected VehicleDTO, got {type(vehicle_dto).__name__}"
 
     def test_execute_uses_observer_factory_to_delegate_logic(self):
         """
@@ -324,14 +244,14 @@ class TestRegisterVehicleUseCase:
 
         use_case = RegisterVehicleUseCase(
             vehicle_repository=mock_repo,
-            observer_factory=mock_observer_factory # <--- We demand injection (RED if you don't accept it)
+            observer_factory=mock_observer_factory,  # <--- We demand injection (RED if you don't accept it)
         )
 
         command = RegisterVehicleCommand(
             vehicle_id="V-001",
             plate="ABC-123",
             model="Test",
-            initial_mileage=10000 # Kilometraje alto que debería activar alertas
+            initial_mileage=10000,  # Kilometraje alto que debería activar alertas
         )
 
         # Act
@@ -339,10 +259,7 @@ class TestRegisterVehicleUseCase:
 
         # Assert
         # 1. We verified that the complex logic was delegated to the factory (Orchestration).
-        mock_observer_factory.create_maintenance_observer.assert_called_once_with(
-            vehicle_id="V-001",
-            initial_mileage=0
-        )
+        mock_observer_factory.create_maintenance_observer.assert_called_once_with(vehicle_id="V-001", initial_mileage=0)
 
         # 2. We verify that the observer was used (this implies that vehicle.attach was done internally).
         # Note: Since vehicle is created within the UC, it is difficult to mock the attach directly without a Vehicle Factory, but we can verify the result in the repo.

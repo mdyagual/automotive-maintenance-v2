@@ -47,12 +47,7 @@ class RegisterVehicleUseCase:
         """
         # ✅ Validate input data at application boundary
         validator = VehicleValidator()
-        validator.validate_vehicle_data(
-            vehicle_id=command.vehicle_id,
-            plate=command.plate,
-            model=command.model,
-            initial_mileage=command.initial_mileage
-        )
+        validator.validate_vehicle_data(vehicle_id=command.vehicle_id, plate=command.plate, model=command.model, initial_mileage=command.initial_mileage)
 
         # Validate vehicle ID doesn't exist
         try:
@@ -67,16 +62,13 @@ class RegisterVehicleUseCase:
             id=command.vehicle_id,
             plate=command.plate,
             model=command.model,
-            current_mileage=0  # Start at 0 to trigger all missed alerts
+            current_mileage=0,  # Start at 0 to trigger all missed alerts
         )
 
         # ✅ Use Observer pattern to generate missed alerts
         if self._observer_factory and command.initial_mileage > 0:
             # Create observer starting from 0 to catch all thresholds
-            observer = self._observer_factory.create_maintenance_observer(
-                vehicle_id=command.vehicle_id,
-                initial_mileage=0
-            )
+            observer = self._observer_factory.create_maintenance_observer(vehicle_id=command.vehicle_id, initial_mileage=0)
             vehicle.attach(observer)
 
             # Update to initial mileage - this triggers alert generation via observer

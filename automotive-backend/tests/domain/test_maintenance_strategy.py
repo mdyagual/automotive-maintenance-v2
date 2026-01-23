@@ -1,4 +1,5 @@
 """Tests for Maintenance Strategy Pattern following TDD approach."""
+
 from src.domain.entities.maintenance_alert import AlertType
 
 
@@ -13,6 +14,7 @@ class TestBasicMaintenanceStrategy:
         """
         # Arrange
         from src.domain.strategies.basic_maintenance_strategy import BasicMaintenanceStrategy
+
         strategy = BasicMaintenanceStrategy()
 
         # Act
@@ -29,6 +31,7 @@ class TestBasicMaintenanceStrategy:
         """
         # Arrange
         from src.domain.strategies.basic_maintenance_strategy import BasicMaintenanceStrategy
+
         strategy = BasicMaintenanceStrategy()
 
         # Act
@@ -45,6 +48,7 @@ class TestBasicMaintenanceStrategy:
         """
         # Arrange
         from src.domain.strategies.basic_maintenance_strategy import BasicMaintenanceStrategy
+
         strategy = BasicMaintenanceStrategy()
 
         # Act
@@ -65,6 +69,7 @@ class TestMajorMaintenanceStrategy:
         """
         # Arrange
         from src.domain.strategies.major_maintenance_strategy import MajorMaintenanceStrategy
+
         strategy = MajorMaintenanceStrategy()
 
         # Act
@@ -81,6 +86,7 @@ class TestMajorMaintenanceStrategy:
         """
         # Arrange
         from src.domain.strategies.major_maintenance_strategy import MajorMaintenanceStrategy
+
         strategy = MajorMaintenanceStrategy()
 
         # Act
@@ -97,6 +103,7 @@ class TestMajorMaintenanceStrategy:
         """
         # Arrange
         from src.domain.strategies.major_maintenance_strategy import MajorMaintenanceStrategy
+
         strategy = MajorMaintenanceStrategy()
 
         # Act
@@ -117,6 +124,7 @@ class TestCriticalThresholdStrategy:
         """
         # Arrange
         from src.domain.strategies.critical_threshold_strategy import CriticalThresholdStrategy
+
         strategy = CriticalThresholdStrategy()
 
         # Act
@@ -133,6 +141,7 @@ class TestCriticalThresholdStrategy:
         """
         # Arrange
         from src.domain.strategies.critical_threshold_strategy import CriticalThresholdStrategy
+
         strategy = CriticalThresholdStrategy()
 
         # Act
@@ -149,6 +158,7 @@ class TestCriticalThresholdStrategy:
         """
         # Arrange
         from src.domain.strategies.critical_threshold_strategy import CriticalThresholdStrategy
+
         strategy = CriticalThresholdStrategy()
 
         # Act
@@ -165,6 +175,7 @@ class TestCriticalThresholdStrategy:
         """
         # Arrange
         from src.domain.strategies.critical_threshold_strategy import CriticalThresholdStrategy
+
         strategy = CriticalThresholdStrategy()
 
         # Act

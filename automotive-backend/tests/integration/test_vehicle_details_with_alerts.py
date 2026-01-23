@@ -34,9 +34,7 @@ def reset_test_data():
     alert_repo = get_alert_repository()
 
     # Create test vehicle V-123
-    test_vehicle = Vehicle(
-        id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=35000
-    )
+    test_vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=35000)
     vehicle_repo.save(test_vehicle)
 
     # Create 3 alerts with different timestamps
@@ -79,9 +77,7 @@ def reset_test_data():
 class TestVehicleDetailsWithAlerts:
     """Test cases for vehicle details with alerts - HU-003 Escenario 6."""
 
-    def test_get_vehicle_with_alerts_returns_complete_information(
-        self, reset_test_data
-    ) -> None:
+    def test_get_vehicle_with_alerts_returns_complete_information(self, reset_test_data) -> None:
         """
         Given: A vehicle 'V-123' exists with 3 maintenance alerts
         When: GET /vehicles (to get all vehicles with alerts)
@@ -142,9 +138,7 @@ class TestVehicleDetailsWithAlerts:
         assert alerts[2]["mileage"] == 10000
         assert alerts[2]["timestamp"] == "2026-01-10T10:00:00"
 
-    def test_get_vehicle_by_id_includes_alerts_information(
-        self, reset_test_data
-    ) -> None:
+    def test_get_vehicle_by_id_includes_alerts_information(self, reset_test_data) -> None:
         """
         Given: A vehicle 'V-123' exists with 3 maintenance alerts
         When: GET /vehicles/V-123 (to get specific vehicle details)
@@ -175,9 +169,7 @@ class TestVehicleDetailsWithAlerts:
         # which doesn't include alerts. Alerts are fetched separately via
         # GET /vehicles/{id}/alerts or included in GET /vehicles (all vehicles)
 
-    def test_get_vehicle_alerts_endpoint_returns_ordered_alerts(
-        self, reset_test_data
-    ) -> None:
+    def test_get_vehicle_alerts_endpoint_returns_ordered_alerts(self, reset_test_data) -> None:
         """
         Given: A vehicle 'V-123' exists with 3 maintenance alerts
         When: GET /vehicles/V-123/alerts
@@ -208,9 +200,7 @@ class TestVehicleDetailsWithAlerts:
         assert alerts[2]["id"] == "alert-1"
         assert alerts[2]["timestamp"] == "2026-01-10T10:00:00"
 
-    def test_vehicle_with_no_alerts_returns_empty_alerts_list(
-        self, reset_test_data
-    ) -> None:
+    def test_vehicle_with_no_alerts_returns_empty_alerts_list(self, reset_test_data) -> None:
         """
         Given: A vehicle exists without any alerts
         When: GET /vehicles
@@ -223,9 +213,7 @@ class TestVehicleDetailsWithAlerts:
         vehicle_repo = get_vehicle_repository()
 
         # Create vehicle without alerts
-        vehicle_no_alerts = Vehicle(
-            id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=5000
-        )
+        vehicle_no_alerts = Vehicle(id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=5000)
         vehicle_repo.save(vehicle_no_alerts)
 
         # Act

@@ -99,10 +99,7 @@ class TestFilterVehiclesByStatusEndpoint:
         response = client.get("/vehicles?status=active")
 
         # Assert
-        assert response.status_code == 200, (
-            "Endpoint should exist and return 200 OK. "
-            f"Got status code: {response.status_code}"
-        )
+        assert response.status_code == 200, f"Endpoint should exist and return 200 OK. Got status code: {response.status_code}"
 
     def test_filter_vehicles_by_active_status_gherkin_scenario(self, reset_test_data):
         """

@@ -1,4 +1,5 @@
 """Major Maintenance Strategy - every 50,000 km."""
+
 from src.domain.entities.maintenance_alert import AlertType
 from src.domain.strategies.maintenance_strategy import MaintenanceStrategy
 

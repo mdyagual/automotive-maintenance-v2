@@ -96,13 +96,12 @@ class TestGetVehiclesByStatusUseCase:
             from src.application.use_cases.get_vehicles_by_status_use_case import (
                 GetVehiclesByStatusUseCase,
             )
+
             assert GetVehiclesByStatusUseCase is not None
         except ImportError:
             pytest.fail("GetVehiclesByStatusUseCase not implemented yet")
 
-    def test_execute_returns_list_of_vehicle_dtos_not_entities(
-        self, mock_repository, sample_active_vehicles
-    ):
+    def test_execute_returns_list_of_vehicle_dtos_not_entities(self, mock_repository, sample_active_vehicles):
         """
         Test that execute() returns list of VehicleDTO, not domain entities.
 
@@ -135,9 +134,7 @@ class TestGetVehiclesByStatusUseCase:
             assert isinstance(vehicle_dto, VehicleDTO), "Each item should be VehicleDTO"
             assert not isinstance(vehicle_dto, Vehicle), "Should NOT return domain entities"
 
-    def test_execute_calls_repository_get_by_status(
-        self, mock_repository, sample_active_vehicles
-    ):
+    def test_execute_calls_repository_get_by_status(self, mock_repository, sample_active_vehicles):
         """
         Test that execute() delegates to repository.get_by_status().
 
@@ -192,9 +189,7 @@ class TestGetVehiclesByStatusUseCase:
         assert result == [], "Should return empty list"
         assert isinstance(result, list), "Should return list, not None"
 
-    def test_execute_filters_active_vehicles_correctly(
-        self, mock_repository, sample_active_vehicles
-    ):
+    def test_execute_filters_active_vehicles_correctly(self, mock_repository, sample_active_vehicles):
         """
         Test filtering vehicles with ACTIVE status.
 
@@ -283,9 +278,7 @@ class TestGetVehiclesByStatusUseCase:
         assert use_case is not None
         assert hasattr(use_case, "execute"), "Use case should have execute method"
 
-    def test_dto_contains_all_vehicle_fields_including_status(
-        self, mock_repository, sample_active_vehicles
-    ):
+    def test_dto_contains_all_vehicle_fields_including_status(self, mock_repository, sample_active_vehicles):
         """
         Test that returned DTOs contain all vehicle fields including status.
 
@@ -318,9 +311,7 @@ class TestGetVehiclesByStatusUseCase:
         assert hasattr(first_dto, "status"), "DTO should have status"
         assert first_dto.status == "active", "Status should be string representation"
 
-    def test_use_case_does_not_modify_domain_entities(
-        self, mock_repository, sample_active_vehicles
-    ):
+    def test_use_case_does_not_modify_domain_entities(self, mock_repository, sample_active_vehicles):
         """
         Test that use case doesn't modify domain entities.
 

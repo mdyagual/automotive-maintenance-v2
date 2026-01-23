@@ -26,9 +26,7 @@ def reset_test_data():
 
     # Create test vehicle V-123
     vehicle_repo = get_vehicle_repository()
-    test_vehicle = Vehicle(
-        id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000
-    )
+    test_vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000)
     vehicle_repo.save(test_vehicle)
 
     yield
@@ -53,10 +51,7 @@ class TestVehicleEndpoints:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-123/mileage",
-            json={"new_mileage": 8000}
-        )
+        response = client.put("/vehicles/V-123/mileage", json={"new_mileage": 8000})
 
         # Assert
         assert response.status_code == 200
@@ -74,10 +69,7 @@ class TestVehicleEndpoints:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-123/mileage",
-            json={"new_mileage": 4000}
-        )
+        response = client.put("/vehicles/V-123/mileage", json={"new_mileage": 4000})
 
         # Assert
         assert response.status_code == 400
@@ -94,10 +86,7 @@ class TestVehicleEndpoints:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-999/mileage",
-            json={"new_mileage": 10000}
-        )
+        response = client.put("/vehicles/V-999/mileage", json={"new_mileage": 10000})
 
         # Assert
         assert response.status_code == 404
@@ -202,12 +191,8 @@ class TestVehicleEndpoints:
         vehicle_repo = get_vehicle_repository()
 
         # Create additional vehicles
-        vehicle2 = Vehicle(
-            id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=25000
-        )
-        vehicle3 = Vehicle(
-            id="V-789", plate="DEF-789", model="Mazda 3", current_mileage=5000
-        )
+        vehicle2 = Vehicle(id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=25000)
+        vehicle3 = Vehicle(id="V-789", plate="DEF-789", model="Mazda 3", current_mileage=5000)
         vehicle_repo.save(vehicle2)
         vehicle_repo.save(vehicle3)
 
@@ -348,9 +333,7 @@ class TestVehicleEndpoints:
         alert_repo = get_alert_repository()
 
         # Create vehicle V-777
-        vehicle = Vehicle(
-            id="V-777", plate="XYZ-777", model="Honda Civic", current_mileage=30000
-        )
+        vehicle = Vehicle(id="V-777", plate="XYZ-777", model="Honda Civic", current_mileage=30000)
         vehicle_repo.save(vehicle)
 
         # Create multiple alerts for V-777
@@ -465,10 +448,7 @@ class TestVehicleEndpoints:
         client = TestClient(app)
 
         # Act
-        response = client.put(
-            "/vehicles/V-123/mileage",
-            json={"new_mileage": 8000}
-        )
+        response = client.put("/vehicles/V-123/mileage", json={"new_mileage": 8000})
 
         # Assert
         assert response.status_code == 200
@@ -492,9 +472,7 @@ class TestVehicleEndpoints:
         vehicle_repo = get_vehicle_repository()
 
         # Create additional vehicles
-        vehicle2 = Vehicle(
-            id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=25000
-        )
+        vehicle2 = Vehicle(id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=25000)
         vehicle_repo.save(vehicle2)
 
         # Act
@@ -508,6 +486,4 @@ class TestVehicleEndpoints:
         # Verify all vehicles have status field
         for vehicle_data in data:
             assert "status" in vehicle_data, f"Vehicle {vehicle_data['id']} must include status field for HU-005"
-            assert vehicle_data["status"] in ["active", "inactive", "in_maintenance", "retired"], \
-                f"Status must be a valid value, got: {vehicle_data['status']}"
-
+            assert vehicle_data["status"] in ["active", "inactive", "in_maintenance", "retired"], f"Status must be a valid value, got: {vehicle_data['status']}"

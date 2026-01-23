@@ -1,4 +1,5 @@
 """Maintenance Strategy port - following DIP."""
+
 from abc import ABC, abstractmethod
 
 from src.domain.entities.maintenance_alert import AlertType

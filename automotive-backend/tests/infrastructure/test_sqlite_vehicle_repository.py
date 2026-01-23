@@ -47,9 +47,7 @@ class TestSqliteVehicleRepository:
         Then the vehicle should be persisted in the database
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000)
 
         # Act
         repository.save(vehicle)
@@ -75,9 +73,7 @@ class TestSqliteVehicleRepository:
         # Arrange
         from src.infrastructure.database.models import VehicleModel
 
-        vehicle_model = VehicleModel(
-            id="V-456", plate="XYZ-789", model="Honda Civic", current_mileage=15000
-        )
+        vehicle_model = VehicleModel(id="V-456", plate="XYZ-789", model="Honda Civic", current_mileage=15000)
         test_db.add(vehicle_model)
         test_db.commit()
 

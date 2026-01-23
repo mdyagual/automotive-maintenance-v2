@@ -47,12 +47,7 @@ def test_status_field_integration():
 
         # Test 1: Default status
         print("\n1. Testing default status...")
-        vehicle1 = Vehicle(
-            id="V-001",
-            plate="ABC-001",
-            model="Toyota Corolla",
-            current_mileage=5000
-        )
+        vehicle1 = Vehicle(id="V-001", plate="ABC-001", model="Toyota Corolla", current_mileage=5000)
         assert vehicle1.status == VehicleStatus.ACTIVE
         assert vehicle1.status == "active"
         print("   ✓ Default status is ACTIVE")

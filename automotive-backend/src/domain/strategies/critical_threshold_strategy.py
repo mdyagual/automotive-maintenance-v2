@@ -1,4 +1,5 @@
 """Critical Threshold Strategy - alert at 100,000 km (RN-007)."""
+
 from src.domain.entities.maintenance_alert import AlertType
 from src.domain.strategies.maintenance_strategy import MaintenanceStrategy
 

@@ -1,4 +1,5 @@
 """Observer pattern port for automatic maintenance alerts."""
+
 from abc import ABC, abstractmethod
 
 

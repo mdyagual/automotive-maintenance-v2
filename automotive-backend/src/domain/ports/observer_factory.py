@@ -9,9 +9,7 @@ class ObserverFactory(ABC):
     """Factory for creating observers (domain port)."""
 
     @abstractmethod
-    def create_maintenance_observer(
-        self, vehicle_id: str, initial_mileage: int
-    ) -> Observer:
+    def create_maintenance_observer(self, vehicle_id: str, initial_mileage: int) -> Observer:
         """
         Create a maintenance alert observer.
 

@@ -1,4 +1,5 @@
 """Tests for Vehicle entity following TDD approach."""
+
 from unittest.mock import Mock
 
 import pytest
@@ -28,12 +29,7 @@ class TestVehicleCreation:
         current_mileage = 5000
 
         # Act
-        vehicle = Vehicle(
-            id=vehicle_id,
-            plate=plate,
-            model=model,
-            current_mileage=current_mileage
-        )
+        vehicle = Vehicle(id=vehicle_id, plate=plate, model=model, current_mileage=current_mileage)
 
         # Assert
         assert vehicle.id == vehicle_id
@@ -58,12 +54,7 @@ class TestVehicleCreation:
         current_mileage = 5000
 
         # Act - Create vehicle without passing status parameter
-        vehicle = Vehicle(
-            id=vehicle_id,
-            plate=plate,
-            model=model,
-            current_mileage=current_mileage
-        )
+        vehicle = Vehicle(id=vehicle_id, plate=plate, model=model, current_mileage=current_mileage)
 
         # Assert
         assert vehicle.status == "active"
@@ -84,12 +75,7 @@ class TestVehicleCreation:
         # Act & Assert
         for invalid_id in invalid_ids:
             with pytest.raises(InvalidVehicleIdException) as exc_info:
-                Vehicle(
-                    id=invalid_id,
-                    plate="ABC-123",
-                    model="Toyota",
-                    current_mileage=5000
-                )
+                Vehicle(id=invalid_id, plate="ABC-123", model="Toyota", current_mileage=5000)
             # Verify error message is helpful
             error_msg = str(exc_info.value).lower()
             assert "vehicle_id" in error_msg or "formato" in error_msg or "vacío" in error_msg
@@ -106,12 +92,7 @@ class TestVehicleCreation:
         # Act & Assert
         for invalid_plate in invalid_plates:
             with pytest.raises(InvalidPlateException) as exc_info:
-                Vehicle(
-                    id="V-123",
-                    plate=invalid_plate,
-                    model="Toyota",
-                    current_mileage=5000
-                )
+                Vehicle(id="V-123", plate=invalid_plate, model="Toyota", current_mileage=5000)
             # Verify error message is helpful
             error_msg = str(exc_info.value).lower()
             assert "placa" in error_msg or "formato" in error_msg or "vacía" in error_msg
@@ -126,12 +107,7 @@ class TestVehicleCreation:
         # Act & Assert
         for invalid_model in invalid_models:
             with pytest.raises(InvalidModelException) as exc_info:
-                Vehicle(
-                    id="V-123",
-                    plate="ABC-123",
-                    model=invalid_model,
-                    current_mileage=5000
-                )
+                Vehicle(id="V-123", plate="ABC-123", model=invalid_model, current_mileage=5000)
             # Verify error message is helpful
             assert "modelo" in str(exc_info.value).lower() or "vacío" in str(exc_info.value) or "excede" in str(exc_info.value)
 
@@ -143,12 +119,7 @@ class TestVehicleCreation:
         """
         # Act & Assert
         with pytest.raises(InvalidMileageException) as exc_info:
-            Vehicle(
-                id="V-123",
-                plate="ABC-123",
-                model="Toyota",
-                current_mileage=-100
-            )
+            Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=-100)
         # Verify error message mentions negative
         assert "negativo" in str(exc_info.value).lower()
 
@@ -160,12 +131,7 @@ class TestVehicleCreation:
         """
         # Act & Assert
         with pytest.raises(InvalidMileageException) as exc_info:
-            Vehicle(
-                id="V-123",
-                plate="ABC-123",
-                model="Toyota",
-                current_mileage=1_000_001
-            )
+            Vehicle(id="V-123", plate="ABC-123", model="Toyota", current_mileage=1_000_001)
         # Verify error message mentions maximum
         assert "máximo" in str(exc_info.value).lower() or "excede" in str(exc_info.value)
 
@@ -194,13 +160,7 @@ class TestVehicleStatusUpdate:
         from src.domain.entities.vehicle import Vehicle
         from src.domain.entities.vehicle_status import VehicleStatus
 
-        vehicle = Vehicle(
-            id="V-123",
-            plate="ABC-123",
-            model="Toyota Corolla",
-            current_mileage=5000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-123", plate="ABC-123", model="Toyota Corolla", current_mileage=5000, status=VehicleStatus.ACTIVE)
 
         # Verify initial state
         assert vehicle.status == VehicleStatus.ACTIVE
@@ -216,7 +176,7 @@ class TestVehicleStatusUpdate:
         assert vehicle.status == "in_maintenance"
 
         # Verify timestamp was recorded (RN-028)
-        assert hasattr(vehicle, 'status_updated_at'), "Vehicle should track status update timestamp"
+        assert hasattr(vehicle, "status_updated_at"), "Vehicle should track status update timestamp"
         assert vehicle.status_updated_at is not None
         assert timestamp_before <= vehicle.status_updated_at <= timestamp_after
 
@@ -229,13 +189,7 @@ class TestVehicleStatusUpdate:
     def test_update_vehicle_status_from_active_to_inactive(self) -> None:
         """Test updating vehicle status from active to inactive."""
         # Arrange
-        vehicle = Vehicle(
-            id="V-456",
-            plate="XYZ-456",
-            model="Honda Civic",
-            current_mileage=10000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=10000, status=VehicleStatus.ACTIVE)
 
         # Act
         vehicle.update_status(VehicleStatus.INACTIVE)
@@ -247,13 +201,7 @@ class TestVehicleStatusUpdate:
     def test_update_vehicle_status_to_retired(self) -> None:
         """Test updating vehicle status to retired."""
         # Arrange
-        vehicle = Vehicle(
-            id="V-789",
-            plate="DEF-789",
-            model="Ford Focus",
-            current_mileage=200000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-789", plate="DEF-789", model="Ford Focus", current_mileage=200000, status=VehicleStatus.ACTIVE)
 
         # Act
         vehicle.update_status(VehicleStatus.RETIRED)
@@ -267,13 +215,7 @@ class TestVehicleStatusUpdate:
         import time
 
         # Arrange
-        vehicle = Vehicle(
-            id="V-100",
-            plate="TST-100",
-            model="Test Vehicle",
-            current_mileage=5000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-100", plate="TST-100", model="Test Vehicle", current_mileage=5000, status=VehicleStatus.ACTIVE)
 
         # Act - First status change
         vehicle.update_status(VehicleStatus.IN_MAINTENANCE)
@@ -304,13 +246,7 @@ class TestVehicleStatusUpdate:
         Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-456",
-            plate="XYZ-456",
-            model="Honda Civic",
-            current_mileage=10000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-456", plate="XYZ-456", model="Honda Civic", current_mileage=10000, status=VehicleStatus.ACTIVE)
 
         # Act & Assert - Attempt to pass invalid string value
         with pytest.raises(TypeError) as exc_info:
@@ -320,9 +256,7 @@ class TestVehicleStatusUpdate:
         # Verify error message mentions valid statuses
         error_message = str(exc_info.value).lower()
         # Check that the error message contains information about valid statuses
-        assert "vehiclestatus" in error_message or \
-               ("active" in error_message and "inactive" in error_message), \
-               f"Error message should indicate valid statuses. Got: {exc_info.value}"
+        assert "vehiclestatus" in error_message or ("active" in error_message and "inactive" in error_message), f"Error message should indicate valid statuses. Got: {exc_info.value}"
 
     def test_update_status_only_accepts_vehicle_status_enum(self) -> None:
         """
@@ -337,22 +271,16 @@ class TestVehicleStatusUpdate:
         Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-789",
-            plate="DEF-789",
-            model="Ford Focus",
-            current_mileage=50000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-789", plate="DEF-789", model="Ford Focus", current_mileage=50000, status=VehicleStatus.ACTIVE)
 
         # Act & Assert - Test various invalid inputs
         invalid_values = [
-            "broken",           # Invalid string
-            "ACTIVE",           # Wrong case
-            "in-maintenance",   # Wrong format
-            123,                # Integer
-            None,               # None
-            True,               # Boolean
+            "broken",  # Invalid string
+            "ACTIVE",  # Wrong case
+            "in-maintenance",  # Wrong format
+            123,  # Integer
+            None,  # None
+            True,  # Boolean
             {"status": "active"},  # Dictionary
         ]
 
@@ -377,13 +305,7 @@ class TestVehicleStatusUpdate:
         Business Rule: RN-025 - Valid statuses are: active, inactive, in_maintenance, retired
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-999",
-            plate="TST-999",
-            model="Test Vehicle",
-            current_mileage=25000,
-            status=VehicleStatus.ACTIVE
-        )
+        vehicle = Vehicle(id="V-999", plate="TST-999", model="Test Vehicle", current_mileage=25000, status=VehicleStatus.ACTIVE)
 
         # Act & Assert - Test all valid enum values
         valid_statuses = [
@@ -399,7 +321,6 @@ class TestVehicleStatusUpdate:
             assert vehicle.status == valid_status
             assert vehicle.status == valid_status.value
             assert vehicle.status_updated_at is not None
-
 
 
 class TestVehicleMileageUpdate:
@@ -468,13 +389,7 @@ class TestVehicleMileageUpdate:
         Business Rule: RN-027 - Cannot update mileage of retired vehicles
         """
         # Arrange
-        vehicle = Vehicle(
-            id="V-789",
-            plate="DEF-789",
-            model="Ford Focus",
-            current_mileage=200000,
-            status=VehicleStatus.RETIRED
-        )
+        vehicle = Vehicle(id="V-789", plate="DEF-789", model="Ford Focus", current_mileage=200000, status=VehicleStatus.RETIRED)
 
         # Act & Assert
         with pytest.raises(InvalidMileageException) as exc_info:
@@ -492,7 +407,7 @@ class TestVehicleMileageUpdate:
         # Given
         vehicle = Vehicle(id="V-001", plate="ABC-123", model="Test", current_mileage=0)
         mock_observer = Mock()
-        vehicle.attach(mock_observer) # We assume that you implement the Observer pattern in Vehicle.
+        vehicle.attach(mock_observer)  # We assume that you implement the Observer pattern in Vehicle.
 
         # When
         # We simulate what the use case previously did manually.
@@ -502,6 +417,7 @@ class TestVehicleMileageUpdate:
         # We verified that the domain triggered the notification.
         mock_observer.update.assert_called_once_with("V-001", 5000)
         assert vehicle.current_mileage == 5000
+
 
 class MockObserver(Observer):
     """Mock observer for testing."""

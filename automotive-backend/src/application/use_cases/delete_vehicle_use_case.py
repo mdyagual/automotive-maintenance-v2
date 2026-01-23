@@ -44,8 +44,4 @@ class DeleteVehicleUseCase:
         self._vehicle_repository.delete(command.vehicle_id)
 
         # Return confirmation DTO
-        return DeleteVehicleResultDTO(
-            deleted_vehicle_id=command.vehicle_id,
-            success=True,
-            timestamp=datetime.now()
-        )
+        return DeleteVehicleResultDTO(deleted_vehicle_id=command.vehicle_id, success=True, timestamp=datetime.now())

@@ -15,22 +15,14 @@ class Vehicle:
     """Vehicle entity representing a fleet vehicle."""
 
     # Domain invariants - validation patterns
-    VEHICLE_ID_PATTERN = r'^V-\d{3}$'  # RN-011: V-XXX format
-    PLATE_PATTERN = r'^[A-Z]{3}-\d{3,4}$'  # RN-010: XXX-123 or XXX-1234
+    VEHICLE_ID_PATTERN = r"^V-\d{3}$"  # RN-011: V-XXX format
+    PLATE_PATTERN = r"^[A-Z]{3}-\d{3,4}$"  # RN-010: XXX-123 or XXX-1234
     MAX_MODEL_LENGTH = 100
     MAX_MILEAGE = 1_000_000
     MAX_MILEAGE_INCREMENT = 50_000
     MAINTENANCE_INTERVAL = 10_000
 
-    def __init__(
-        self,
-        id: str,
-        plate: str,
-        model: str,
-        current_mileage: int,
-        status: VehicleStatus = VehicleStatus.ACTIVE,
-        status_updated_at: datetime | None = None
-    ) -> None:
+    def __init__(self, id: str, plate: str, model: str, current_mileage: int, status: VehicleStatus = VehicleStatus.ACTIVE, status_updated_at: datetime | None = None) -> None:
         """
         Initialize a Vehicle instance with validation.
 
@@ -79,15 +71,10 @@ class Vehicle:
             InvalidVehicleIdException: If format is invalid
         """
         if not vehicle_id or not isinstance(vehicle_id, str):
-            raise InvalidVehicleIdException(
-                "El vehicle_id no puede estar vacío"
-            )
+            raise InvalidVehicleIdException("El vehicle_id no puede estar vacío")
 
         if not re.match(self.VEHICLE_ID_PATTERN, vehicle_id):
-            raise InvalidVehicleIdException(
-                f"Formato de vehicle_id inválido: '{vehicle_id}'. "
-                f"Formato esperado: V-XXX (ejemplo: V-001, V-123)"
-            )
+            raise InvalidVehicleIdException(f"Formato de vehicle_id inválido: '{vehicle_id}'. Formato esperado: V-XXX (ejemplo: V-001, V-123)")
 
     def _validate_plate(self, plate: str) -> None:
         """
@@ -100,15 +87,10 @@ class Vehicle:
             InvalidPlateException: If format is invalid
         """
         if not plate or not isinstance(plate, str):
-            raise InvalidPlateException(
-                "La placa no puede estar vacía"
-            )
+            raise InvalidPlateException("La placa no puede estar vacía")
 
         if not re.match(self.PLATE_PATTERN, plate):
-            raise InvalidPlateException(
-                f"Formato de placa inválido: '{plate}'. "
-                f"Formato esperado: XXX-123 o XXX-1234 (ejemplo: ABC-123, XYZ-9999)"
-            )
+            raise InvalidPlateException(f"Formato de placa inválido: '{plate}'. Formato esperado: XXX-123 o XXX-1234 (ejemplo: ABC-123, XYZ-9999)")
 
     def _validate_model(self, model: str) -> None:
         """
@@ -127,9 +109,7 @@ class Vehicle:
             raise InvalidModelException("El modelo no puede estar vacío")
 
         if len(model) > self.MAX_MODEL_LENGTH:
-            raise InvalidModelException(
-                f"El modelo excede la longitud máxima de {self.MAX_MODEL_LENGTH} caracteres"
-            )
+            raise InvalidModelException(f"El modelo excede la longitud máxima de {self.MAX_MODEL_LENGTH} caracteres")
 
     def _validate_initial_mileage(self, mileage: int) -> None:
         """
@@ -142,20 +122,13 @@ class Vehicle:
             InvalidMileageException: If mileage is invalid
         """
         if not isinstance(mileage, int):
-            raise InvalidMileageException(
-                f"El kilometraje debe ser un entero, recibido: {type(mileage).__name__}"
-            )
+            raise InvalidMileageException(f"El kilometraje debe ser un entero, recibido: {type(mileage).__name__}")
 
         if mileage < 0:
-            raise InvalidMileageException(
-                f"El kilometraje inicial no puede ser negativo: {mileage}"
-            )
+            raise InvalidMileageException(f"El kilometraje inicial no puede ser negativo: {mileage}")
 
         if mileage > self.MAX_MILEAGE:
-            raise InvalidMileageException(
-                f"El kilometraje inicial {mileage:,} km excede el máximo "
-                f"permitido de {self.MAX_MILEAGE:,} km"
-            )
+            raise InvalidMileageException(f"El kilometraje inicial {mileage:,} km excede el máximo permitido de {self.MAX_MILEAGE:,} km")
 
     def attach(self, observer: Observer) -> None:
         """Attach an observer to receive notifications."""
@@ -203,10 +176,7 @@ class Vehicle:
         """
         # Validate that new_status is a VehicleStatus enum
         if not isinstance(new_status, VehicleStatus):
-            raise TypeError(
-                f"Status must be a VehicleStatus enum. "
-                f"Valid statuses are: {', '.join([s.value for s in VehicleStatus])}"
-            )
+            raise TypeError(f"Status must be a VehicleStatus enum. Valid statuses are: {', '.join([s.value for s in VehicleStatus])}")
 
         self.status = new_status
         self.status_updated_at = datetime.now()
@@ -227,26 +197,17 @@ class Vehicle:
         """
         # Check if vehicle is retired (RN-027) - must be first check
         if self.status == VehicleStatus.RETIRED:
-            raise InvalidMileageException(
-                "No se puede actualizar kilometraje de vehículos retirados"
-            )
+            raise InvalidMileageException("No se puede actualizar kilometraje de vehículos retirados")
 
         if new_mileage <= self.current_mileage:
-            raise InvalidMileageException(
-                f"El kilometraje {new_mileage} debe ser mayor al actual {self.current_mileage}"
-            )
+            raise InvalidMileageException(f"El kilometraje {new_mileage} debe ser mayor al actual {self.current_mileage}")
 
         if new_mileage > self.MAX_MILEAGE:
-            raise InvalidMileageException(
-                f"El kilometraje {new_mileage} excede el límite máximo de {self.MAX_MILEAGE:,} km"
-            )
+            raise InvalidMileageException(f"El kilometraje {new_mileage} excede el límite máximo de {self.MAX_MILEAGE:,} km")
 
         increment = new_mileage - self.current_mileage
         if increment > self.MAX_MILEAGE_INCREMENT:
-            raise InvalidMileageException(
-                f"El incremento de {increment:,} km excede el máximo permitido de "
-                f"{self.MAX_MILEAGE_INCREMENT:,} km"
-            )
+            raise InvalidMileageException(f"El incremento de {increment:,} km excede el máximo permitido de {self.MAX_MILEAGE_INCREMENT:,} km")
 
         self.current_mileage = new_mileage
 
