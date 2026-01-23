@@ -74,3 +74,19 @@ class VehicleRepository(ABC):
             Empty list if no vehicles match
         """
         pass
+
+    @abstractmethod
+    def get_by_plate(self, plate: str) -> Vehicle:
+        """
+        Get vehicle by plate number.
+
+        Args:
+            plate: License plate number (case-insensitive)
+
+        Returns:
+            Vehicle instance
+
+        Raises:
+            VehicleNotFoundException: If vehicle not found
+        """
+        pass

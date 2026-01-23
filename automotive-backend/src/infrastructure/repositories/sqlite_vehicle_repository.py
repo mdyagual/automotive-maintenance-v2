@@ -164,3 +164,26 @@ class SqliteVehicleRepository(VehicleRepository):
 
         vehicle_models = self._db.query(VehicleModel).filter_by(status=status_value).all()
         return self._to_entities(vehicle_models)
+
+    def get_by_plate(self, plate: str) -> Vehicle:
+        """
+        Get vehicle by plate number (case-insensitive).
+
+        Args:
+            plate: License plate number
+
+        Returns:
+            Vehicle entity
+
+        Raises:
+            VehicleNotFoundException: If vehicle not found
+        """
+        # Case-insensitive search using SQL UPPER function
+        vehicle_model = self._db.query(VehicleModel).filter(
+            VehicleModel.plate.ilike(plate)
+        ).first()
+
+        if vehicle_model is None:
+            raise VehicleNotFoundException(f"Vehículo con placa {plate} no encontrado")
+
+        return self._to_entity(vehicle_model)
