@@ -1,9 +1,5 @@
 import type { Vehicle } from '../types/vehicle';
-import {
-  formatNumber,
-  getStatusText,
-  getStatusBadgeClass,
-} from '../utils/formatters';
+import { formatNumber, getStatusText, getStatusBadgeClass } from '../utils/formatters';
 
 interface VehicleCardProps {
   vehicle: Vehicle;
