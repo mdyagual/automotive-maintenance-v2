@@ -39,7 +39,7 @@ export const vehicleApi = {
   },
 
   async getVehiclesByStatus(status: VehicleStatus): Promise<Vehicle[]> {
-    const response = await fetch(`${API_BASE_URL}/vehicles/status/${status}`);
+    const response = await fetch(`${API_BASE_URL}/vehicles?status=${status}`);
     return handleResponse<Vehicle[]>(response) as Promise<Vehicle[]>;
   },
 
