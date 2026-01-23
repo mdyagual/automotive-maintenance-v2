@@ -1,0 +1,254 @@
+name: Backend CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop, feature/** ]
+    paths:
+      - 'automotive-backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches: [ main, develop, feature/** ]
+    paths:
+      - 'automotive-backend/**'
+      - '.github/workflows/backend-ci.yml'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+  COVERAGE_THRESHOLD: 70
+
+jobs:
+  # Combined quality and security checks
+  quality-security:
+    name: Quality & Security Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: automotive-backend/requirements.txt
+
+    - name: Install dependencies
+      working-directory: ./automotive-backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install safety bandit mypy
+
+    - name: Lint with Ruff
+      working-directory: ./automotive-backend
+      run: ruff check src/ tests/ --output-format=github
+
+    - name: Check code formatting with Ruff
+      working-directory: ./automotive-backend
+      run: ruff format --check src/ tests/
+
+    - name: Type checking
+      working-directory: ./automotive-backend
+      run: mypy src/ --ignore-missing-imports || true
+      continue-on-error: true
+
+    - name: Security - Check dependencies
+      working-directory: ./automotive-backend
+      run: safety check --file requirements.txt --json || true
+      continue-on-error: true
+
+    - name: Security - Scan code
+      working-directory: ./automotive-backend
+      run: |
+        bandit -r src/ -f json -o bandit-report.json || true
+        bandit -r src/ -ll
+      continue-on-error: true
+
+    - name: Upload security reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-security-reports
+        path: automotive-backend/bandit-report.json
+        retention-days: 30
+
+  # Unit tests (domain and application layers)
+  unit-test:
+    name: Unit Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    needs: [quality-security]
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: automotive-backend/requirements.txt
+
+    - name: Install dependencies
+      working-directory: ./automotive-backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Clean test databases
+      working-directory: ./automotive-backend
+      run: |
+        rm -f maintenance.db test_maintenance.db test_status_integration.db
+
+    - name: Run unit tests (domain & application)
+      working-directory: ./automotive-backend
+      run: |
+        pytest tests/domain/ tests/application/ -v --tb=short
+
+  # Integration tests with coverage (runs once on primary Python version)
+  integration-test:
+    name: Integration Tests & Coverage
+    runs-on: ubuntu-latest
+    needs: [unit-test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+        cache-dependency-path: automotive-backend/requirements.txt
+
+    - name: Install dependencies
+      working-directory: ./automotive-backend
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Clean test databases
+      working-directory: ./automotive-backend
+      run: |
+        rm -f maintenance.db test_maintenance.db test_status_integration.db
+
+    - name: Run all tests with coverage (single pass)
+      working-directory: ./automotive-backend
+      run: |
+        pytest -v \
+          --cov=src \
+          --cov-report=term-missing \
+          --cov-report=html \
+          --cov-report=xml \
+          --junitxml=pytest-report.xml \
+          --cov-fail-under=${{ env.COVERAGE_THRESHOLD }}
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./automotive-backend/coverage.xml
+        flags: backend
+        name: backend-coverage
+        fail_ci_if_error: false
+      continue-on-error: true
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-test-results
+        path: |
+          automotive-backend/pytest-report.xml
+          automotive-backend/htmlcov/
+          automotive-backend/coverage.xml
+        retention-days: 30
+
+    - name: Comment coverage on PR
+      if: github.event_name == 'pull_request'
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ github.token }}
+        MINIMUM_GREEN: 80
+        MINIMUM_ORANGE: 70
+      continue-on-error: true
+
+  # Docker build and validation
+  docker-build:
+    name: Docker Build & Test
+    runs-on: ubuntu-latest
+    needs: [integration-test]
+    if: github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      working-directory: ./automotive-backend
+      run: |
+        docker build -t automotive-backend:${{ github.sha }} .
+        docker tag automotive-backend:${{ github.sha }} automotive-backend:latest
+
+    - name: Test Docker image
+      run: |
+        # Start container in background
+        docker run -d --name test-backend -p 8000:8000 automotive-backend:${{ github.sha }}
+        
+        # Wait for container to be healthy
+        echo "Waiting for container to start..."
+        sleep 10
+        
+        # Check if container is running
+        docker ps | grep test-backend
+        
+        # Test health endpoint
+        curl -f http://localhost:8000/docs || exit 1
+        
+        # Stop and remove container
+        docker stop test-backend
+        docker rm test-backend
+
+    - name: Inspect image size
+      run: |
+        docker images automotive-backend:${{ github.sha }} --format "Image size: {{.Size}}"
+
+  # Summary job
+  backend-ci-success:
+    name: Backend CI Success
+    runs-on: ubuntu-latest
+    needs: [quality-security, unit-test, integration-test, docker-build]
+    if: always()
+    
+    steps:
+    - name: Check all jobs status
+      run: |
+        if [ "${{ needs.quality-security.result }}" != "success" ] || \
+           [ "${{ needs.unit-test.result }}" != "success" ] || \
+           [ "${{ needs.integration-test.result }}" != "success" ] || \
+           ([ "${{ needs.docker-build.result }}" != "success" ] && [ "${{ needs.docker-build.result }}" != "skipped" ]); then
+          echo "❌ One or more backend CI jobs failed"
+          exit 1
+        fi
+        echo "✅ All backend CI jobs passed successfully!"
+
+    - name: Post summary
+      run: |
+        echo "## Backend CI Pipeline Results ✅" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Quality & Security | ${{ needs.quality-security.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Unit Tests | ${{ needs.unit-test.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Integration Tests & Coverage | ${{ needs.integration-test.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Docker Build | ${{ needs.docker-build.result }} |" >> $GITHUB_STEP_SUMMARY
