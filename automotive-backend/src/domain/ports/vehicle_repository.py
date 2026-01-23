@@ -76,17 +76,19 @@ class VehicleRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_plate(self, plate: str) -> Vehicle:
+    def get_by_plate(self, plate: str) -> list[Vehicle]:
         """
-        Get vehicle by plate number.
+        Get vehicles by plate number (supports partial match).
 
         Args:
-            plate: License plate number (case-insensitive)
+            plate: License plate number or partial plate (case-insensitive)
 
         Returns:
-            Vehicle instance
+            List of Vehicle instances matching the plate
+            Empty list if no vehicles match
 
-        Raises:
-            VehicleNotFoundException: If vehicle not found
+        Business Rules:
+        - RN-031: Search must be case-insensitive
+        - RN-032: Search must support partial matches
         """
         pass

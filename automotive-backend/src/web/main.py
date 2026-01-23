@@ -254,41 +254,56 @@ def get_all_vehicles(status: str | None = Query(None, alias="status"), vehicle_r
     return response
 
 
-@app.get("/vehicles/search", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
-def search_vehicle_by_plate(plate: str = Query(..., description="License plate to search for"), vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
+@app.get("/vehicles/search", response_model=VehicleResponse | list[VehicleResponse], status_code=status.HTTP_200_OK)
+def search_vehicle_by_plate(plate: str = Query(..., description="License plate to search for (supports partial match)"), vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
     """
-    Search vehicle by plate number (case-insensitive).
+    Search vehicles by plate number (case-insensitive, supports partial match).
 
     Args:
-        plate: License plate to search for
+        plate: License plate or partial plate to search for
         vehicle_repo: Vehicle repository injected by FastAPI
 
     Returns:
-        Vehicle data
+        Single vehicle or list of vehicles matching the plate
 
     Raises:
-        HTTPException: 400 if plate format is invalid, 404 if vehicle not found
+        HTTPException: 400 if plate format is invalid, 404 if no vehicles found
 
     User Story: HU-006 - Búsqueda de vehículos por placa
     Business Rules:
-    - RN-010: Plate must follow XXX-123 or XXX-1234 format
+    - RN-010: Plate must follow XXX-123 or XXX-1234 format (for exact matches)
     - RN-031: Search must be case-insensitive
+    - RN-032: Search must support partial matches
     """
     from src.application.use_cases.get_vehicle_by_plate_use_case import GetVehicleByPlateUseCase
     from src.domain.exceptions.invalid_plate_exception import InvalidPlateException
 
     try:
         use_case = GetVehicleByPlateUseCase(vehicle_repository=vehicle_repo)
-        vehicle_dto = use_case.execute(plate)
+        result = use_case.execute(plate)
 
-        # Map DTO to response
-        return VehicleResponse(
-            id=vehicle_dto.id,
-            plate=vehicle_dto.plate,
-            model=vehicle_dto.model,
-            current_mileage=vehicle_dto.current_mileage,
-            status=vehicle_dto.status,
-        )
+        # Handle both single result and multiple results
+        if isinstance(result, list):
+            # Multiple vehicles found
+            return [
+                VehicleResponse(
+                    id=vehicle_dto.id,
+                    plate=vehicle_dto.plate,
+                    model=vehicle_dto.model,
+                    current_mileage=vehicle_dto.current_mileage,
+                    status=vehicle_dto.status,
+                )
+                for vehicle_dto in result
+            ]
+        else:
+            # Single vehicle found
+            return VehicleResponse(
+                id=result.id,
+                plate=result.plate,
+                model=result.model,
+                current_mileage=result.current_mileage,
+                status=result.status,
+            )
     except InvalidPlateException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except VehicleNotFoundException as e:

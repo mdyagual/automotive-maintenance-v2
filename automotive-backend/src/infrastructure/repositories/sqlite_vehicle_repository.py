@@ -165,25 +165,24 @@ class SqliteVehicleRepository(VehicleRepository):
         vehicle_models = self._db.query(VehicleModel).filter_by(status=status_value).all()
         return self._to_entities(vehicle_models)
 
-    def get_by_plate(self, plate: str) -> Vehicle:
+    def get_by_plate(self, plate: str) -> list[Vehicle]:
         """
-        Get vehicle by plate number (case-insensitive).
+        Get vehicles by plate number (case-insensitive, supports partial match).
 
         Args:
-            plate: License plate number
+            plate: License plate number or partial plate
 
         Returns:
-            Vehicle entity
+            List of Vehicle entities matching the plate
+            Empty list if no vehicles match
 
-        Raises:
-            VehicleNotFoundException: If vehicle not found
+        Business Rules:
+        - RN-031: Search must be case-insensitive
+        - RN-032: Search must support partial matches
         """
-        # Case-insensitive search using SQL UPPER function
-        vehicle_model = self._db.query(VehicleModel).filter(
-            VehicleModel.plate.ilike(plate)
-        ).first()
+        # Case-insensitive partial search using SQL LIKE with wildcards
+        vehicle_models = self._db.query(VehicleModel).filter(
+            VehicleModel.plate.ilike(f"%{plate}%")
+        ).all()
 
-        if vehicle_model is None:
-            raise VehicleNotFoundException(f"Vehículo con placa {plate} no encontrado")
-
-        return self._to_entity(vehicle_model)
+        return self._to_entities(vehicle_models)
