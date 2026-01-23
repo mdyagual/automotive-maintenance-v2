@@ -23,6 +23,14 @@ class UpdateMileageCommand:
 
 
 @dataclass(frozen=True)
+class UpdateStatusCommand:
+    """Input DTO for updating vehicle status."""
+
+    vehicle_id: str
+    new_status: str
+
+
+@dataclass(frozen=True)
 class DeleteVehicleCommand:
     """Input DTO for deleting a vehicle."""
 

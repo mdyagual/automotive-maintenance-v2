@@ -8,6 +8,7 @@ from src.application.dtos.vehicle_dtos import (
     DeleteVehicleCommand,
     RegisterVehicleCommand,
     UpdateMileageCommand,
+    UpdateStatusCommand,
 )
 from src.application.use_cases.delete_vehicle_use_case import DeleteVehicleUseCase
 from src.application.use_cases.get_all_vehicles_use_case import GetAllVehiclesUseCase
@@ -17,9 +18,13 @@ from src.application.use_cases.register_vehicle_use_case import RegisterVehicleU
 from src.application.use_cases.update_vehicle_mileage_use_case import (
     UpdateVehicleMileageUseCase,
 )
+from src.application.use_cases.update_vehicle_status_use_case import (
+    UpdateVehicleStatusUseCase,
+)
 from src.domain.entities.maintenance_alert import MaintenanceAlert
 from src.domain.exceptions.duplicate_vehicle_exception import DuplicateVehicleException
 from src.domain.exceptions.invalid_mileage_exception import InvalidMileageException
+from src.domain.exceptions.invalid_status_exception import InvalidStatusException
 from src.domain.exceptions.vehicle_not_found_exception import (
     VehicleNotFoundException,
 )
@@ -47,6 +52,12 @@ class UpdateMileageRequest(BaseModel):
     """Request model for updating vehicle mileage."""
 
     new_mileage: int = Field(..., description="New mileage value", ge=0)
+
+
+class UpdateStatusRequest(BaseModel):
+    """Request model for updating vehicle status."""
+
+    new_status: str = Field(..., description="New status value (active, inactive, in_maintenance, retired)")
 
 
 class VehicleResponse(BaseModel):
@@ -416,6 +427,50 @@ def update_vehicle_mileage(vehicle_id: str, request: UpdateMileageRequest, vehic
             status=vehicle_dto.status,
         )
     except InvalidMileageException as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except VehicleNotFoundException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@app.put("/vehicles/{vehicle_id}/status", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
+def update_vehicle_status(vehicle_id: str, request: UpdateStatusRequest, vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
+    """
+    Update vehicle operational status.
+
+    Args:
+        vehicle_id: Unique identifier of the vehicle
+        request: Update status request with new status value
+        vehicle_repo: Vehicle repository injected by FastAPI
+
+    Returns:
+        Updated vehicle data
+
+    Raises:
+        HTTPException: 400 if invalid status, 404 if vehicle not found
+
+    Business Rules:
+    - RN-025: Valid statuses are: active, inactive, in_maintenance, retired
+    - RN-028: Status change must record update timestamp
+    """
+    # Create use case with injected dependencies
+    use_case = UpdateVehicleStatusUseCase(vehicle_repository=vehicle_repo)
+
+    try:
+        # Map to command DTO
+        command = UpdateStatusCommand(vehicle_id=vehicle_id, new_status=request.new_status)
+
+        # Execute use case
+        vehicle_dto = use_case.execute(command)
+
+        # Map DTO to response
+        return VehicleResponse(
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage,
+            status=vehicle_dto.status,
+        )
+    except InvalidStatusException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except VehicleNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
