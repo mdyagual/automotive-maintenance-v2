@@ -13,6 +13,7 @@ import { AlertsModal } from './components/modals/AlertsModal';
 import { DeleteModal } from './components/modals/DeleteModal';
 import { useVehicles } from './hooks/useVehicles';
 import { useToast } from './hooks/useToast';
+import { usePagination } from './hooks/usePagination';
 import type { Vehicle, CreateVehicleRequest, VehicleStatus } from './types/vehicle';
 import './App.css';
 
@@ -29,6 +30,15 @@ function App() {
     deleteVehicle,
   } = useVehicles();
   const { toasts, showToast } = useToast();
+
+  // Pagination: 6 vehicles per page
+  const ITEMS_PER_PAGE = 6;
+  const {
+    currentPage,
+    totalPages,
+    paginatedItems: paginatedVehicles,
+    goToPage,
+  } = usePagination(vehicles, ITEMS_PER_PAGE);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -152,7 +162,7 @@ function App() {
             </div>
 
             <VehicleGrid
-              vehicles={vehicles}
+              vehicles={paginatedVehicles}
               onUpdate={openUpdateModal}
               onDetails={openDetailsModal}
               onDelete={openDeleteModal}
@@ -160,7 +170,13 @@ function App() {
               onNewVehicle={() => setIsCreateModalOpen(true)}
             />
 
-            <Pagination currentPage={1} totalPages={6} />
+            {totalPages > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={goToPage}
+              />
+            )}
           </section>
         </div>
       </main>
