@@ -63,7 +63,9 @@ describe('Pagination', () => {
   });
 
   it('should display page numbers dynamically based on current page', () => {
-    const { rerender } = render(<Pagination currentPage={1} totalPages={10} onPageChange={vi.fn()} />);
+    const { rerender } = render(
+      <Pagination currentPage={1} totalPages={10} onPageChange={vi.fn()} />
+    );
 
     // On page 1, should show pages 1, 2, 3
     expect(screen.getByText('1')).toBeInTheDocument();
@@ -83,7 +85,7 @@ describe('Pagination', () => {
     render(<Pagination currentPage={2} totalPages={6} onPageChange={vi.fn()} />);
 
     const pageButtons = screen.getAllByRole('button');
-    const page2Button = pageButtons.find(btn => btn.textContent === '2');
+    const page2Button = pageButtons.find((btn) => btn.textContent === '2');
 
     expect(page2Button).toHaveClass('active');
   });
@@ -94,7 +96,7 @@ describe('Pagination', () => {
     render(<Pagination currentPage={1} totalPages={6} onPageChange={onPageChange} />);
 
     const pageButtons = screen.getAllByRole('button');
-    const page3Button = pageButtons.find(btn => btn.textContent === '3');
+    const page3Button = pageButtons.find((btn) => btn.textContent === '3');
 
     if (page3Button) {
       await user.click(page3Button);

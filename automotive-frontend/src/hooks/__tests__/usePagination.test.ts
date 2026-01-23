@@ -75,6 +75,9 @@ describe('usePagination', () => {
 
     act(() => {
       result.current.goToPage(3);
+    });
+
+    act(() => {
       result.current.previousPage();
     });
 
@@ -96,6 +99,9 @@ describe('usePagination', () => {
 
     act(() => {
       result.current.goToPage(4);
+    });
+
+    act(() => {
       result.current.nextPage();
     });
 
@@ -103,10 +109,9 @@ describe('usePagination', () => {
   });
 
   it('should reset to page 1 when items change', () => {
-    const { result, rerender } = renderHook(
-      ({ items }) => usePagination(items, 6),
-      { initialProps: { items: mockItems } }
-    );
+    const { result, rerender } = renderHook(({ items }) => usePagination(items, 6), {
+      initialProps: { items: mockItems },
+    });
 
     act(() => {
       result.current.goToPage(3);

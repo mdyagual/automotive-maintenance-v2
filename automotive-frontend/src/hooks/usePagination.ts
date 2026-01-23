@@ -17,10 +17,7 @@ interface UsePaginationReturn<T> {
  * @param itemsPerPage - Number of items per page
  * @returns Pagination state and controls
  */
-export function usePagination<T>(
-  items: T[],
-  itemsPerPage: number
-): UsePaginationReturn<T> {
+export function usePagination<T>(items: T[], itemsPerPage: number): UsePaginationReturn<T> {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Calculate total pages
