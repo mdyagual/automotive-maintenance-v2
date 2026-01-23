@@ -108,22 +108,22 @@ class TestGetVehicleByPlateUseCase:
 
     def test_search_vehicle_validates_plate_format(self, vehicle_repository) -> None:
         """
-        Test that the use case validates plate format.
+        Test that the use case handles invalid/empty plates gracefully.
 
         Given: I'm searching for a vehicle
-        When: I provide an invalid plate format
-        Then: The system should raise an exception
+        When: I provide an empty or whitespace-only plate
+        Then: The system should raise VehicleNotFoundException (no results)
 
-        Business Rule: RN-010 - Plate must follow XXX-123 or XXX-1234 format
+        Note: Partial searches are now allowed, so short plates like "AB" are valid
         """
         # Arrange
         use_case = GetVehicleByPlateUseCase(vehicle_repository=vehicle_repository)
 
-        # Act & Assert - Test various invalid formats
-        invalid_plates = ["", "   ", "AB-123", "ABCD-123", "123-ABC"]
+        # Act & Assert - Empty and whitespace should raise VehicleNotFoundException
+        invalid_plates = ["", "   "]
 
         for invalid_plate in invalid_plates:
-            with pytest.raises(Exception):  # Could be InvalidPlateException or ValueError
+            with pytest.raises(VehicleNotFoundException):
                 use_case.execute(plate=invalid_plate)
 
     def test_search_returns_dto_not_entity(self, vehicle_repository) -> None:
@@ -151,3 +151,35 @@ class TestGetVehicleByPlateUseCase:
         assert hasattr(result, 'model')
         assert hasattr(result, 'current_mileage')
         assert hasattr(result, 'status')
+
+    def test_search_vehicle_by_partial_plate_returns_multiple_vehicles(self, vehicle_repository) -> None:
+        """
+        Test searching vehicles by partial plate match.
+
+        Given: Vehicles exist with plates ABC-123, XYZ-456, ABC-789
+        When: I search for vehicles with plate "ABC"
+        Then: The system should return 2 vehicles
+        And: Both vehicles should have plates containing "ABC"
+
+        User Story: HU-006 - Escenario 2
+        Business Rule: RN-032 - Search must support partial matches
+        """
+        # Arrange
+        use_case = GetVehicleByPlateUseCase(vehicle_repository=vehicle_repository)
+
+        # Act
+        results = use_case.execute(plate="ABC")
+
+        # Assert
+        assert isinstance(results, list)
+        assert len(results) == 2
+
+        # Verify both results are DTOs
+        for result in results:
+            assert isinstance(result, VehicleDTO)
+            assert "ABC" in result.plate
+
+        # Verify specific vehicles
+        plates = [r.plate for r in results]
+        assert "ABC-123" in plates
+        assert "ABC-789" in plates

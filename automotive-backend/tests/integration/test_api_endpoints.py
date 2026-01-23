@@ -566,13 +566,13 @@ class TestVehicleEndpoints:
 
     def test_search_vehicle_with_invalid_plate_format_returns_400(self) -> None:
         """
-        Test that invalid plate format returns 400 Bad Request.
+        Test that searching with invalid complete plate format returns 404 (no results).
 
         Given: I'm searching for a vehicle
         When: GET /vehicles/search?plate=INVALID
-        Then: The system should return 400 Bad Request
+        Then: The system should return 404 Not Found (no vehicles match)
 
-        Business Rule: RN-010 - Plate must follow XXX-123 or XXX-1234 format
+        Note: Partial searches are now allowed, so this returns 404 instead of 400
         """
         # Arrange
         client = TestClient(app)
@@ -580,6 +580,49 @@ class TestVehicleEndpoints:
         # Act
         response = client.get("/vehicles/search?plate=INVALID")
 
+        # Assert - Should return 404 since no vehicles match "INVALID"
+        assert response.status_code == 404
+
+    def test_search_vehicle_by_partial_plate_returns_multiple_vehicles(self) -> None:
+        """
+        Test searching vehicles by partial plate match.
+
+        Given: Vehicles exist with plates ABC-123, XYZ-456, ABC-789
+        When: GET /vehicles/search?plate=ABC
+        Then: The system should return 2 vehicles
+        And: Both vehicles should have plates containing "ABC"
+
+        User Story: HU-006 - Escenario 2
+        Business Rule: RN-032 - Search must support partial matches
+        """
+        # Arrange
+        client = TestClient(app)
+        vehicle_repo = get_vehicle_repository()
+
+        # Create additional test vehicles
+        vehicle2 = Vehicle(id="V-002", plate="XYZ-456", model="Honda Civic", current_mileage=10000)
+        vehicle3 = Vehicle(id="V-003", plate="ABC-789", model="Mazda 3", current_mileage=15000)
+        vehicle_repo.save(vehicle2)
+        vehicle_repo.save(vehicle3)
+
+        # Act
+        response = client.get("/vehicles/search?plate=ABC")
+
         # Assert
-        assert response.status_code == 400
-        assert "placa" in response.json()["detail"].lower() or "formato" in response.json()["detail"].lower()
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) == 2
+
+        # Verify both vehicles have plates containing "ABC"
+        plates = [v["plate"] for v in data]
+        assert "ABC-123" in plates
+        assert "ABC-789" in plates
+
+        # Verify structure
+        for vehicle in data:
+            assert "ABC" in vehicle["plate"]
+            assert "id" in vehicle
+            assert "model" in vehicle
+            assert "current_mileage" in vehicle
+            assert "status" in vehicle
