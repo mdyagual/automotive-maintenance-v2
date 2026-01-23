@@ -254,38 +254,6 @@ def get_all_vehicles(status: str | None = Query(None, alias="status"), vehicle_r
     return response
 
 
-@app.get("/vehicles/{vehicle_id}", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
-def get_vehicle(vehicle_id: str, vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
-    """
-    Get vehicle by ID.
-
-    Args:
-        vehicle_id: Unique identifier of the vehicle
-        vehicle_repo: Vehicle repository injected by FastAPI
-
-    Returns:
-        Vehicle data
-
-    Raises:
-        HTTPException: 404 if vehicle not found
-    """
-    try:
-        # Use use case instead of direct repository access
-        use_case = GetVehicleUseCase(vehicle_repository=vehicle_repo)
-        vehicle_dto = use_case.execute(vehicle_id)
-
-        # Map DTO to response
-        return VehicleResponse(
-            id=vehicle_dto.id,
-            plate=vehicle_dto.plate,
-            model=vehicle_dto.model,
-            current_mileage=vehicle_dto.current_mileage,
-            status=vehicle_dto.status,
-        )
-    except VehicleNotFoundException as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-
-
 @app.get("/vehicles/search", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
 def search_vehicle_by_plate(plate: str = Query(..., description="License plate to search for"), vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
     """
@@ -323,6 +291,38 @@ def search_vehicle_by_plate(plate: str = Query(..., description="License plate t
         )
     except InvalidPlateException as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except VehicleNotFoundException as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@app.get("/vehicles/{vehicle_id}", response_model=VehicleResponse, status_code=status.HTTP_200_OK)
+def get_vehicle(vehicle_id: str, vehicle_repo: SqliteVehicleRepository = Depends(get_vehicle_repository)):
+    """
+    Get vehicle by ID.
+
+    Args:
+        vehicle_id: Unique identifier of the vehicle
+        vehicle_repo: Vehicle repository injected by FastAPI
+
+    Returns:
+        Vehicle data
+
+    Raises:
+        HTTPException: 404 if vehicle not found
+    """
+    try:
+        # Use use case instead of direct repository access
+        use_case = GetVehicleUseCase(vehicle_repository=vehicle_repo)
+        vehicle_dto = use_case.execute(vehicle_id)
+
+        # Map DTO to response
+        return VehicleResponse(
+            id=vehicle_dto.id,
+            plate=vehicle_dto.plate,
+            model=vehicle_dto.model,
+            current_mileage=vehicle_dto.current_mileage,
+            status=vehicle_dto.status,
+        )
     except VehicleNotFoundException as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
