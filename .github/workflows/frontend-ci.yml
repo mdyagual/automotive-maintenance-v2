@@ -48,7 +48,7 @@ jobs:
 
     - name: TypeScript type checking
       working-directory: ./automotive-frontend
-      run: npx tsc --noEmit
+      run: npm run type-check
 
   # Unit and integration tests
   test:
