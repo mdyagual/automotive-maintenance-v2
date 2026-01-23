@@ -87,4 +87,11 @@ export const vehicleApi = {
     });
     return handleResponse<null>(response);
   },
+
+  async searchVehicleByPlate(plate: string): Promise<Vehicle | Vehicle[]> {
+    const response = await fetch(
+      `${API_BASE_URL}/vehicles/search?plate=${encodeURIComponent(plate)}`
+    );
+    return handleResponse<Vehicle | Vehicle[]>(response) as Promise<Vehicle | Vehicle[]>;
+  },
 };

@@ -8,6 +8,7 @@ interface VehicleGridProps {
   onDelete: (vehicleId: string) => void;
   onUpdateStatus: (vehicleId: string) => void;
   onNewVehicle: () => void;
+  searchError?: string | null;
 }
 
 export const VehicleGrid = ({
@@ -17,6 +18,7 @@ export const VehicleGrid = ({
   onDelete,
   onUpdateStatus,
   onNewVehicle,
+  searchError,
 }: VehicleGridProps) => {
   if (vehicles.length === 0) {
     return (
@@ -32,17 +34,33 @@ export const VehicleGrid = ({
   }
 
   return (
-    <div className="vehicles-grid">
-      {vehicles.map((vehicle) => (
-        <VehicleCard
-          key={vehicle.id}
-          vehicle={vehicle}
-          onUpdate={onUpdate}
-          onDetails={onDetails}
-          onDelete={onDelete}
-          onUpdateStatus={onUpdateStatus}
-        />
-      ))}
-    </div>
+    <>
+      {searchError && (
+        <div
+          className="error-message"
+          style={{
+            marginBottom: '1rem',
+            padding: '1rem',
+            backgroundColor: '#fee',
+            color: '#c00',
+            borderRadius: '4px',
+          }}
+        >
+          {searchError}
+        </div>
+      )}
+      <div className="vehicles-grid">
+        {vehicles.map((vehicle) => (
+          <VehicleCard
+            key={vehicle.id}
+            vehicle={vehicle}
+            onUpdate={onUpdate}
+            onDetails={onDetails}
+            onDelete={onDelete}
+            onUpdateStatus={onUpdateStatus}
+          />
+        ))}
+      </div>
+    </>
   );
 };

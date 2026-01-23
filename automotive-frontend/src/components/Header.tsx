@@ -1,8 +1,10 @@
 interface HeaderProps {
   onNewVehicle: () => void;
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
 }
 
-export const Header = ({ onNewVehicle }: HeaderProps) => {
+export const Header = ({ onNewVehicle, searchTerm, onSearchChange }: HeaderProps) => {
   return (
     <header className="header">
       <div className="container">
@@ -19,7 +21,13 @@ export const Header = ({ onNewVehicle }: HeaderProps) => {
         </div>
         <div className="header-actions">
           <div className="header-search">
-            <input className="header-search-input" placeholder="Buscar vehículo..." type="text" />
+            <input
+              className="header-search-input"
+              placeholder="Buscar vehículo..."
+              type="text"
+              value={searchTerm}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
             <span className="material-symbols-outlined header-search-icon">search</span>
           </div>
           <button className="btn btn-primary" onClick={onNewVehicle}>
