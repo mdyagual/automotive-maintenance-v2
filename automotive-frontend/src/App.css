@@ -1396,3 +1396,145 @@ body {
         gap: var(--space-4);
     }
 }
+
+/* ===================================
+   DETAILS MODAL - ALERTS SECTION
+   HU-003 Escenario 6
+   =================================== */
+.details-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.alerts-section {
+    margin-top: var(--space-4);
+}
+
+.alerts-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--text-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--border-dark);
+}
+
+.alerts-title .material-symbols-outlined {
+    color: var(--accent-blue);
+    font-size: 24px;
+}
+
+.alerts-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: var(--space-2);
+}
+
+.alert-item {
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    transition: all 0.2s ease;
+}
+
+.alert-item:hover {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: var(--accent-blue);
+    transform: translateX(4px);
+}
+
+.alert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+}
+
+.alert-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.alert-type-basic .alert-type-badge {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--accent-green);
+    border: 1px solid var(--accent-green);
+}
+
+.alert-type-major .alert-type-badge {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--accent-yellow);
+    border: 1px solid var(--accent-yellow);
+}
+
+.alert-type-critical .alert-type-badge {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--accent-red);
+    border: 1px solid var(--accent-red);
+}
+
+.alert-date {
+    font-size: var(--text-xs);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.alert-body {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.alert-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.alert-info .material-symbols-outlined {
+    color: var(--accent-blue);
+    font-size: 20px;
+}
+
+.alert-mileage {
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.alerts-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8);
+    text-align: center;
+    background: rgba(15, 23, 42, 0.3);
+    border: 1px dashed var(--border-dark);
+    border-radius: var(--radius-md);
+}
+
+.alerts-empty .material-symbols-outlined {
+    font-size: 48px;
+    color: var(--accent-green);
+    margin-bottom: var(--space-3);
+}
+
+.alerts-empty p {
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+}
