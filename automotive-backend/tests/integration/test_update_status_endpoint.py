@@ -50,7 +50,7 @@ class TestUpdateVehicleStatusEndpoint:
         Given: A vehicle exists with status 'active'
         When: PUT /vehicles/{id}/status with 'in_maintenance'
         Then: Should return 200 OK and update status
-        
+
         Business Rules: RN-025, RN-028
         User Story: HU-005 Escenario 1
         """
@@ -74,7 +74,7 @@ class TestUpdateVehicleStatusEndpoint:
         Given: A vehicle exists with status 'active'
         When: PUT /vehicles/{id}/status with 'retired'
         Then: Should return 200 OK and update status to retired
-        
+
         Business Rules: RN-025, RN-026
         User Story: HU-005 Escenario 3
         """
@@ -98,7 +98,7 @@ class TestUpdateVehicleStatusEndpoint:
         Given: A vehicle exists with status 'active'
         When: PUT /vehicles/{id}/status with 'inactive'
         Then: Should return 200 OK and update status to inactive
-        
+
         Business Rules: RN-025
         """
         # Arrange
@@ -121,12 +121,12 @@ class TestUpdateVehicleStatusEndpoint:
         Given: A vehicle exists with status 'inactive'
         When: PUT /vehicles/{id}/status with 'active'
         Then: Should return 200 OK and update status to active
-        
+
         Business Rules: RN-025
         """
         # Arrange
         client = TestClient(app)
-        
+
         # First set to inactive
         client.put("/vehicles/V-123/status", json={"new_status": "inactive"})
 
@@ -147,7 +147,7 @@ class TestUpdateVehicleStatusEndpoint:
         Given: A vehicle exists
         When: PUT /vehicles/{id}/status with invalid status 'invalid_status'
         Then: Should return 400 Bad Request
-        
+
         Business Rules: RN-025
         """
         # Arrange

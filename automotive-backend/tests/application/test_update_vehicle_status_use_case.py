@@ -22,7 +22,7 @@ class TestUpdateVehicleStatusUseCase:
         Then: Vehicle status should be updated
         And: Vehicle should be persisted
         And: Status timestamp should be updated
-        
+
         Business Rules: RN-025, RN-028
         """
         # Arrange
@@ -53,7 +53,7 @@ class TestUpdateVehicleStatusUseCase:
         Given: A vehicle with status 'active'
         When: Updating status to 'retired'
         Then: Vehicle status should be updated to retired
-        
+
         Business Rules: RN-025, RN-026
         """
         # Arrange
@@ -82,7 +82,7 @@ class TestUpdateVehicleStatusUseCase:
         Given: A vehicle with status 'active'
         When: Updating status to 'inactive'
         Then: Vehicle status should be updated to inactive
-        
+
         Business Rules: RN-025
         """
         # Arrange
@@ -111,7 +111,7 @@ class TestUpdateVehicleStatusUseCase:
         Given: A vehicle with status 'active'
         When: Attempting to update with invalid status 'invalid_status'
         Then: Should raise InvalidStatusException
-        
+
         Business Rules: RN-025
         """
         # Arrange
@@ -130,7 +130,7 @@ class TestUpdateVehicleStatusUseCase:
         # Act & Assert
         with pytest.raises(InvalidStatusException) as exc_info:
             use_case.execute(command)
-        
+
         assert "Estado inválido 'invalid_status'" in str(exc_info.value)
 
     def test_update_status_with_nonexistent_vehicle_raises_exception(self, vehicle_repository) -> None:
