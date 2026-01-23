@@ -1,5 +1,4 @@
 import type { VehicleStatus } from '../types/vehicle';
-import { getStatusText, getStatusIcon } from '../utils/formatters';
 
 interface StatusFilterProps {
   currentFilter: VehicleStatus | 'all';

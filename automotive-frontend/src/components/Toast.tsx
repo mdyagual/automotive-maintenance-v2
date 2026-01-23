@@ -12,7 +12,7 @@ const icons = {
   info: 'ℹ️',
 };
 
-export const Toast = ({ toasts, onRemove }: ToastProps) => {
+export const Toast = ({ toasts }: ToastProps) => {
   return (
     <div className="toast-container">
       {toasts.map((toast) => (

@@ -1,11 +1,8 @@
 import type { Vehicle } from '../types/vehicle';
 import {
   formatNumber,
-  getAlertBadgeClass,
-  getAlertIcon,
   getStatusText,
   getStatusBadgeClass,
-  getStatusIcon,
 } from '../utils/formatters';
 
 interface VehicleCardProps {
@@ -13,7 +10,6 @@ interface VehicleCardProps {
   onUpdate: (vehicleId: string) => void;
   onDetails: (vehicleId: string) => void;
   onDelete: (vehicleId: string) => void;
-  onAlerts: (vehicleId: string) => void;
   onUpdateStatus: (vehicleId: string) => void;
 }
 
@@ -22,14 +18,10 @@ export const VehicleCard = ({
   onUpdate,
   onDetails,
   onDelete,
-  onAlerts,
   onUpdateStatus,
 }: VehicleCardProps) => {
   const alertCount = vehicle.alerts?.length || 0;
-  const badgeClass = getAlertBadgeClass(alertCount);
-  const badgeIcon = getAlertIcon(alertCount);
   const statusBadgeClass = getStatusBadgeClass(vehicle.status);
-  const statusIcon = getStatusIcon(vehicle.status);
   const statusText = getStatusText(vehicle.status);
   const isRetired = vehicle.status === 'retired';
   const hasAlert = alertCount > 0;
