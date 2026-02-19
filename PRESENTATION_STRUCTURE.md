@@ -453,7 +453,7 @@ Job 5: CI Success Summary
 - Filtrar por estado "active"
 - Mostrar solo vehículos activos
 
-**6. Ver Detalles con Alertas (30s)** ⭐ MEJORA
+**6. Ver Detalles con Alertas (30s)** ⭐
 - Click "Detalles"
 - Mostrar modal con:
   - Información del vehículo
